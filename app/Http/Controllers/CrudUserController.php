@@ -40,11 +40,13 @@ class CrudUserController extends Controller
             Auth::loginUsingId($user->id);
             $request->session()->regenerate();
 
-            return redirect()->intended('list')->withSuccess('Signed in');
+            return redirect('/social')->withSuccess('Signed in');
         }
 
-        return redirect('/social')->withSuccess('Signed in');   
-    } 
+        return redirect('/social')->withErrors([
+            'email' => 'Email hoặc mật khẩu không đúng'
+        ])->withInput();
+    }        
     /**
      * Registration page
      */
@@ -60,7 +62,7 @@ class CrudUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:100',
-            'email' => 'required|email',
+            'email' => 'required|email|max:100',
             'password' => 'required|min:6|confirmed',
         ]);
 
@@ -77,6 +79,7 @@ class CrudUserController extends Controller
         }
 
         $baseUsername = Str::slug(strtolower(strtok($request->email, '@')), '_');
+
         if (empty($baseUsername)) {
             $baseUsername = 'user';
         }
@@ -90,12 +93,18 @@ class CrudUserController extends Controller
         }
 
         DB::table('users')->insert([
-            'username' => $username,
-            'email' => $request->email,
+            'username'      => $username,
+            'email'         => $request->email,
             'password_hash' => Hash::make($request->password),
-            'fullname' => $request->name,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'fullname'      => $request->name,
+            'gender'        => null,
+            'phone'         => null,
+            'avatar_url'    => null,
+            'cover_url'     => null,
+            'role'          => 'user',
+            'is_active'     => 1,
+            'created_at'    => now(),
+            'updated_at'    => now(),
         ]);
 
         return redirect('login')->withSuccess('Đăng ký thành công');
@@ -179,6 +188,5 @@ class CrudUserController extends Controller
         Session::flush();
         Auth::logout();
 
-        return Redirect('login');
-    }
+        return Redirect('/');    }
 }

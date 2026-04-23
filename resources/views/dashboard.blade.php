@@ -5,6 +5,86 @@
     <title>ESPACE</title>
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/dashbroad.css') }}" rel="stylesheet">
+    <style>
+    .avatar-menu {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        margin-left: 8px;
+    }
+
+    .avatar-btn {
+        width: 42px;
+        height: 42px;
+        border: none;
+        background: transparent;
+        padding: 0;
+        border-radius: 50%;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .avatar-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        display: block;
+    }
+
+    .avatar-dropdown {
+        position: absolute;
+        top: 52px;
+        right: 0;
+        width: 320px;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+        padding: 14px;
+        display: none;
+        z-index: 9999;
+    }
+
+    .avatar-dropdown.show {
+        display: block;
+    }
+
+    .avatar-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px;
+        margin-bottom: 12px;
+        border-radius: 14px;
+        background: #f7f7f7;
+    }
+
+    .avatar-header img {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .avatar-dropdown a {
+        display: block;
+        text-decoration: none;
+        color: #111;
+        padding: 12px 14px;
+        border-radius: 12px;
+        margin-bottom: 6px;
+        background: #f7f7f7;
+    }
+
+    .avatar-dropdown a:hover {
+        background: #ececec;
+    }
+
+    .logout-link {
+        font-weight: 600;
+        color: #c00020 !important;
+    }
+</style>
 </head>
 
 <body>
@@ -107,14 +187,37 @@
         <!-- MAIN -->
         <div class="main">
 
+
             <!-- TOPBAR -->
             <div class="topbar">
                 <input class="search" placeholder="Tìm kiếm.....">
 
                 <button class="btn-top">Bạn bè</button>
                 <button class="btn-top">Theo dõi</button>
-            </div>
 
+                <div class="avatar-menu">
+                    <button type="button" class="avatar-btn" onclick="toggleAvatarMenu()">
+                        <img src="/img/user/user.jpg" alt="avatar">
+                    </button>
+
+                    <div id="avatarDropdown" class="avatar-dropdown">
+                        <div class="avatar-header">
+                            <img src="/img/user/user.jpg" alt="avatar">
+                            <div>
+                                <strong>{{ Auth::user()->fullname ?? 'Người dùng' }}</strong><br>
+                                <small>{{ Auth::user()->email ?? '' }}</small>
+                            </div>
+                        </div>
+
+                        <a href="#">Xem tất cả trang cá nhân</a>
+                        <a href="#">Cài đặt và quyền riêng tư</a>
+                        <a href="#">Trợ giúp và hỗ trợ</a>
+                        <a href="#">Màn hình và trợ năng</a>
+                        <a href="#">Đóng góp ý kiến</a>
+                        <a href="{{ route('signout') }}" class="logout-link">Đăng xuất</a>
+                    </div>
+                </div>
+            </div>             
             <!-- CONTENT -->
             <div class="content">
                 @yield('content')
@@ -124,5 +227,18 @@
 
     </div>
 </body>
+<script>
+    function toggleAvatarMenu() {
+        document.getElementById('avatarDropdown').classList.toggle('show');
+    }
 
+    document.addEventListener('click', function (e) {
+        const menu = document.querySelector('.avatar-menu');
+        const dropdown = document.getElementById('avatarDropdown');
+
+        if (menu && !menu.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+</script>
 </html>

@@ -106,11 +106,11 @@
     <div id="registerPopup" class="popup">
         <div class="popup-box">
 
-            <span class="close" onclick="closePopup()">×</span>
+            <span class="close" onclick="closePopup()"></span>
 
             <h2>Đăng ký</h2>
 
-            <form method="POST" action="/register">
+            <form method="POST" action="{{ route('user.postUser') }}">               
                 @csrf
                 <input name="name" placeholder="Tên">
                 <input name="email" placeholder="Email">
