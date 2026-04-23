@@ -8,34 +8,20 @@ use Illuminate\Support\Facades\Auth;
 
 class MessageController extends Controller
 {
-    // public function index()
-    // {
-    //     // 1. Lấy ID của mình
-    //     $myId = Auth::id();
-
-    //     // 2. Lấy các cuộc hội thoại mà mình có tham gia
-    //     $conversations = Conversation::whereHas('participants', function($query) use ($myId) {
-    //         $query->where('user_id', $myId);
-    //     })
-    //     ->with(['lastMessage', 'participants.user']) // Load sẵn tin nhắn cuối và thông tin người kia
-    //     ->get();
-
-    //     // 3. Đẩy biến $conversations sang view list_messages
-    //     return view('social.list_messages', compact('conversations')); 
-    // }
     public function index()
     {
-        $myId = 1; // ID giả lập của bạn
+        // 1. Lấy ID của mình
+        $myId = Auth::id();
 
-        $conversations = Conversation::whereHas('participants', function ($q) use ($myId) {
-            $q->where('user_id', $myId);
+        // 2. Lấy các cuộc hội thoại mà mình có tham gia
+        $conversations = Conversation::whereHas('participants', function($query) use ($myId) {
+            $query->where('user_id', $myId);
         })
-            ->with([
-                'lastMessage',
-                'participants.user' // <--- BẮT BUỘC phải có dòng này để lấy Tên
-            ])
-            ->get();
+        ->with(['lastMessage', 'participants.user']) // Load sẵn tin nhắn cuối và thông tin người kia
+        ->get();
 
-        return view('social.list_messages', compact('conversations'));
+        // 3. Đẩy biến $conversations sang view list_messages
+        return view('social.list_messages', compact('conversations')); 
     }
+   
 }
