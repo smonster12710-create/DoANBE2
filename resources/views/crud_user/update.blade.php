@@ -2,6 +2,8 @@
 
 @section('content')
 <main class="signup-form">
+    <link href="{{ asset('css/add.css') }}" rel="stylesheet">
+
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-4">
