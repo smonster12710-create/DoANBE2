@@ -49,7 +49,7 @@
                     </button>
                 </form>
 
-                <a href="#" style="text-decoration: none; color: inherit; margin-left: 10px;">
+                <a href="{{ route('post.likers', $post->id) }}" style="text-decoration: none; color: inherit; margin-left: 10px;">
                     <small style="color: #666;">(Xem ai đã like)</small>
                 </a>
             </div>

@@ -40,5 +40,8 @@ Route::get('/', function () {
 // Nút like
 Route::post('/post/{id}/like', [CrudUserController::class, 'toggleLike'])->name('post.like');
 
+// Trang xem danh sách người like
+Route::get('/post/{id}/likers', [CrudUserController::class, 'listLikers'])->name('post.likers');
+
 //social
 Route::get('/social', [CrudUserController::class, 'index'])->name('social.index');

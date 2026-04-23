@@ -198,6 +198,14 @@ class CrudUserController extends Controller
     return redirect()->back();
     }
 
+    public function listLikers($postId)
+    {
+    // Lấy bài viết và load danh sách người dùng đã like
+    $post = Post::with('likedByUsers')->findOrFail($postId);
+    
+    return view('social.post_likers', compact('post'));
+    }
+
     public function index()
     {
     // Lấy dữ liệu thật từ DB
