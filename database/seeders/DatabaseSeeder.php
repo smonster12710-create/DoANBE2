@@ -2,18 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         for ($i = 1; $i <= 5; $i++) {
@@ -23,65 +19,86 @@ class DatabaseSeeder extends Seeder
                 'email' => "user$i@gmail.com",
                 'password_hash' => bcrypt('123456'),
                 'fullname' => "Người dùng $i",
+                'avatar_url' => "https://picsum.photos/200/200?sig=user_$i",
+                'cover_url' => "https://picsum.photos/800/300?sig=cover_$i",
                 'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             // 2. Locations
-            $locId = DB::table('locations')->insertGetId(['name' => "Quận $i, TP.HCM"]);
+            $locId = DB::table('locations')->insertGetId([
+                'name' => "Quận $i, TP.HCM",
+                'address' => "$i Đường Lê Lợi, Quận $i",
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
             // 3. Hashtags
-            $hashId = DB::table('hashtags')->insertGetId(['name' => "trending_topic_$i"]);
+            $hashId = DB::table('hashtags')->insertGetId([
+                'name' => "trending_$i",
+                'usage_count' => rand(10, 100)
+            ]);
 
             // 4. Conversations
             $convId = DB::table('conversations')->insertGetId([
                 'name' => "Nhóm học tập $i",
+                'image_url' => "https://picsum.photos/100/100?sig=conv_$i", // Ảnh nhóm
                 'type' => 'group',
-                'created_at' => now()
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
-            // 5. Conversation Participants (Bảng trung gian 1)
+            // 5. Conversation Participants
             DB::table('conversation_participants')->insert([
                 'conversation_id' => $convId,
                 'user_id' => $uId,
+                'role' => 'admin',
                 'joined_at' => now()
             ]);
 
-            // 6. Posts
+            // 6. Posts (Đã bỏ cột image_url trực tiếp)
             $postId = DB::table('posts')->insertGetId([
                 'user_id' => $uId,
-                'content' => "Học Laravel thú vị quá nè mọi người ơi #$i",
+                'content' => "Hôm nay mình học về Database Seeder trong Laravel cực hay! #$i",
                 'location_id' => $locId,
+                'privacy' => 0,
                 'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
-            // 7. Post Media
+            // 7. Post Media (Ảnh chi tiết cho Post)
             DB::table('post_media')->insert([
                 'post_id' => $postId,
-                'media_url' => "https://picsum.photos/400/300?sig=$i",
-                'media_type' => 'image',
-                'sort_order' => 1
+                'media_url' => "https://picsum.photos/600/400?sig=post_$i",
+                'media_type' => 'photo',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
-            // 8. Post Hashtags (Bảng trung gian 2)
+            // 8. Post Hashtags
             DB::table('post_hashtags')->insert([
                 'post_id' => $postId,
                 'hashtag_id' => $hashId
             ]);
 
-            // 9. Messages
+            // 9. Messages (Có thêm image_url)
             DB::table('messages')->insert([
                 'conversation_id' => $convId,
                 'sender_id' => $uId,
-                'content' => "Chào buổi sáng cả nhóm!",
+                'content' => "Chào mọi người, đây là ảnh tài liệu nhé!",
+                'image_url' => "https://picsum.photos/300/200?sig=msg_$i", // Ảnh tin nhắn
+                'is_read' => false,
                 'created_at' => now()
             ]);
 
-            // 10. Comments
+            // 10. Comments (Có thêm image_url)
             DB::table('comments')->insert([
                 'post_id' => $postId,
                 'user_id' => $uId,
-                'content' => "Bài viết này hay quá!",
-                'created_at' => now()
+                'content' => "Ảnh minh họa cho bình luận của mình.",
+                'image_url' => "https://picsum.photos/250/150?sig=cmt_$i", // Ảnh bình luận
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             // 11. Likes
@@ -103,8 +120,8 @@ class DatabaseSeeder extends Seeder
             // 13. Notifications
             if ($uId > 1) {
                 DB::table('notifications')->insert([
-                    'user_id' => $uId,       // Người nhận là user hiện tại
-                    'actor_id' => $uId - 1,  // Người tác động là user trước đó (đảm bảo id này đã tồn tại)
+                    'user_id' => $uId,
+                    'actor_id' => $uId - 1,
                     'type' => 'mention',
                     'reference_id' => $postId,
                     'created_at' => now(),
@@ -112,12 +129,13 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
 
-            // 14. Reports
+            // 14. Reports (Có thêm image_url)
             if ($uId > 1) {
                 DB::table('reports')->insert([
                     'user_id' => $uId,
-                    'post_id' => $postId - 1, // Báo cáo bài viết của vòng lặp trước
-                    'reason' => "Nội dung không phù hợp $i",
+                    'post_id' => $postId - 1,
+                    'reason' => "Nội dung vi phạm tiêu chuẩn cộng đồng số $i",
+                    'image_url' => "https://picsum.photos/400/300?sig=report_$i", // Ảnh bằng chứng
                     'status' => 'pending',
                     'created_at' => now(),
                     'updated_at' => now()
