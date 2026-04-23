@@ -58,18 +58,16 @@ class CrudUserController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
+            'password' => 'required|min:6|confirmed',
         ]);
 
         $data = $request->all();
         $check = User::create([
-            'name' => $data['name'],
-            'phone' => $data['phone'],
-            'address' => $data['address'],
-            'email' => $data['email'],
-            'like' => $data['like'],
-            'password' => Hash::make($data['password'])
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
         ]);
+
 
         return redirect("login");
     }
@@ -77,7 +75,8 @@ class CrudUserController extends Controller
     /**
      * View user detail page
      */
-    public function readUser(Request $request) {
+    public function readUser(Request $request)
+    {
         $user_id = $request->get('id');
         $user = User::find($user_id);
 
@@ -87,22 +86,21 @@ class CrudUserController extends Controller
     /**
      * Delete user by id
      */
-    public function deleteUser(Request $request) {
-        $user_id = $request->get('id');
-        $user = User::destroy($user_id);
+    public function deleteUser($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
 
-        return redirect("list")->withSuccess('You have signed-in');
+        return redirect()->route('user.list')->with('success', 'Deleted successfully');
     }
 
     /**
      * Form update user page
      */
-    public function updateUser(Request $request)
+    public function updateUser($id)
     {
-        $user_id = $request->get('id');
-        $user = User::find($user_id);
-
-        return view('crud_user.update', ['user' => $user]);
+        $user = User::findOrFail($id);
+        return view('crud_user.update', compact('user'));
     }
 
     /**
@@ -114,16 +112,15 @@ class CrudUserController extends Controller
 
         $request->validate([
             'name' => 'required',
-            'email' => 'required|email|unique:users,id,'.$input['id'],
-            'password' => 'required|min:6',
+            'email' => 'required|email|unique:users,id,' . $input['id'],
+            'password' => 'nullable|min:6|confirmed',
         ]);
 
-       $user = User::find($input['id']);
-       $user->name = $input['name'];
-       $user->email = $input['email'];
-       $user->password = $input['password'];
-       $user->like = $input['like'];
-       $user->save();
+        $user = User::find($input['id']);
+        $user->name = $input['name'];
+        $user->email = $input['email'];
+        $user->password = $input['password'];
+        $user->save();
 
         return redirect("list")->withSuccess('You have signed-in');
     }
@@ -133,12 +130,12 @@ class CrudUserController extends Controller
      */
     public function listUser()
     {
-//        $users = [
-//                'users' => User::all()
-//        ];
-//        return view('crud_user.ronaldo', $users);
+        //        $users = [
+        //                'users' => User::all()
+        //        ];
+        //        return view('crud_user.ronaldo', $users);
 
-        if(Auth::check()){
+        if (Auth::check()) {
             $users = User::all();
             return view('crud_user.list', ['users' => $users]);
         }
@@ -149,7 +146,8 @@ class CrudUserController extends Controller
     /**
      * Sign out
      */
-    public function signOut() {
+    public function signOut()
+    {
         Session::flush();
         Auth::logout();
 
