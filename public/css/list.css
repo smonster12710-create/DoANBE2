@@ -1,0 +1,99 @@
+body {
+    margin: 0;
+}
+
+.container {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+.main-container {
+    width: 100%;
+    padding: 20px;
+    background: #f5f5f5;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.btn-add {
+    background: #f4a000;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+/* Header cột */
+.card-header {
+    display: flex;
+    padding: 10px 15px;
+    font-weight: bold;
+    color: #555;
+}
+
+/* Item */
+.card-item {
+    display: flex;
+    align-items: center;
+    background: #efb08a;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+/* Cột */
+.col {
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+}
+
+.img {
+    width: 80px;
+}
+
+.img img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+}
+
+.name {
+    width: 200px;
+}
+
+.author {
+    width: 150px;
+}
+
+.detail {
+    flex: 1;
+}
+
+.date {
+    width: 150px;
+}
+
+.actions {
+    width: 100px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.actions button {
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+/* Hover */
+.card-item:hover {
+    background: #eaa276;
+}
