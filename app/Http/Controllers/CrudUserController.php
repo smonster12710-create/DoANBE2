@@ -40,12 +40,14 @@ class CrudUserController extends Controller
             Auth::loginUsingId($user->id);
             $request->session()->regenerate();
 
-            return redirect()->intended('list')->withSuccess('Signed in');
+            return redirect('/social')->withSuccess('Signed in');
         }
 
-        return redirect('/social')->withSuccess('Signed in');   
-    } 
-    /**
+        return redirect('login')->withErrors([
+            'email' => 'Email hoặc mật khẩu không đúng'
+        ])->withInput();
+    }   
+     /**
      * Registration page
      */
     public function createUser()
