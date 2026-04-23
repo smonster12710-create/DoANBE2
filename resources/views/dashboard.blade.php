@@ -109,7 +109,7 @@
 
             <!-- TOPBAR -->
             <div class="topbar">
-                <input class="search" placeholder="Tìm kiếm...">
+                <input class="search" placeholder="Tìm kiếm.....">
 
                 <button class="btn-top">Bạn bè</button>
                 <button class="btn-top">Theo dõi</button>
