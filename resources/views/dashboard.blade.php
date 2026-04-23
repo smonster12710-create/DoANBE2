@@ -192,8 +192,8 @@
             <div class="topbar">
                 <input class="search" placeholder="Tìm kiếm.....">
 
-                <button class="btn-top">Bạn bè</button>
-                <button class="btn-top">Theo dõi</button>
+                <button class="btn-top">Bạn Bè</button>
+                <button class="btn-top">Theo Dõi</button>
 
                 <div class="avatar-menu">
                     <button type="button" class="avatar-btn" onclick="toggleAvatarMenu()">
@@ -214,7 +214,7 @@
                         <a href="#">Trợ giúp và hỗ trợ</a>
                         <a href="#">Màn hình và trợ năng</a>
                         <a href="#">Đóng góp ý kiến</a>
-                        <a href="{{ route('signout') }}" class="logout-link">Đăng xuất</a>
+                        <a href="{{ route('signout') }}" class="logout-link">Đăng Xuất</a>
                     </div>
                 </div>
             </div>             
