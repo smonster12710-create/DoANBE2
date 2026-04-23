@@ -12,7 +12,8 @@ body {
 
 /* 🔥 FIX CHÍNH */
 .card {
-    display: inline-block;   /* bắt buộc */
+    display: inline-block;
+    /* bắt buộc */
     width: 100%;
     break-inside: avoid;
     margin-bottom: 16px;
@@ -20,7 +21,7 @@ body {
     background: #fff;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* hover nhẹ */
@@ -92,4 +93,27 @@ body {
 
 .share {
     margin-left: auto;
+}
+
+/* Custom thanh cuộn cho danh sách comment */
+.overflow-auto::-webkit-scrollbar {
+    width: 6px;
+}
+
+.overflow-auto::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.overflow-auto::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+.overflow-auto::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* Hiệu ứng khi rê chuột vào vùng click của bài viết */
+.post-clickable-area:hover .card-text {
+    color: #000;
 }
