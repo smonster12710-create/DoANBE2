@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         // 1. NGƯỜI DÙNG (Users)
@@ -20,13 +17,10 @@ return new class extends Migration
             $table->string('fullname', 100)->nullable();
             $table->enum('gender', ['male', 'female', 'other'])->nullable();
             $table->string('phone', 20)->nullable();
-            $table->date('dob')->nullable();
             $table->text('avatar_url')->nullable();
             $table->text('cover_url')->nullable();
-            $table->text('bio')->nullable();
-            $table->string('role', 20)->default('user'); // user, admin, mod
+            $table->string('role', 20)->default('user');
             $table->boolean('is_active')->default(true);
-            $table->timestamp('last_loginat')->nullable(); // Thêm: Biết ai vừa online
             $table->timestamps();
         });
 
@@ -42,26 +36,26 @@ return new class extends Migration
         Schema::create('hashtags', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100)->unique();
-            $table->integer('usage_count')->default(0); // Thêm: Thống kê hashtag hot
+            $table->integer('usage_count')->default(0);
         });
 
         // 4. CUỘC HỘI THOẠI (Conversations)
         Schema::create('conversations', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable(); // Tên nhóm chat
+            $table->string('name')->nullable();
+            $table->text('image_url')->nullable(); // Ảnh đại diện nhóm
             $table->enum('type', ['private', 'group'])->default('private');
             $table->timestamps();
         });
 
-        // 5. BÀI VIẾT (Posts)
+        // 5. BÀI VIẾT (Posts) - ĐÃ BỎ CỘT ẢNH TRỰC TIẾP
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->text('content')->nullable();
-            $table->tinyInteger('privacy')->default(0)->comment('0:Public, 1:Friends, 2:Private');
+            $table->tinyInteger('privacy')->default(0);
             $table->integer('like_count')->default(0);
             $table->integer('comment_count')->default(0);
-            $table->integer('view_count')->default(0); // Thêm: Lượt xem bài viết
             $table->foreignId('location_id')->nullable()->constrained('locations')->onDelete('set null');
             $table->timestamps();
         });
@@ -79,16 +73,17 @@ return new class extends Migration
             $table->id();
             $table->foreignId('conversation_id')->constrained('conversations')->onDelete('cascade');
             $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
-            $table->text('content');
-            $table->boolean('is_read')->default(false); // Thêm: Trạng thái đã đọc
+            $table->text('content')->nullable();
+            $table->text('image_url')->nullable(); // Ảnh gửi kèm tin nhắn
+            $table->boolean('is_read')->default(false);
             $table->timestamp('created_at')->useCurrent();
         });
 
-        // 8. THÀNH VIÊN NHÓM CHAT (Conversation Participants)
+        // 8. THÀNH VIÊN NHÓM CHAT (Participants)
         Schema::create('conversation_participants', function (Blueprint $table) {
             $table->foreignId('conversation_id')->constrained('conversations')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->enum('role', ['admin', 'member'])->default('member'); // Thêm: Quyền trong nhóm
+            $table->enum('role', ['admin', 'member'])->default('member');
             $table->timestamp('joined_at')->useCurrent();
             $table->primary(['conversation_id', 'user_id']);
         });
@@ -98,10 +93,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->unsignedBigInteger('parent_id')->nullable(); // Để reply comment
-            $table->text('content');
+            $table->text('content')->nullable();
+            $table->text('image_url')->nullable(); // Ảnh bình luận
             $table->timestamps();
-            $table->foreign('parent_id')->references('id')->on('comments')->onDelete('cascade');
         });
 
         // 10. LƯỢT THÍCH (Likes)
@@ -112,13 +106,12 @@ return new class extends Migration
             $table->primary(['user_id', 'post_id']);
         });
 
-        // 11. ẢNH/VIDEO BÀI VIẾT (Post Media)
+        // 11. ẢNH BÀI VIẾT CHI TIẾT (Post Media) - Dùng bảng này thay cho cột ảnh ở bảng Post
         Schema::create('post_media', function (Blueprint $table) {
             $table->id();
             $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
             $table->text('media_url');
-            $table->string('media_type', 20); // photo, video, gif
-            $table->integer('sort_order')->default(0);
+            $table->string('media_type', 20); // photo, video
             $table->timestamps();
         });
 
@@ -132,10 +125,10 @@ return new class extends Migration
         // 13. THÔNG BÁO (Notifications)
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Người nhận
-            $table->foreignId('actor_id')->constrained('users')->onDelete('cascade'); // Người gây ra
-            $table->string('type'); // like, comment, follow, mention
-            $table->unsignedBigInteger('reference_id')->nullable(); // ID bài viết/comment liên quan
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('actor_id')->constrained('users')->onDelete('cascade');
+            $table->string('type');
+            $table->unsignedBigInteger('reference_id')->nullable();
             $table->boolean('is_read')->default(false);
             $table->timestamps();
         });
@@ -146,16 +139,27 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
             $table->text('reason');
+            $table->text('image_url')->nullable(); // Ảnh bằng chứng báo cáo
             $table->enum('status', ['pending', 'resolved', 'dismissed'])->default('pending');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('social_network');
+        Schema::dropIfExists('reports');
+        Schema::dropIfExists('notifications');
+        Schema::dropIfExists('post_hashtags');
+        Schema::dropIfExists('post_media');
+        Schema::dropIfExists('likes');
+        Schema::dropIfExists('comments');
+        Schema::dropIfExists('conversation_participants');
+        Schema::dropIfExists('messages');
+        Schema::dropIfExists('follows');
+        Schema::dropIfExists('posts');
+        Schema::dropIfExists('conversations');
+        Schema::dropIfExists('hashtags');
+        Schema::dropIfExists('locations');
+        Schema::dropIfExists('users');
     }
 };
