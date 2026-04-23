@@ -37,7 +37,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-//social
-Route::get('social', function () {
-    return view('social.index');
-});
+// Nút like
+Route::post('/post/{id}/like', [CrudUserController::class, 'toggleLike'])->name('post.like');
+
+Route::get('/social', [CrudUserController::class, 'index'])->name('social.index');
