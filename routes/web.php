@@ -47,5 +47,11 @@ Route::get('social', function () {
 Route::get('list_messages', function () {
     return view('social.list_messages');
 });
+
 Route::get('/list_messages', [MessageController::class, 'index']);
 Route::get('/search', [SearchController::class, 'globalSearch'])->name('search.global');
+
+// Route dành cho trang danh sách hoặc trang nhắn tin chi tiết
+Route::get('/list_messages', [MessageController::class, 'index']);
+
+Route::get('/chat-messages/{id}', [MessageController::class, 'show'])->name('chat_messages');
