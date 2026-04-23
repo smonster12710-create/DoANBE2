@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CrudUserController;
-use App\Http\Controllers\MessageController; 
+use App\Http\Controllers\MessageController;
 
 
 /*
@@ -46,4 +46,8 @@ Route::get('social', function () {
 Route::get('list_messages', function () {
     return view('social.list_messages');
 });
+// Route dành cho trang danh sách hoặc trang nhắn tin chi tiết
+
 Route::get('/list_messages', [MessageController::class, 'index']);
+
+Route::get('/chat-messages/{id}', [MessageController::class, 'show'])->name('chat_messages');

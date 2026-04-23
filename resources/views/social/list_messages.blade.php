@@ -14,23 +14,26 @@
             @php $partner = $chat->partner; @endphp
 
             @if($partner)
-            <div class="message-item">
-                <div class="avatar-wrapper">
-                    {{-- Sửa image_url thành avatar_url --}}
-                    <img src="{{ $partner->avatar_url ?? 'https://i.pravatar.cc/40' }}" class="chat-avatar">
-                </div>
 
-                <div class="message-info">
-                    <h4 class="user-name">
-                        {{-- Sửa name thành fullname --}}
-                        {{ $partner->fullname ?? 'Người dùng không tên' }}
-                    </h4>
+            <a href="{{ route('chat_messages', $chat->id) }}" class="message-item-link">
+                <div class="message-item">
+                    <div class="avatar-wrapper">
+                        {{-- Sửa image_url thành avatar_url --}}
+                        <img src="{{ $partner->avatar_url ?? 'https://i.pravatar.cc/40' }}" class="chat-avatar">
+                    </div>
 
-                    <p class="last-message">
-                        {{ $chat->lastMessage->content ?? 'Bắt đầu trò chuyện ngay' }}
-                    </p>
+                    <div class="message-info">
+                        <h4 class="user-name">
+                            {{-- Sửa name thành fullname --}}
+                            {{ $partner->fullname ?? 'Người dùng không tên' }}
+                        </h4>
+
+                        <p class="last-message">
+                            {{ $chat->lastMessage->content ?? 'Bắt đầu trò chuyện ngay' }}
+                        </p>
+                    </div>
                 </div>
-            </div>
+            </a>
             @endif
             @endforeach
         </div>

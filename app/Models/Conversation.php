@@ -32,14 +32,9 @@ class Conversation extends Model
     // 4. Accessor lấy thông tin người chat cùng (Partner)
     public function getPartnerAttribute()
     {
-        $me = Auth::id(); // Dùng Auth::id() thay cho auth()->id()
-
-        $participant = $this->participants()
-            ->where('user_id', '!=', $me)
-            ->first();
-
+        $myId = Auth::id(); 
+        // Lấy participant không phải là mình
+        $participant = $this->participants->where('user_id', '!=', $myId)->first();
         return $participant ? $participant->user : null;
     }
-
-   
 }

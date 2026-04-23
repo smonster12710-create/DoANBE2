@@ -111,7 +111,10 @@ body {
     position: sticky;
     top: 20px;
 }
-
+.scrollable-list a{
+    text-decoration: none;
+    color: inherit;
+}
 .search-box {
     background: #f0f2f5;
     border-radius: 10px;

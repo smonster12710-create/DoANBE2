@@ -1,0 +1,162 @@
+.main-container {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    background-color: #f0f2f5;
+}
+
+/* Sidebar bên trái */
+.messages-sidebar {
+    width: 320px;
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    height: calc(100vh - 40px);
+    position: sticky;
+    top: 20px;
+}
+
+.search-box {
+    background: #f0f2f5;
+    border-radius: 10px;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    margin-left: 10px;
+    width: 100%;
+}
+
+/* Item tin nhắn */
+.message-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.message-item:hover {
+    background-color: #f5f5f5;
+}
+
+.avatar-wrapper img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    margin-right: 15px;
+}
+
+.user-name {
+    margin: 0;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.last-message {
+    margin: 0;
+    font-size: 13px;
+    color: #65676b;
+}
+
+/* Khung chat chính */
+.chat-main-area {
+    flex: 1;
+    background: white;
+
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 40px);
+    border: 1px solid #eee;
+    top: 20px;
+
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Message Bubbles */
+.message-wrapper {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.message-wrapper.me {
+    justify-content: flex-end;
+}
+
+.message-wrapper.them {
+    justify-content: flex-start;
+}
+
+.message-bubble {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.message-wrapper.me .message-bubble {
+    background-color: #0084ff;
+    color: white;
+}
+
+.message-wrapper.them .message-bubble {
+    background-color: #e4e6eb;
+    color: black;
+}
+
+.header-info {
+    display: flex;
+    /* Kích hoạt flexbox để các phần tử con nằm hàng ngang */
+    align-items: center;
+    /* Căn giữa ảnh và tên theo chiều dọc */
+    gap: 12px;
+    /* Tạo khoảng cách giữa ảnh và chữ */
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    /* Đường kẻ ngang phân cách */
+}
+
+.chat-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    /* Làm ảnh tròn */
+    object-fit: cover;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    /* Cho tên và username nằm chồng lên nhau */
+}
+
+.user-fullname {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.user-username {
+    color: gray;
+    font-size: 13px;
+}
+.scrollable-list a{
+    text-decoration: none;
+    color: inherit;
+}
