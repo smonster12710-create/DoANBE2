@@ -2,7 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CrudUserController;
-use App\Http\Controllers\MessageController; 
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\SearchController;
 
 
 /*
@@ -47,3 +48,4 @@ Route::get('list_messages', function () {
     return view('social.list_messages');
 });
 Route::get('/list_messages', [MessageController::class, 'index']);
+Route::get('/search', [SearchController::class, 'globalSearch'])->name('search.global');
