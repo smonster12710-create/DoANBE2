@@ -1,0 +1,159 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+}
+
+/* LAYOUT */
+.container-flex {
+    display: flex;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    background: #f5f5f5;
+    padding: 20px;
+    position: fixed;
+
+    display: flex;
+    flex-direction: column;
+
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+/* LOGO */
+.logo {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* MENU */
+.menu {
+    margin-bottom: 10px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 10px;
+    font-size: 15px;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: 0.2s;
+}
+
+.menu-item:hover {
+    background: #eaeaea;
+}
+
+/* ================= TRENDING ================= */
+.trending {
+    margin-top: 10px;
+}
+
+.trending h4 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.trend {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    padding: 5px 0;
+}
+
+/* ================= PROFILE ================= */
+.profile {
+    margin-top: auto; /* 🔥 đẩy xuống đáy */
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding-top: 15px;
+}
+
+.profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+/* ================= MAIN ================= */
+.main {
+    margin-left: 260px;
+    width: 100%;
+}
+
+/* ================= TOPBAR ================= */
+.topbar {
+    background: #fff;
+    padding: 15px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    border-bottom: 1px solid #eee;
+}
+
+.search {
+    flex: 1;
+    padding: 10px;
+
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    outline: none;
+}
+
+.btn-top {
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    background: #eee;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-top:hover {
+    background: #ddd;
+}
+
+/* ================= CONTENT ================= */
+.content {
+    padding: 20px;
+}
+
+/* ================= FEED (OPTIONAL) ================= */
+.feed {
+    column-count: 4;
+    column-gap: 15px;
+}
+
+.post {
+    break-inside: avoid;
+    background: #fff;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 12px;
+}
+
+.post img {
+    width: 100%;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+.danh_muc {
+    text-decoration: none;
+    color: black;
+}

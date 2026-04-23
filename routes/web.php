@@ -36,3 +36,8 @@ Route::get('signout', [CrudUserController::class, 'signOut'])->name('signout');
 Route::get('/', function () {
     return view('welcome');
 });
+
+//social
+Route::get('social', function () {
+    return view('social.index');
+});

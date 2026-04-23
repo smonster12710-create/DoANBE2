@@ -30,10 +30,10 @@
             <div class="hero-left">
                 <div class="bg-box"></div>
 
-                <img src="/img/food1.jpg" class="img main">
-                <img src="/img/food2.jpg" class="img small top">
-                <img src="/img/food3.jpg" class="img small left">
-                <img src="/img/food4.jpg" class="img small bottom">
+                <img src="/img/welcome/food1.jpg" class="img main">
+                <img src="/img/welcome/food2.jpg" class="img small top">
+                <img src="/img/welcome/food3.jpg" class="img small left">
+                <img src="/img/welcome/food4.jpg" class="img small bottom">
 
                 <div class="overlay">
                     🔍 bữa tối với món gà dễ làm
@@ -64,10 +64,10 @@
             </div>
 
             <div class="gallery">
-                <img src="/img/car.jpg" class="item tall">
-                <img src="/img/cat1.jpg" class="item">
-                <img src="/img/cat2.jpg" class="item">
-                <img src="/img/city.jpg" class="item wide">
+                <img src="/img/welcome/car.jpg" class="item tall">
+                <img src="/img/welcome/cat1.jpg" class="item">
+                <img src="/img/welcome/cat2.jpg" class="item">
+                <img src="/img/welcome/city.jpg" class="item wide">
 
             </div>
 
