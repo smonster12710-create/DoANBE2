@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CrudUserController;
+use App\Http\Controllers\MessageController; 
+
 
 /*
 |--------------------------------------------------------------------------
@@ -41,3 +43,7 @@ Route::get('/', function () {
 Route::get('social', function () {
     return view('social.index');
 });
+Route::get('list_messages', function () {
+    return view('social.list_messages');
+});
+Route::get('/list_messages', [MessageController::class, 'index']);
