@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Like;
+use App\Models\Post;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * CRUD User controller
@@ -28,26 +32,29 @@ class CrudUserController extends Controller
     public function authUser(Request $request)
     {
         $request->validate([
-            'email' => 'required',
+            'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        $credentials = $request->only('email', 'password');
+        $user = DB::table('users')->where('email', $request->email)->first();
 
-        if (Auth::attempt($credentials)) {
-            return redirect()->intended('list')
-                ->withSuccess('Signed in');
+        if ($user && Hash::check($request->password, $user->password_hash)) {
+            Auth::loginUsingId($user->id);
+            $request->session()->regenerate();
+
+            return redirect('/social')->withSuccess('Signed in');
         }
 
-        return redirect("login")->withSuccess('Login details are not valid');
-    }
-
-    /**
+        return redirect('login')->withErrors([
+            'email' => 'Email hoặc mật khẩu không đúng'
+        ])->withInput();
+    }   
+     /**
      * Registration page
      */
     public function createUser()
     {
-        return view('crud_user.create');
+        return view('crud_user.registration');
     }
 
     /**
@@ -56,26 +63,57 @@ class CrudUserController extends Controller
     public function postUser(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:100',
             'password' => 'required|min:6|confirmed',
+            'gender' => 'nullable|in:male,female,other',
+            'phone' => 'nullable|max:20',
         ]);
 
-        $data = $request->all();
-        $check = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            //anh - id 
-            
+        $existingUser = DB::table('users')->where('email', $request->email)->first();
 
+        if ($existingUser) {
+            DB::table('users')->where('id', $existingUser->id)->update([
+                'fullname' => $request->name,
+                'password_hash' => Hash::make($request->password),
+                'gender' => $request->gender,
+                'phone' => $request->phone,
+                'updated_at' => now(),
+            ]);
 
+            return redirect('login')->withSuccess('Đã cập nhật tài khoản mẫu');
+        }
+
+        $baseUsername = Str::slug(strtolower(strtok($request->email, '@')), '_');
+
+        if (empty($baseUsername)) {
+            $baseUsername = 'user';
+        }
+
+        $username = $baseUsername;
+        $count = 1;
+
+        while (DB::table('users')->where('username', $username)->exists()) {
+            $username = $baseUsername . '_' . $count;
+            $count++;
+        }
+
+        DB::table('users')->insert([
+            'username'      => $username,
+            'email'         => $request->email,
+            'password_hash' => Hash::make($request->password),
+            'fullname'      => $request->name,
+            'gender'        => $request->gender,
+            'phone'         => $request->phone,
+            'avatar_url'    => 'https://api.dicebear.com/7.x/adventurer/svg?seed=' . urlencode($username),
+            'cover_url'     => 'https://picsum.photos/800/300?sig=cover_' . urlencode($username),            'role'          => 'user',
+            'is_active'     => 1,
+            'created_at'    => now(),
+            'updated_at'    => now(),
         ]);
 
-
-        return redirect("login");
-    }
-
+        return redirect('/')->withSuccess('Đăng ký thành công');
+    }    
     /**
      * View user detail page
      */
@@ -155,6 +193,5 @@ class CrudUserController extends Controller
         Session::flush();
         Auth::logout();
 
-        return Redirect('login');
-    }
+        return Redirect('/');    }
 }

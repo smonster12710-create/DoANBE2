@@ -1,3 +1,9 @@
+@php
+    $user = Auth::user();
+
+$avatar = $user && $user->avatar_url
+    ? asset($user->avatar_url)
+    : asset('img/user/user.jpg');@endphp
 <!DOCTYPE html>
 <html>
 
@@ -5,6 +11,77 @@
     <title>ESPACE</title>
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/dashbroad.css') }}" rel="stylesheet">
+    <style>
+    .profile {
+        position: relative;
+        margin-top: auto;
+        padding: 12px;
+    }
+
+    .profile-btn {
+        border: none;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .profile-btn img,
+    .avatar-header img {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .avatar-dropdown {
+        display: none;
+        position: absolute;
+        left: 12px;
+        bottom: 75px;
+        width: 270px;
+        background: white;
+        border-radius: 14px;
+        padding: 12px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+        z-index: 9999;
+    }
+
+    .avatar-dropdown.show {
+        display: block;
+    }
+
+    .avatar-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        background: #f5f5f5;
+        border-radius: 12px;
+        margin-bottom: 10px;
+    }
+
+    .avatar-dropdown a {
+        display: block;
+        text-decoration: none;
+        color: #222;
+        padding: 11px 12px;
+        border-radius: 10px;
+        font-size: 14px;
+    }
+
+    .avatar-dropdown a:hover {
+        background: #f2f2f2;
+    }
+
+    .avatar-dropdown .logout-link {
+        color: crimson;
+        font-weight: bold;
+    }    
+    </style>
 </head>
 
 <body>
@@ -44,8 +121,10 @@
                     </a>
                 </div>
                 <div class="menu-item">
-                    <a class="danh_muc" data-bs-toggle="modal" data-bs-target="#createPostModal" style="cursor: pointer;">
-                        <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+
+                    <a class="danh_muc">
+                        <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+
                             <path fill="rgb(0, 0, 0)" d="M160 144C151.2 144 144 151.2 144 160L144 480C144 488.8 151.2 496 160 496L480 496C488.8 496 496 488.8 496 480L496 160C496 151.2 488.8 144 480 144L160 144zM96 160C96 124.7 124.7 96 160 96L480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160zM296 408L296 344L232 344C218.7 344 208 333.3 208 320C208 306.7 218.7 296 232 296L296 296L296 232C296 218.7 306.7 208 320 208C333.3 208 344 218.7 344 232L344 296L408 296C421.3 296 432 306.7 432 320C432 333.3 421.3 344 408 344L344 344L344 408C344 421.3 333.3 432 320 432C306.7 432 296 421.3 296 408z" />
                         </svg>
                         <span>Đăng bài</span>
@@ -60,10 +139,22 @@
                     </a>
                 </div>
                 <div class="menu-item">
-                    <a class="danh_muc">
+
+                    <a class="danh_muc" href="{{ url('/list_messages') }}" class="menu-item {{ request()->is('list_messages') ? 'active' : '' }}">
+                        @if(request()->is('social'))
+                        <!-- ICON ACTIVE -->
+
                         <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
                             <path fill="rgb(0, 0, 0)" d="M64 304C64 358.4 83.3 408.6 115.9 448.9L67.1 538.3C65.1 542 64 546.2 64 550.5C64 564.6 75.4 576 89.5 576C93.5 576 97.3 575.4 101 573.9L217.4 524C248.8 536.9 283.5 544 320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304zM158 471.9C167.3 454.8 165.4 433.8 153.2 418.7C127.1 386.4 112 346.8 112 304C112 200.8 202.2 112 320 112C437.8 112 528 200.8 528 304C528 407.2 437.8 496 320 496C289.8 496 261.3 490.1 235.7 479.6C223.8 474.7 210.4 474.8 198.6 479.9L140 504.9L158 471.9zM208 336C225.7 336 240 321.7 240 304C240 286.3 225.7 272 208 272C190.3 272 176 286.3 176 304C176 321.7 190.3 336 208 336zM352 304C352 286.3 337.7 272 320 272C302.3 272 288 286.3 288 304C288 321.7 302.3 336 320 336C337.7 336 352 321.7 352 304zM432 336C449.7 336 464 321.7 464 304C464 286.3 449.7 272 432 272C414.3 272 400 286.3 400 304C400 321.7 414.3 336 432 336z" />
-                        </svg> <span>Tin nhắn</span>
+                        </svg>
+                        @else
+                        <!-- ICON NORMAL -->
+
+                        <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                            <path fill="rgb(0, 0, 0)" d="M320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304C64 358.3 83.2 408.3 115.6 448.5L66.8 540.8C62 549.8 63.5 560.8 70.4 568.3C77.3 575.8 88.2 578.1 97.5 574.1L215.9 523.4C247.7 536.6 282.9 544 320 544zM192 272C209.7 272 224 286.3 224 304C224 321.7 209.7 336 192 336C174.3 336 160 321.7 160 304C160 286.3 174.3 272 192 272zM320 272C337.7 272 352 286.3 352 304C352 321.7 337.7 336 320 336C302.3 336 288 321.7 288 304C288 286.3 302.3 272 320 272zM416 304C416 286.3 430.3 272 448 272C465.7 272 480 286.3 480 304C480 321.7 465.7 336 448 336C430.3 336 416 321.7 416 304z" />
+                        </svg>
+                        @endif
+                        <span>Tin nhắn</span>
                     </a>
                 </div>
                 <div class="menu-item">
@@ -94,27 +185,45 @@
                 </div>
             </div>
 
-            <div class="profile">
-                <img src="/img/user/user.jpg" />
+        <div class="profile avatar-menu">
+            <button type="button" class="profile-btn" onclick="toggleAvatarMenu()">
+                <img src="{{ $avatar }}" alt="avatar">
                 <div>
-                    <strong>Xi Trum Dinh</strong><br>
-                    <small>@Dinh_2711</small>
+                    <strong>{{ $user->fullname ?? 'Người dùng' }}</strong><br>
+                    <small>{{ '@' . ($user->username ?? 'user') }}</small>
                 </div>
-            </div>
+            </button>
 
+            <div id="avatarDropdown" class="avatar-dropdown sidebar-dropdown">
+                <div class="avatar-header">
+                    <img src="{{ $avatar }}" alt="avatar">
+                    <div>
+                        <strong>{{ $user->fullname ?? 'Người dùng' }}</strong><br>
+                        <small>{{ $user->email ?? '' }}</small>
+                    </div>
+                </div>
+
+                <a href="#">Xem tất cả trang cá nhân</a>
+                <a href="#">Cài đặt và quyền riêng tư</a>
+                <a href="#">Trợ giúp và hỗ trợ</a>
+                <a href="#">Màn hình và trợ năng</a>
+                <a href="#">Đóng góp ý kiến</a>
+                <a href="{{ route('signout') }}" class="logout-link">Đăng Xuất</a>
+            </div>
+        </div>
         </div>
 
         <!-- MAIN -->
         <div class="main">
 
+
             <!-- TOPBAR -->
             <div class="topbar">
                 <input class="search" placeholder="Tìm kiếm.....">
 
-                <button class="btn-top">Bạn bè</button>
-                <button class="btn-top">Theo dõi</button>
-            </div>
-
+                <button class="btn-top">Bạn Bè</button>
+                <button class="btn-top">Theo Dõi</button>
+            </div>            
             <!-- CONTENT -->
             <div class="content">
                 @yield('content')
@@ -153,5 +262,18 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+<script>
+    function toggleAvatarMenu() {
+        document.getElementById('avatarDropdown').classList.toggle('show');
+    }
 
+    document.addEventListener('click', function (e) {
+        const menu = document.querySelector('.avatar-menu');
+        const dropdown = document.getElementById('avatarDropdown');
+
+        if (menu && !menu.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+</script>
 </html>

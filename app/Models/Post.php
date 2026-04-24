@@ -3,29 +3,54 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Post extends Model
 {
-    // Thêm đoạn này vào để cho phép lưu dữ liệu vào các cột tương ứng
+    use HasFactory;
+
     protected $fillable = [
-        'user_id',
-        'content',
-        'privacy',
-        'like_count',
-        'comment_count'
+        'user_id', 
+        'content', 
+        'image_url', 
+        'video_url'
     ];
 
+    protected $with = ['user'];
+
+    // --- CÁC MỐI QUAN HỆ (RELATIONS) ---
+
+    /**
+     * Quan hệ với người đăng bài viết
+     */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function media()
+    /**
+     * Một bài viết có nhiều lượt Like
+     */
+    public function likes()
     {
-        return $this->hasMany(PostMedia::class);
+        return $this->hasMany(Like::class, 'post_id');
     }
-    public function comments()
+
+    /**
+     * Lấy danh sách những người dùng đã like bài này (Many-to-Many)
+     */
+    public function likedByUsers()
     {
-        return $this->hasMany(Comment::class)->latest();
+        return $this->belongsToMany(User::class, 'likes', 'post_id', 'user_id');
+                    // ->withTimestamps();
+    }
+
+    /**
+     * Mối quan hệ với Hashtag qua bảng trung gian post_hashtags
+     */
+    public function hashtags()
+    {
+        return $this->belongsToMany(Hashtag::class, 'post_hashtags')
+                    ->withTimestamps();
     }
 }
