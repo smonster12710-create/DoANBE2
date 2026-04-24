@@ -12,7 +12,7 @@ body {
 
 /* 🔥 FIX CHÍNH */
 .card {
-    display: inline-block;   /* bắt buộc */
+    display: inline-block; /* bắt buộc */
     width: 100%;
     break-inside: avoid;
     margin-bottom: 16px;
@@ -20,7 +20,7 @@ body {
     background: #fff;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* hover nhẹ */
@@ -92,4 +92,145 @@ body {
 
 .share {
     margin-left: auto;
+}
+/* Layout lưới */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Card bài viết */
+.card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.info {
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.name {
+    font-weight: bold;
+    font-size: 14px;
+}
+.time {
+    font-size: 12px;
+    color: #777;
+}
+.more {
+    margin-left: auto;
+    color: #999;
+    cursor: pointer;
+}
+
+/* Nội dung & Hình ảnh */
+.card-text {
+    padding: 0 15px 12px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.card-img {
+    width: 100%;
+    display: block;
+    max-height: 500px;
+    object-fit: cover;
+}
+
+/* Actions */
+.actions-container {
+    border-top: 1px solid #eee;
+    padding: 10px 15px;
+}
+
+.card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.left-actions {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.btn-action {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    padding: 5px;
+    border-radius: 5px;
+    transition: background 0.2s;
+}
+
+.btn-action:hover {
+    background: #f0f0f0;
+}
+
+.icon-svg {
+    height: 24px;
+    width: 24px;
+    color: #333;
+}
+.icon-share {
+    height: 20px;
+    width: 20px;
+    fill: #333;
+}
+
+/* Trạng thái đã LIKE */
+.is-liked .icon-svg {
+    fill: red;
+    color: red !important;
+}
+.is-liked .like-count {
+    color: red;
+}
+
+.like-count,
+.count-text {
+    margin-left: 6px;
+    font-weight: bold;
+}
+
+/* Dòng người thích */
+.likers-row {
+    margin-top: 8px;
+    border-top: 1px solid #f9f9f9;
+    padding-top: 5px;
+}
+
+.likers-link {
+    text-decoration: none;
+    color: #666;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.likers-link:hover {
+    color: #000;
+    text-decoration: underline;
 }
