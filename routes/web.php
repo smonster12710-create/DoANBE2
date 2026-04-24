@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CrudUserController;
+use App\Http\Controllers\PostController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +39,6 @@ Route::get('/', function () {
 });
 
 // Nút like
-Route::post('/post/{id}/like', [CrudUserController::class, 'toggleLike'])->name('post.like');
+Route::post('/post/{id}/like', [PostController::class, 'toggleLike'])->name('post.like');
 
-Route::get('/social', [CrudUserController::class, 'index'])->name('social.index');
+Route::get('/social', [PostController::class, 'index'])->name('social.index');

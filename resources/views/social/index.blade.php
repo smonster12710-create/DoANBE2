@@ -5,53 +5,86 @@
 <div class="grid">
 
     @foreach ($posts as $post)
-        <div class="card">
+        <div class="card" style="background: white; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; overflow: hidden;">
 
-            <div class="card-header">
-                <img class="avatar" src="{{ $post->user->avatar ?? 'https://i.pravatar.cc/40?u='.$post->user_id }}">
-                <div class="info">
-                    <span class="name">{{ $post->user->name ?? 'Người dùng' }}</span>
-                    <span class="time">{{ $post->created_at->diffForHumans() }}</span>
+            {{-- HEADER: Avatar + Tên --}}
+            <div class="card-header" style="display: flex; align-items: center; padding: 12px 15px;">
+                <img class="avatar" src="{{ $post->user->avatar ?? 'https://i.pravatar.cc/40?u='.$post->user_id }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                <div class="info" style="margin-left: 10px; display: flex; flex-direction: column;">
+                    <span class="name" style="font-weight: bold; font-size: 14px;">{{ $post->user->name ?? 'Người dùng' }}</span>
+                    <span class="time" style="font-size: 12px; color: #777;">{{ $post->created_at->diffForHumans() }}</span>
                 </div>
-                <div class="more">⋯</div>
+                <div class="more" style="margin-left: auto; color: #999; cursor: pointer;">⋯</div>
             </div>
 
-            <div class="card-text">
+            {{-- NỘI DUNG --}}
+            <div class="card-text" style="padding: 0 15px 12px; font-size: 15px; line-height: 1.5;">
                 {!! nl2br(e($post->content)) !!}
             </div>
 
-            {{-- Ảnh cố định theo ID bài viết để không bị nhảy khi load lại trang --}}
-            <img class="card-img" src="{{ $post->image_url ?? 'https://picsum.photos/seed/'.$post->id.'/300/400' }}">
+            {{-- HÌNH ẢNH --}}
+            <img class="card-img" src="{{ $post->image_url ?? 'https://picsum.photos/seed/'.$post->id.'/400/500' }}" style="width: 100%; display: block;">
 
-            <div class="card-actions">
+            {{-- ACTIONS CONTAINER --}}
+            <div style="border-top: 1px solid #eee; padding: 10px 15px;">
                 
-                {{-- NÚT LIKE --}}
-                <form action="{{ route('post.like', $post->id) }}" method="POST" style="display: inline;">
-                    @csrf
-                    <button type="submit" style="background: none; border: none; cursor: pointer; display: inline-flex; align-items: center; padding: 0;">
-                        @php
-                            // Lấy ID người dùng (mặc định 0 nếu chưa login)
-                            $userId = auth()->id() ?? 1;
-                            // Kiểm tra chính xác trạng thái đã like
-                            $checkLike = $post->likes->contains('user_id', $userId);
-                        @endphp
+                {{-- HÀNG 1: CÁC NÚT TƯƠNG TÁC --}}
+                <div class="card-actions" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
+                    <div style="display: flex; gap: 20px; align-items: center;">
                         
-                        {{-- Sử dụng biến $checkLike để tô màu --}}
-                        <svg style="height: 20px; width: 20px; fill: {{ $checkLike ? 'red' : 'none' }}; stroke: {{ $checkLike ? 'red' : 'black' }};" 
-                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                            <path d="M442.9 144C415.6 144 389.9 157.1 373.9 179.2L339.5 226.8C335 233 327.8 236.7 320.1 236.7C312.4 236.7 305.2 233 300.7 226.8L266.3 179.2C250.3 157.1 224.6 144 197.3 144C150.3 144 112.2 182.1 112.2 229.1C112.2 279 144.2 327.5 180.3 371.4C221.4 421.4 271.7 465.4 306.2 491.7C309.4 494.1 314.1 495.9 320.2 495.9C326.3 495.9 331 494.1 334.2 491.7C368.7 465.4 419 421.3 460.1 371.4C496.3 327.5 528.2 279 528.2 229.1C528.2 182.1 490.1 144 443.1 144zM335 151.1C360 116.5 400.2 96 442.9 96C516.4 96 576 155.6 576 229.1C576 297.7 533.1 358 496.9 401.9C452.8 455.5 399.6 502 363.1 529.8C350.8 539.2 335.6 543.9 320 543.9C304.4 543.9 289.2 539.2 276.9 529.8C240.4 502 187.2 455.5 143.1 402C106.9 358.1 64 297.7 64 229.1C64 155.6 123.6 96 197.1 96C239.8 96 280 116.5 305 151.1L320 171.8L335 151.1z" />
-                        </svg>
-                        
-                        {{-- Ưu tiên hiển thị like_count từ bảng posts cho nhanh --}}
-                        <span style="margin-left: 5px; font-weight: bold; color: {{ $checkLike ? 'red' : 'black' }};">
-                            {{ $post->like_count ?? $post->likes->count() }}
-                        </span>
-                    </button>
-                </form>
+                        {{-- 1. NÚT LIKE --}}
+                        <form action="{{ route('post.like', $post->id) }}" method="POST" style="display: inline;">
+                            @csrf
+                            <button type="submit" style="background: none; border: none; cursor: pointer; display: inline-flex; align-items: center; padding: 0;">
+                                @php
+                                    $userId = auth()->id() ?? 1;
+                                    $checkLike = $post->likes->contains('user_id', $userId);
+                                @endphp
+                                
+                                <svg style="height: 24px; width: 24px; fill: {{ $checkLike ? 'red' : 'none' }}; stroke: {{ $checkLike ? 'red' : 'black' }};" 
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                                </svg>
+                                
+                                <span style="margin-left: 6px; font-weight: bold; color: {{ $checkLike ? 'red' : 'black' }};">
+                                    {{ $post->likes->count() }}
+                                </span>
+                            </button>
+                        </form>
 
-                <a href="#" style="text-decoration: none; color: inherit; margin-left: 10px;">
-                    <small style="color: #666;">(Xem ai đã like)</small>
-                </a>
+                        {{-- 2. NÚT COMMENT --}}
+                        <div style="display: flex; align-items: center; cursor: pointer; color: #333;">
+                            <svg style="height: 24px; width: 24px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785c-.442.483.087 1.218.639.998a10.523 10.523 0 0 0 2.822-1.587c.433-.288.936-.439 1.403-.236 1.241.547 2.61.845 4.041.845Z" />
+                            </svg>
+                            <span style="margin-left: 6px; font-weight: bold;">0</span>
+                        </div>
+
+                        {{-- 3. NÚT SAVE --}}
+                        <div style="display: flex; align-items: center; cursor: pointer; color: #333;">
+                            <svg style="height: 24px; width: 24px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    {{-- 4. NÚT SHARE (Icon mũi tên chuẩn) --}}
+                    <div style="cursor: pointer; color: #333;">
+                        <svg style="height: 20px; width:20px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                            <path d="M457.5 71C450.6 64.1 440.3 62.1 431.3 65.8C422.3 69.5 416.5 78.3 416.5 88L416.5 144L368.5 144C280.1 144 208.5 215.6 208.5 304C208.5 350.7 229.2 384.4 252.1 407.4C260.2 415.6 268.6 422.3 276.4 427.8C285.6 434.3 298.1 433.5 306.5 425.9C314.9 418.3 316.7 405.9 311 396.1C307.4 389.8 304.5 381.2 304.5 369.4C304.5 333.2 333.8 303.9 370 303.9L416.5 303.9L416.5 359.9C416.5 369.6 422.3 378.4 431.3 382.1C440.3 385.8 450.6 383.8 457.5 376.9L593.5 240.9C602.9 231.5 602.9 216.3 593.5 207L457.5 71zM464.5 168L464.5 145.9L542.6 224L464.5 302.1L464.5 280C464.5 266.7 453.8 256 440.5 256L370 256C319.1 256 276.1 289.5 261.7 335.6C258.4 326.2 256.5 315.8 256.5 304C256.5 242.1 306.6 192 368.5 192L440.5 192C453.8 192 464.5 181.3 464.5 168zM144.5 160C100.3 160 64.5 195.8 64.5 240L64.5 496C64.5 540.2 100.3 576 144.5 576L400.5 576C444.7 576 480.5 540.2 480.5 496L480.5 472C480.5 458.7 469.8 448 456.5 448C443.2 448 432.5 458.7 432.5 472L432.5 496C432.5 513.7 418.2 528 400.5 528L144.5 528C126.8 528 112.5 513.7 112.5 496L112.5 240C112.5 222.3 126.8 208 144.5 208L168.5 208C181.8 208 192.5 197.3 192.5 184C192.5 170.7 181.8 160 168.5 160L144.5 160z" />
+                        </svg>
+                    </div>
+                </div>
+
+                {{-- HÀNG 2: DÒNG XEM AI LIKE (TÁCH XUỐNG DƯỚI) --}}
+                @if($post->likes->count() > 0)
+                <div style="margin-top: 8px; border-top: 1px solid #f9f9f9; padding-top: 5px;">
+                    <a href="{{ route('post.likers', $post->id) }}" style="text-decoration: none; color: #666; font-size: 13px; font-weight: 500;">
+                        Xem tất cả người đã thích
+                    </a>
+                </div>
+                @endif
+
             </div>
 
         </div>
