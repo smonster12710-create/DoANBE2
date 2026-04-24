@@ -11,7 +11,7 @@
             <div class="card-header">
                 <img class="avatar" src="{{ $post->user->avatar ?? 'https://i.pravatar.cc/40?u='.$post->user_id }}" alt="avatar">
                 <div class="info">
-                    <span class="name">{{ $post->user->name ?? 'Người dùng' }}</span>
+                    <span class="name">{{ $post->user->fullname ?? 'Người dùng' }}</span>
                     <span class="time">{{ $post->created_at->diffForHumans() }}</span>
                 </div>
                 <div class="more">⋯</div>
