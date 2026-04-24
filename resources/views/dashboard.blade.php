@@ -1,3 +1,9 @@
+@php
+    $user = Auth::user();
+
+$avatar = $user && $user->avatar_url
+    ? asset($user->avatar_url)
+    : asset('img/user/user.jpg');@endphp
 <!DOCTYPE html>
 <html>
 
@@ -5,6 +11,77 @@
     <title>ESPACE</title>
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/dashbroad.css') }}" rel="stylesheet">
+    <style>
+    .profile {
+        position: relative;
+        margin-top: auto;
+        padding: 12px;
+    }
+
+    .profile-btn {
+        border: none;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .profile-btn img,
+    .avatar-header img {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .avatar-dropdown {
+        display: none;
+        position: absolute;
+        left: 12px;
+        bottom: 75px;
+        width: 270px;
+        background: white;
+        border-radius: 14px;
+        padding: 12px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+        z-index: 9999;
+    }
+
+    .avatar-dropdown.show {
+        display: block;
+    }
+
+    .avatar-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        background: #f5f5f5;
+        border-radius: 12px;
+        margin-bottom: 10px;
+    }
+
+    .avatar-dropdown a {
+        display: block;
+        text-decoration: none;
+        color: #222;
+        padding: 11px 12px;
+        border-radius: 10px;
+        font-size: 14px;
+    }
+
+    .avatar-dropdown a:hover {
+        background: #f2f2f2;
+    }
+
+    .avatar-dropdown .logout-link {
+        color: crimson;
+        font-weight: bold;
+    }    
+    </style>
 </head>
 
 <body>
@@ -104,27 +181,45 @@
                 </div>
             </div>
 
-            <div class="profile">
-                <img src="/img/user/user.jpg" />
+        <div class="profile avatar-menu">
+            <button type="button" class="profile-btn" onclick="toggleAvatarMenu()">
+                <img src="{{ $avatar }}" alt="avatar">
                 <div>
-                    <strong>Xi Trum Dinh</strong><br>
-                    <small>@Dinh_2711</small>
+                    <strong>{{ $user->fullname ?? 'Người dùng' }}</strong><br>
+                    <small>{{ '@' . ($user->username ?? 'user') }}</small>
                 </div>
-            </div>
+            </button>
 
+            <div id="avatarDropdown" class="avatar-dropdown sidebar-dropdown">
+                <div class="avatar-header">
+                    <img src="{{ $avatar }}" alt="avatar">
+                    <div>
+                        <strong>{{ $user->fullname ?? 'Người dùng' }}</strong><br>
+                        <small>{{ $user->email ?? '' }}</small>
+                    </div>
+                </div>
+
+                <a href="#">Xem tất cả trang cá nhân</a>
+                <a href="#">Cài đặt và quyền riêng tư</a>
+                <a href="#">Trợ giúp và hỗ trợ</a>
+                <a href="#">Màn hình và trợ năng</a>
+                <a href="#">Đóng góp ý kiến</a>
+                <a href="{{ route('signout') }}" class="logout-link">Đăng Xuất</a>
+            </div>
+        </div>
         </div>
 
         <!-- MAIN -->
         <div class="main">
 
+
             <!-- TOPBAR -->
             <div class="topbar">
                 <input class="search" placeholder="Tìm kiếm.....">
 
-                <button class="btn-top">Bạn bè</button>
-                <button class="btn-top">Theo dõi</button>
-            </div>
-
+                <button class="btn-top">Bạn Bè</button>
+                <button class="btn-top">Theo Dõi</button>
+            </div>            
             <!-- CONTENT -->
             <div class="content">
                 @yield('content')
@@ -134,5 +229,18 @@
 
     </div>
 </body>
+<script>
+    function toggleAvatarMenu() {
+        document.getElementById('avatarDropdown').classList.toggle('show');
+    }
 
+    document.addEventListener('click', function (e) {
+        const menu = document.querySelector('.avatar-menu');
+        const dropdown = document.getElementById('avatarDropdown');
+
+        if (menu && !menu.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+</script>
 </html>

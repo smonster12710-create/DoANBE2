@@ -64,8 +64,10 @@ class CrudUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:100',
-            'email' => 'required|email',
+            'email' => 'required|email|max:100',
             'password' => 'required|min:6|confirmed',
+            'gender' => 'nullable|in:male,female,other',
+            'phone' => 'nullable|max:20',
         ]);
 
         $existingUser = DB::table('users')->where('email', $request->email)->first();
@@ -74,6 +76,8 @@ class CrudUserController extends Controller
             DB::table('users')->where('id', $existingUser->id)->update([
                 'fullname' => $request->name,
                 'password_hash' => Hash::make($request->password),
+                'gender' => $request->gender,
+                'phone' => $request->phone,
                 'updated_at' => now(),
             ]);
 
@@ -81,6 +85,7 @@ class CrudUserController extends Controller
         }
 
         $baseUsername = Str::slug(strtolower(strtok($request->email, '@')), '_');
+
         if (empty($baseUsername)) {
             $baseUsername = 'user';
         }
@@ -94,15 +99,20 @@ class CrudUserController extends Controller
         }
 
         DB::table('users')->insert([
-            'username' => $username,
-            'email' => $request->email,
+            'username'      => $username,
+            'email'         => $request->email,
             'password_hash' => Hash::make($request->password),
-            'fullname' => $request->name,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'fullname'      => $request->name,
+            'gender'        => $request->gender,
+            'phone'         => $request->phone,
+            'avatar_url'    => 'https://api.dicebear.com/7.x/adventurer/svg?seed=' . urlencode($username),
+            'cover_url'     => 'https://picsum.photos/800/300?sig=cover_' . urlencode($username),            'role'          => 'user',
+            'is_active'     => 1,
+            'created_at'    => now(),
+            'updated_at'    => now(),
         ]);
 
-        return redirect('login')->withSuccess('Đăng ký thành công');
+        return redirect('/')->withSuccess('Đăng ký thành công');
     }    
     /**
      * View user detail page
@@ -183,6 +193,5 @@ class CrudUserController extends Controller
         Session::flush();
         Auth::logout();
 
-        return Redirect('login');
-    }
+        return Redirect('/');    }
 }
