@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Like;
+use App\Models\Post;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use App\Models\User;
@@ -43,11 +45,11 @@ class CrudUserController extends Controller
             return redirect('/social')->withSuccess('Signed in');
         }
 
-        return redirect('/social')->withErrors([
+        return redirect('login')->withErrors([
             'email' => 'Email hoặc mật khẩu không đúng'
         ])->withInput();
-    }        
-    /**
+    }   
+     /**
      * Registration page
      */
     public function createUser()

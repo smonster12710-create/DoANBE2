@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CrudUserController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\SearchController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -37,7 +41,24 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Nút like
+Route::post('/post/{id}/like', [PostController::class, 'toggleLike'])->name('post.like');
+
+Route::get('/social', [PostController::class, 'index'])->name('social.index');
+
 //social
 Route::get('social', function () {
     return view('social.index');
 });
+Route::get('list_messages', function () {
+    return view('social.list_messages');
+});
+
+Route::get('/list_messages', [MessageController::class, 'index']);
+Route::get('/search', [SearchController::class, 'globalSearch'])->name('search.global');
+
+// Route dành cho trang danh sách hoặc trang nhắn tin chi tiết
+Route::get('/list_messages', [MessageController::class, 'index']);
+
+Route::get('/chat-messages/{id}', [MessageController::class, 'show'])->name('chat_messages');
+
