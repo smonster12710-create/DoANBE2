@@ -25,8 +25,7 @@ class MessageController extends Controller
     }
     public function show($id)
     {
-        $myId = auth()->id();
-
+        $myId = Auth::id();
         // 1. Danh sách bên trái
         $conversations = Conversation::whereHas('participants', function ($q) use ($myId) {
             $q->where('user_id', $myId);
