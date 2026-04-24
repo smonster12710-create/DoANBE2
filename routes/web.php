@@ -37,28 +37,23 @@ Route::get('list', [CrudUserController::class, 'listUser'])->name('user.list');
 
 Route::get('signout', [CrudUserController::class, 'signOut'])->name('signout');
 
+// --- TRANG CHỦ ---
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Nút like
-Route::post('/post/{id}/like', [PostController::class, 'toggleLike'])->name('post.like');
-
+// --- SOCIAL NETWORK ---
 Route::get('/social', [PostController::class, 'index'])->name('social.index');
+Route::post('/post/{id}/like', [PostController::class, 'toggleLike'])->name('post.like');
+Route::get('/post/{id}/likers', [PostController::class, 'listLikers'])->name('post.likers');
 
-//social
-Route::get('social', function () {
-    return view('social.index');
-});
-Route::get('list_messages', function () {
-    return view('social.list_messages');
-});
-
-Route::get('/list_messages', [MessageController::class, 'index']);
+// --- SEARCH & MESSAGES ---
 Route::get('/search', [SearchController::class, 'globalSearch'])->name('search.global');
-
-// Route dành cho trang danh sách hoặc trang nhắn tin chi tiết
-Route::get('/list_messages', [MessageController::class, 'index']);
-
+Route::get('/list_messages', [MessageController::class, 'index'])->name('messages.index');
 Route::get('/chat-messages/{id}', [MessageController::class, 'show'])->name('chat_messages');
+
+// --- QUẢN LÝ USER (Ví dụ gộp nhóm cho gọn) ---
+Route::get('login', [CrudUserController::class, 'login'])->name('login');
+Route::post('login', [CrudUserController::class, 'authUser'])->name('user.authUser');
+Route::get('dashboard', [CrudUserController::class, 'dashboard']);
 
