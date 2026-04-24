@@ -85,4 +85,3 @@
     @endforeach
 </div>
 @endsection
->>>>>>> master

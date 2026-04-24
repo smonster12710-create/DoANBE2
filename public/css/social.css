@@ -13,7 +13,8 @@ body {
 /* 🔥 FIX CHÍNH */
 .card {
 
-    display: inline-block; /* bắt buộc */
+    display: inline-block;
+    /* bắt buộc */
 
     width: 100%;
     break-inside: avoid;
@@ -95,6 +96,7 @@ body {
 .share {
     margin-left: auto;
 }
+
 /* Layout lưới */
 .grid {
     display: grid;
@@ -135,10 +137,12 @@ body {
     font-weight: bold;
     font-size: 14px;
 }
+
 .time {
     font-size: 12px;
     color: #777;
 }
+
 .more {
     margin-left: auto;
     color: #999;
@@ -197,6 +201,7 @@ body {
     width: 24px;
     color: #333;
 }
+
 .icon-share {
     height: 20px;
     width: 20px;
@@ -208,6 +213,7 @@ body {
     fill: red;
     color: red !important;
 }
+
 .is-liked .like-count {
     color: red;
 }
@@ -237,3 +243,41 @@ body {
     text-decoration: underline;
 }
 
+/* Loại bỏ hiệu ứng mặc định của nút dropdown */
+.dropdown-toggle::after {
+    display: none;
+}
+
+.dropdown-item {
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdown-menu {
+    border-radius: 10px;
+    min-width: 200px;
+}
+
+/* Xóa bỏ các hiệu ứng thừa của button trong dropdown/modal */
+.btn-close:focus {
+    box-shadow: none !important;
+}
+
+.post-edit-image-container {
+    transition: all 0.3s ease;
+    border: 1px solid #e0e0e0 !important;
+}
+
+.post-edit-image-container:hover {
+    background-color: #f0f2f5;
+}
+
+/* Đảm bảo textarea mượt mà */
+textarea.form-control:focus {
+    background-color: transparent;
+}

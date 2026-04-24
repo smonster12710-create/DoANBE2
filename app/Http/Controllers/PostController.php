@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use App\Models\PostMedia;
 
 class PostController extends Controller
 {
@@ -69,10 +71,7 @@ class PostController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
-    {
-        
-    }
+    public function show($id) {}
     /**
      * Show the form for editing the specified resource.
      */
@@ -84,15 +83,36 @@ class PostController extends Controller
     /**
      * Update the specified resource in storage.
      */
+    // Nhớ import ở đầu file
+
     public function update(Request $request, $id)
     {
         $post = Post::findOrFail($id);
 
-        $post->update([
-            'content' => $request->content
+        // 1. Validate dữ liệu
+        $request->validate([
+            'content' => 'required|string',
+            'image'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        return redirect()->back()->with('success', 'Cập nhật thành công');
+        // 2. Cập nhật nội dung chữ
+        $post->content = $request->content;
+
+        // 3. Xử lý ảnh (nếu người dùng chọn ảnh mới)
+        if ($request->hasFile('image')) {
+            // Xóa ảnh cũ nếu cần (tùy logic của bạn)
+            // if ($post->image_url && file_exists(public_path($post->image_url))) { ... }
+
+            $imageName = time() . '.' . $request->image->extension();
+            $request->image->move(public_path('uploads/posts'), $imageName);
+
+            // Lưu đường dẫn vào database
+            $post->image_url = 'uploads/posts/' . $imageName;
+        }
+
+        $post->save();
+
+        return redirect()->back()->with('success', 'Cập nhật bài viết thành công!');
     }
 
     /**

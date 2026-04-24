@@ -10,9 +10,9 @@ class Post extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 
-        'content', 
-        'image_url', 
+        'user_id',
+        'content',
+        'image_url',
         'video_url'
     ];
 
@@ -42,7 +42,7 @@ class Post extends Model
     public function likedByUsers()
     {
         return $this->belongsToMany(User::class, 'likes', 'post_id', 'user_id');
-                    // ->withTimestamps();
+        // ->withTimestamps();
     }
 
     /**
@@ -51,6 +51,11 @@ class Post extends Model
     public function hashtags()
     {
         return $this->belongsToMany(Hashtag::class, 'post_hashtags')
-                    ->withTimestamps();
+            ->withTimestamps();
+    }
+    public function media()
+    {
+        // Giả sử bảng của bạn tên là post_media
+        return $this->hasMany(PostMedia::class, 'post_id');
     }
 }
