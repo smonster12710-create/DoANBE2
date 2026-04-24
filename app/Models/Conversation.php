@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Auth; // Để fix lỗi auth()->id()
+use App\Models\Message; // Model tin nhắn
+use App\Models\ConversationParticipant; // Model người tham gia
+
+class Conversation extends Model
+{
+    // 1. Quan hệ lấy danh sách người tham gia
+    public function participants(): HasMany
+    {
+        return $this->hasMany(ConversationParticipant::class, 'conversation_id');
+    }
+
+    // 2. Quan hệ lấy tin nhắn
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'conversation_id');
+    }
+
+    // 3. Lấy tin nhắn mới nhất để hiện ở List Chat
+    public function lastMessage(): HasOne
+    {
+        return $this->hasOne(Message::class, 'conversation_id')->latest();
+    }
+
+    // 4. Accessor lấy thông tin người chat cùng (Partner)
+    public function getPartnerAttribute()
+    {
+        $myId = Auth::id(); 
+        // Lấy participant không phải là mình
+        $participant = $this->participants->where('user_id', '!=', $myId)->first();
+        return $participant ? $participant->user : null;
+    }
+}

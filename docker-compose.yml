@@ -1,0 +1,63 @@
+services:
+  # App (PHP-FPM)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: techstore-php
+    container_name: techstore-app
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www
+    networks:
+      - techstore-network
+
+  # Web Server (Nginx)
+  webserver:
+    image: nginx:stable-alpine
+    container_name: techstore-webserver
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./docker_config/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - techstore-network
+
+  # Database (MySQL 8.0)
+  db:
+    image: mysql:8.0
+    container_name: techstore-db
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: techstore_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+      MYSQL_USER: user
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - techstore-network
+
+  # phpMyAdmin (Quản lý DB cho sướng)
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: techstore-pma
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_HOST=db
+    networks:
+      - techstore-network
+
+networks:
+  techstore-network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
