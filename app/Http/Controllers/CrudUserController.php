@@ -64,6 +64,8 @@ class CrudUserController extends Controller
             'name' => 'required|string|max:100',
             'email' => 'required|email|max:100',
             'password' => 'required|min:6|confirmed',
+            'gender' => 'nullable|in:male,female,other',
+            'phone' => 'nullable|max:20',
         ]);
 
         $existingUser = DB::table('users')->where('email', $request->email)->first();
@@ -72,6 +74,8 @@ class CrudUserController extends Controller
             DB::table('users')->where('id', $existingUser->id)->update([
                 'fullname' => $request->name,
                 'password_hash' => Hash::make($request->password),
+                'gender' => $request->gender,
+                'phone' => $request->phone,
                 'updated_at' => now(),
             ]);
 
@@ -97,17 +101,17 @@ class CrudUserController extends Controller
             'email'         => $request->email,
             'password_hash' => Hash::make($request->password),
             'fullname'      => $request->name,
-            'gender'        => null,
-            'phone'         => null,
-            'avatar_url'    => null,
-            'cover_url'     => null,
+            'gender'        => $request->gender,
+            'phone'         => $request->phone,
+            'avatar_url'    => 'https://picsum.photos/200/200?sig=' . urlencode($username),
+            'cover_url'     => 'https://picsum.photos/800/300?sig=cover_' . urlencode($username),
             'role'          => 'user',
             'is_active'     => 1,
             'created_at'    => now(),
             'updated_at'    => now(),
         ]);
 
-        return redirect('login')->withSuccess('Đăng ký thành công');
+        return redirect('/')->withSuccess('Đăng ký thành công');
     }    
     /**
      * View user detail page

@@ -103,28 +103,43 @@
         </div>
     </div>
     <!-- Popup đăng ký -->
-    <div id="registerPopup" class="popup">
-        <div class="popup-box">
+        <div id="registerPopup" class="popup">
+            <div class="popup-box register-box">
 
-            <span class="close" onclick="closePopup()"></span>
+                <span class="close" onclick="closePopup()">×</span>
 
-            <h2>Đăng ký</h2>
+                <h2>Đăng ký</h2>
 
-            <form method="POST" action="{{ route('user.postUser') }}">               
-                @csrf
-                <input name="name" placeholder="Tên">
-                <input name="email" placeholder="Email">
-                <input name="password" type="password" placeholder="Mật khẩu">
-                <button>Đăng ký</button>
-            </form>
+                <form method="POST" action="{{ route('user.postUser') }}">
+                    @csrf
 
-            <p>Đã có tài khoản?
-                <a href="#" onclick="switchToLogin()">Đăng nhập</a>
-            </p>
+                    <input name="name" placeholder="Họ và tên" required>
 
-        </div>
-    </div>
-    <script>
+                    <input name="email" type="email" placeholder="Email" required>
+
+                    <select name="gender" class="popup-input">
+                        <option value="">Chọn giới tính</option>
+                        <option value="male">Nam</option>
+                        <option value="female">Nữ</option>
+                        <option value="other">Khác</option>
+                    </select>
+
+                    <input name="phone" placeholder="Số điện thoại">
+
+                    <input name="password" type="password" placeholder="Mật khẩu" required>
+
+                    <input name="password_confirmation" type="password" placeholder="Xác nhận mật khẩu" required>
+
+                    <button type="submit">Đăng ký</button>
+                </form>
+
+                <p>Đã có tài khoản?
+                    <a href="#" onclick="switchToLogin()">Đăng nhập</a>
+                </p>
+
+            </div>
+        </div>        
+        <script>
         function openLogin() {
             document.getElementById('loginPopup').style.display = 'flex';
         }
