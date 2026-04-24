@@ -40,29 +40,14 @@ Route::post('update', [CrudUserController::class, 'postUpdateUser'])->name('user
 Route::get('list', [CrudUserController::class, 'listUser'])->name('user.list');
 
 Route::get('signout', [CrudUserController::class, 'signOut'])->name('signout');
-<<<<<<< HEAD
 Route::resource('posts', PostController::class);
 Route::get('/newsfeed', [App\Http\Controllers\PostController::class, 'index'])->name('posts.index');
-=======
 
 // --- TRANG CHỦ ---
->>>>>>> master
 Route::get('/', function () {
     return view('welcome');
 });
 
-<<<<<<< HEAD
-//social
-Route::get('/social', [PostController::class, 'index']);
-Route::delete('/posts/{id}', [PostController::class, 'destroy'])->name('posts.destroy');
-Route::put('/posts/{id}', [PostController::class, 'update'])->name('posts.update');
-Route::get('/posts/{id}', [PostController::class, 'show'])->name('posts.show');
-Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
-Route::middleware(['auth'])->group(function () {
-    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
-    // Các route khác như update, destroy bài viết cũng nên để ở đây
-});
-=======
 // --- SOCIAL NETWORK ---
 Route::get('/social', [PostController::class, 'index'])->name('social.index');
 Route::post('/post/{id}/like', [PostController::class, 'toggleLike'])->name('post.like');
@@ -78,4 +63,3 @@ Route::get('login', [CrudUserController::class, 'login'])->name('login');
 Route::post('login', [CrudUserController::class, 'authUser'])->name('user.authUser');
 Route::get('dashboard', [CrudUserController::class, 'dashboard']);
 
->>>>>>> master
