@@ -33,39 +33,36 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(\Illuminate\Http\Request $request)
+    public function store(Request $request)
     {
-        // 1. Kiểm tra dữ liệu
         $request->validate([
-            'content' => 'required',
-            'image' => 'nullable|image|max:2048'
+            'content' => 'required|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,png,gif|max:2048',
         ]);
 
-        // 2. Tạo bài đăng (Tạm thời fix cứng user_id = 1 nếu bạn chưa làm login)
-        $post = \App\Models\Post::create([
-            'user_id' => 1,
-            'content' => $request->content,
-            'privacy' => 0,
-            'like_count' => 0,
-            'comment_count' => 0
-        ]);
+        // tạo bài viết trước
+        $post = new Post();
+        $post->user_id = Auth::id();
+        $post->content = $request->content;
+        $post->privacy = 0;
+        $post->save();
 
-        // 3. Xử lý file ảnh
+        // nếu có ảnh thì lưu vào post_media
         if ($request->hasFile('image')) {
             $file = $request->file('image');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            // Lưu vào thư mục public/uploads/posts
-            $file->move(public_path('uploads/posts'), $fileName);
-            $url = asset('uploads/posts/' . $fileName);
 
-            \App\Models\PostMedia::create([
-                'post_id' => $post->id,
-                'media_url' => $url,
-                'media_type' => 'photo'
-            ]);
+            $filename = time() . '_' . $file->getClientOriginalName();
+
+            $file->move(public_path('uploads/posts'), $filename);
+
+            $media = new PostMedia();
+            $media->post_id = $post->id;
+            $media->media_url = 'uploads/posts/' . $filename;
+            $media->media_type = 'photo';
+            $media->save();
         }
 
-        return redirect()->back()->with('success', 'Bài viết đã được đăng!');
+        return back()->with('success', 'Đăng bài thành công!');
     }
 
     /**

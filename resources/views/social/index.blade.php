@@ -5,17 +5,17 @@
 
 <div class="grid">
     @foreach ($posts as $post)
-        <div class="card">
+    <div class="card">
 
-            {{-- HEADER: Avatar + Tên --}}
-            <div class="card-header">
-                <img class="avatar" src="{{ $post->user->avatar ?? 'https://i.pravatar.cc/40?u='.$post->user_id }}" alt="avatar">
-                <div class="info">
-                    <span class="name">{{ $post->user->fullname ?? 'Người dùng' }}</span>
-                    <span class="time">{{ $post->created_at->diffForHumans() }}</span>
-                </div>
-                <div class="more">⋯</div>
+        {{-- HEADER: Avatar + Tên --}}
+        <div class="card-header">
+            <img class="avatar" src="{{ $post->user->avatar ?? 'https://i.pravatar.cc/40?u='.$post->user_id }}" alt="avatar">
+            <div class="info">
+                <span class="name">{{ $post->user->fullname ?? 'Người dùng' }}</span>
+                <span class="time">{{ $post->created_at->diffForHumans() }}</span>
             </div>
+            <div class="more">⋯</div>
+        </div>
 
         {{-- NỘI DUNG --}}
         <div class="card-text">
@@ -23,8 +23,11 @@
         </div>
 
         {{-- HÌNH ẢNH --}}
-        <img class="card-img" src="{{ $post->image_url ?? 'https://picsum.photos/seed/'.$post->id.'/400/500' }}" alt="post image">
-
+        @if($post->media->count())
+        <img class="card-img"
+            src="{{ asset($post->media->first()->media_url) }}"
+            alt="post image">
+        @endif
         {{-- ACTIONS CONTAINER --}}
         <div class="actions-container">
 
