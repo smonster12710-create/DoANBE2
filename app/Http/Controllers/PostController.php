@@ -86,30 +86,35 @@ class PostController extends Controller
     {
         $post = Post::findOrFail($id);
 
-        // 1. Validate dữ liệu
         $request->validate([
-            'content' => 'required|string',
-            'image'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'content' => 'required',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
         ]);
 
-        // 2. Cập nhật nội dung chữ
         $post->content = $request->content;
-
-        // 3. Xử lý ảnh (nếu người dùng chọn ảnh mới)
-        if ($request->hasFile('image')) {
-            // Xóa ảnh cũ nếu cần (tùy logic của bạn)
-            // if ($post->image_url && file_exists(public_path($post->image_url))) { ... }
-
-            $imageName = time() . '.' . $request->image->extension();
-            $request->image->move(public_path('uploads/posts'), $imageName);
-
-            // Lưu đường dẫn vào database
-            $post->image_url = 'uploads/posts/' . $imageName;
-        }
-
         $post->save();
 
-        return redirect()->back()->with('success', 'Cập nhật bài viết thành công!');
+        // nếu có ảnh mới thì cập nhật ảnh
+        if ($request->hasFile('image')) {
+
+            $file = $request->file('image');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+
+            $file->move(public_path('uploads/posts'), $fileName);
+
+            // xóa ảnh cũ nếu có
+            if ($post->media->count()) {
+                $post->media()->delete();
+            }
+
+            // thêm ảnh mới
+            $post->media()->create([
+                'media_url' => 'uploads/posts/' . $fileName,
+                'media_type' => 'image',
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Cập nhật bài viết thành công');
     }
 
     /**

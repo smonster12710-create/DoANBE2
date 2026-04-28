@@ -14,7 +14,29 @@
                 <span class="name">{{ $post->user->fullname ?? 'Người dùng' }}</span>
                 <span class="time">{{ $post->created_at->diffForHumans() }}</span>
             </div>
-            <div class="more">⋯</div>
+            <div class="dropdown">
+                <button class="more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    ⋯
+                </button>
+
+                <ul class="dropdown-menu">
+                    <li>
+                        <button class="dropdown-item"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editPostModal{{ $post->id }}">
+                            Sửa bài viết
+                        </button>
+                    </li>
+
+                    <li>
+                        <button class="dropdown-item text-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deletePostModal{{ $post->id }}">
+                            Xóa bài viết
+                        </button>
+                    </li>
+                </ul>
+            </div>
         </div>
 
         {{-- NỘI DUNG --}}
@@ -85,6 +107,104 @@
 
         </div>
     </div>
+    <!-- Modal sửa -->
+    <div class="modal fade" id="editPostModal{{ $post->id }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Sửa bài viết</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form action="{{ route('posts.update', $post->id) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="modal-body">
+
+                        {{-- Nội dung bài viết --}}
+                        <textarea
+                            name="content"
+                            class="form-control"
+                            rows="5"
+                            required>{{ $post->content }}</textarea>
+
+                        <br>
+
+                        {{-- Ảnh hiện tại --}}
+                        @if($post->media->count())
+                        <div style="margin-bottom: 15px;">
+                            <p><strong>Ảnh hiện tại:</strong></p>
+                            <img
+                                src="{{ asset($post->media->first()->media_url) }}"
+                                style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 10px;">
+                        </div>
+                        @endif
+
+                        {{-- Chọn ảnh mới --}}
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <strong>Thay ảnh mới</strong>
+                            </label>
+
+                            <input
+                                type="file"
+                                name="image"
+                                class="form-control"
+                                accept="image/*">
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Hủy
+                        </button>
+
+                        <button type="submit" class="btn btn-primary">
+                            Cập nhật
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+    <!-- Modal xóa -->
+    <div class="modal fade" id="deletePostModal{{ $post->id }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">Xóa bài viết</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    Bạn có chắc muốn xóa bài viết này không?
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Hủy
+                    </button>
+
+                    <form action="{{ route('posts.destroy', $post->id) }}" method="POST">
+                        @csrf
+                        @method('DELETE')
+
+                        <button type="submit" class="btn btn-danger">
+                            Xóa
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
     @endforeach
+
+
 </div>
 @endsection
