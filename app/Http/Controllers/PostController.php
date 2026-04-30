@@ -70,10 +70,11 @@ class PostController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id) {}
-    /**
-     * Show the form for editing the specified resource.
-     */
+    public function show($id)
+    {
+        $post = Post::with(['user', 'media', 'likes'])->findOrFail($id);
+        return view('social.show', compact('post')); // 👈 đúng chỗ này
+    }
     public function edit(Post $post)
     {
         //

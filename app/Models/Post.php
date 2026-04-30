@@ -59,4 +59,8 @@ class Post extends Model
         // Giả sử bảng của bạn tên là post_media
         return $this->hasMany(PostMedia::class, 'post_id');
     }
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

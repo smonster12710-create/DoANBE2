@@ -42,6 +42,7 @@ Route::get('list', [CrudUserController::class, 'listUser'])->name('user.list');
 Route::get('signout', [CrudUserController::class, 'signOut'])->name('signout');
 Route::resource('posts', PostController::class);
 Route::get('/newsfeed', [App\Http\Controllers\PostController::class, 'index'])->name('posts.index');
+Route::get('/posts/{id}', [PostController::class, 'show'])->name('posts.show');
 
 // --- TRANG CHỦ ---
 Route::get('/', function () {
@@ -62,4 +63,3 @@ Route::get('/chat-messages/{id}', [MessageController::class, 'show'])->name('cha
 Route::get('login', [CrudUserController::class, 'login'])->name('login');
 Route::post('login', [CrudUserController::class, 'authUser'])->name('user.authUser');
 Route::get('dashboard', [CrudUserController::class, 'dashboard']);
-

@@ -154,6 +154,7 @@ body {
     padding: 0 15px 12px;
     font-size: 15px;
     line-height: 1.5;
+
 }
 
 .card-img {
@@ -290,4 +291,34 @@ textarea.form-control:focus {
     font-size: 24px;
     cursor: pointer;
     padding: 0;
+}
+
+.card-text a {
+    color: #000000;
+    /* xanh Facebook */
+    text-decoration: none;
+    /* bỏ gạch chân */
+    font-weight: 500;
+    word-break: break-word;
+    /* tránh tràn */
+}
+
+.card {
+    position: relative;
+}
+
+.card-link {
+    position: absolute;
+    inset: 0;
+    /* phủ toàn bộ card */
+    z-index: 1;
+}
+
+.actions-container,
+.card-header .dropdown,
+.btn-action,
+form {
+    position: relative;
+    z-index: 2;
+    /* cao hơn overlay */
 }

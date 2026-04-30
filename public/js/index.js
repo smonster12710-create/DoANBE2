@@ -1,9 +1,17 @@
-function previewEditImage(input, postId) {
-    if (input.files && input.files[0]) {
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            document.getElementById('preview' + postId).setAttribute('src', e.target.result);
-        }
-        reader.readAsDataURL(input.files[0]);
-    }
-}
+
+document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('click', function (e) {
+
+            // ❌ Nếu click vào button, form, link thì bỏ qua
+            if (
+                e.target.closest('button') ||
+                e.target.closest('form') ||
+                e.target.closest('a')
+            ) {
+                return;
+            }
+
+            // ✅ chuyển trang
+            window.location.href = this.dataset.url;
+        });
+});

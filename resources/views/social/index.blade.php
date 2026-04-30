@@ -6,7 +6,7 @@
 <div class="grid">
     @foreach ($posts as $post)
     <div class="card">
-
+        <a href="{{ route('posts.show', $post->id) }}" class="card-link"></a>
         {{-- HEADER: Avatar + Tên --}}
         <div class="card-header">
             <img class="avatar" src="{{ $post->user->avatar ?? 'https://i.pravatar.cc/40?u='.$post->user_id }}" alt="avatar">
@@ -41,7 +41,9 @@
 
         {{-- NỘI DUNG --}}
         <div class="card-text">
-            {!! nl2br(e($post->content)) !!}
+            <a href="{{ route('posts.show', $post->id) }}">
+                {!! nl2br(e($post->content)) !!}
+            </a>
         </div>
 
         {{-- HÌNH ẢNH --}}
