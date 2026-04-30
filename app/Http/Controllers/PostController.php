@@ -3,22 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\PostMedia;
+use App\Models\Like;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use App\Models\PostMedia;
 
 class PostController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // Lấy bài viết kèm theo user và media
-        $posts = \App\Models\Post::with(['user', 'media'])->latest()->get();
+        // Lấy bài viết kèm theo user, media và cả likes (để hiển thị số lượt like)
+        $posts = Post::with(['user', 'media', 'likes'])->latest()->get();
 
-        // Sửa chỗ này: trỏ vào thư mục social thay vì posts
+        // Trỏ vào view index trong thư mục social
         return view('social.index', compact('posts'));
     }
 
@@ -127,5 +129,49 @@ class PostController extends Controller
         $post->delete();
 
         return redirect()->back()->with('success', 'Đã xóa bài viết thành công!');
+    }
+    public function toggleLike($postId)
+    {
+        // 1. Xác định User
+        $userId = \Illuminate\Support\Facades\Auth::id() ?? 1;
+
+        // 2. Tìm bài viết
+        $post = Post::findOrFail($postId);
+
+        // 3. Kiểm tra xem user này đã like bài này chưa
+        $like = Like::where('post_id', $postId)
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($like) {
+            // Xóa trực tiếp bằng Query Builder để tránh lỗi Primary Key
+            Like::where('post_id', $postId)
+                ->where('user_id', $userId)
+                ->delete();
+
+            // Chỉ giảm số lượng nếu like_count đang lớn hơn 0
+            if ($post->like_count > 0) {
+                $post->decrement('like_count');
+            }
+        } else {
+            // Thêm mới lượt like
+            Like::create([
+                'post_id' => $postId,
+                'user_id' => $userId
+            ]);
+
+            // Tăng số lượng like
+            $post->increment('like_count');
+        }
+
+        return redirect()->back();
+    }
+
+    public function listLikers($postId)
+    {
+        // Lấy bài viết và load danh sách người dùng đã like
+        $post = Post::with('likedByUsers')->findOrFail($postId);
+
+        return view('social.post_likers', compact('post'));
     }
 }
