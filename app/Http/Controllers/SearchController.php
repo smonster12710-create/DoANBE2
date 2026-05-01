@@ -2,33 +2,70 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Hashtag;
-use Illuminate\Http\Request;
 
 class SearchController extends Controller
 {
-    public function globalSearch(Request $request)
+    /**
+     * Logic Search User
+     */
+    public function searchUsers(Request $request)
     {
-        $keyword = $request->input('query');
-        $keywordClean = ltrim($keyword, '#'); // Xóa dấu # nếu có
+        // Lấy từ khóa search từ request (?q=abc)
+        $keyword = $request->input('q');
 
-        // 1. Tìm User
-        $users = User::where('username', 'LIKE', "%{$keyword}%")->limit(5)->get();
+        // Nếu keyword rỗng thì trả về mảng rỗng cho nhẹ server
+        if (empty($keyword)) {
+            return response()->json([
+                'success' => true,
+                'data' => []
+            ]);
+        }
 
-        // 2. Tìm Hashtag kèm theo bài viết của nó
-        $hashtags = Hashtag::with(['posts' => function ($query) {
-            $query->latest()->limit(3); // Chỉ lấy 3 bài mới nhất của mỗi tag cho nhẹ
-        }, 'posts.user']) // Lấy luôn thông tin người đăng bài đó
-            ->where('name', 'LIKE', "%{$keywordClean}%")
-            ->get();
+        // Query tìm user
+        $users = User::where('is_active', 1) //  acc đang hoạt động
+            ->where(function ($query) use ($keyword) {
+                // Search tương đối (LIKE) trên cả username và fullname
+                $query->where('username', 'LIKE', "%{$keyword}%")
+                    ->orWhere('fullname', 'LIKE', "%{$keyword}%");
+            })
+            ->select('id', 'username', 'fullname', 'avatar_url', 'role')
+            ->paginate(5);
+    
+        return response()->json([
+            'success' => true,
+            'data' => $users
+        ]);
+    }
+
+    /**
+     * Logic Search Hashtag
+     */
+    public function searchHashtags(Request $request)
+    {
+        $keyword = $request->input('q');
+
+        if (empty($keyword)) {
+            return response()->json([
+                'success' => true,
+                'data' => []
+            ]);
+        }
+
+        // Xóa dấu # ở đầu nếu user lỡ tay gõ luôn dấu # vô ô search
+        $cleanKeyword = ltrim($keyword, '#');
+
+        // Bỏ comment khúc này khi Pro đã có bảng hashtags nghen
+        $hashtags = Hashtag::where('name', 'LIKE', "%{$cleanKeyword}%")
+            ->orderBy('usage_count', 'desc') // Đếm số bài viết đang xài hashtag này
+            ->select('id', 'name', 'usage_count') // Thằng nào trending đưa lên đầu
+            ->paginate(5);
 
         return response()->json([
-            'status' => 'success',
-            'data' => [
-                'users' => $users,
-                'hashtags' => $hashtags
-            ]
+            'success' => true,
+            'data' => $hashtags
         ]);
     }
 }

@@ -1,0 +1,29 @@
+/* search.css */
+.search-results-dropdown {
+    position: absolute;
+    top: 50px;
+    /* Cách cái input một khoảng */
+    left: 0;
+    width: 100%;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 10000;
+    /* Phải cao hơn sidebar và topbar */
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+}
+
+.result-item {
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.result-item:hover {
+    background: #f8f9fa;
+}
