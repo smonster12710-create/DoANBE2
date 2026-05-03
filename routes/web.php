@@ -55,7 +55,8 @@ Route::post('/post/{id}/like', [PostController::class, 'toggleLike'])->name('pos
 Route::get('/post/{id}/likers', [PostController::class, 'listLikers'])->name('post.likers');
 
 // --- SEARCH & MESSAGES ---
-Route::get('/search', [SearchController::class, 'globalSearch'])->name('search.global');
+Route::get('/user', [SearchController::class, 'searchUsers'])->name('search.user');
+Route::get('/hashtag', [SearchController::class, 'searchHashtags'])->name('search.hashtag');
 Route::get('/list_messages', [MessageController::class, 'index'])->name('messages.index');
 Route::get('/chat-messages/{id}', [MessageController::class, 'show'])->name('chat_messages');
 
