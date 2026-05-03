@@ -1,8 +1,10 @@
 @php
-    $user = Auth::user();
+$user = Auth::user();
 
-    $avatar = $user && $user->avatar_url
-        ? asset($user->avatar_url)
+
+$avatar = $user && $user->avatar_url
+? asset($user->avatar_url)
+
 : asset('img/user/user.jpg');@endphp
 <!DOCTYPE html>
 <html>
@@ -129,11 +131,14 @@
                     </a>
                 </div>
                 <div class="menu-item">
-                    <a class="danh_muc">
-                        <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
-                            <path fill="rgb(0, 0, 0)"
-                                d="M160 144C151.2 144 144 151.2 144 160L144 480C144 488.8 151.2 496 160 496L480 496C488.8 496 496 488.8 496 480L496 160C496 151.2 488.8 144 480 144L160 144zM96 160C96 124.7 124.7 96 160 96L480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160zM296 408L296 344L232 344C218.7 344 208 333.3 208 320C208 306.7 218.7 296 232 296L296 296L296 232C296 218.7 306.7 208 320 208C333.3 208 344 218.7 344 232L344 296L408 296C421.3 296 432 306.7 432 320C432 333.3 421.3 344 408 344L344 344L344 408C344 421.3 333.3 432 320 432C306.7 432 296 421.3 296 408z" />
+
+
+                    <a class="danh_muc" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                        <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+
+                            <path fill="rgb(0, 0, 0)" d="M160 144C151.2 144 144 151.2 144 160L144 480C144 488.8 151.2 496 160 496L480 496C488.8 496 496 488.8 496 480L496 160C496 151.2 488.8 144 480 144L160 144zM96 160C96 124.7 124.7 96 160 96L480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160zM296 408L296 344L232 344C218.7 344 208 333.3 208 320C208 306.7 218.7 296 232 296L296 296L296 232C296 218.7 306.7 208 320 208C333.3 208 344 218.7 344 232L344 296L408 296C421.3 296 432 306.7 432 320C432 333.3 421.3 344 408 344L344 344L344 408C344 421.3 333.3 432 320 432C306.7 432 296 421.3 296 408z" />
+
+                    
                         </svg>
                         <span>Đăng bài</span>
                     </a>
@@ -149,15 +154,16 @@
                     </a>
                 </div>
                 <div class="menu-item">
-                    <a class="danh_muc" href="{{ url('/list_messages') }}"
-                        class="menu-item {{ request()->is('list_messages') ? 'active' : '' }}">
+
+
+                    <a class="danh_muc" href="{{ url('/list_messages') }}" class="menu-item {{ request()->is('list_messages') ? 'active' : '' }}">
                         @if(request()->is('social'))
-                            <!-- ICON ACTIVE -->
-                            <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
-                                <path fill="rgb(0, 0, 0)"
-                                    d="M64 304C64 358.4 83.3 408.6 115.9 448.9L67.1 538.3C65.1 542 64 546.2 64 550.5C64 564.6 75.4 576 89.5 576C93.5 576 97.3 575.4 101 573.9L217.4 524C248.8 536.9 283.5 544 320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304zM158 471.9C167.3 454.8 165.4 433.8 153.2 418.7C127.1 386.4 112 346.8 112 304C112 200.8 202.2 112 320 112C437.8 112 528 200.8 528 304C528 407.2 437.8 496 320 496C289.8 496 261.3 490.1 235.7 479.6C223.8 474.7 210.4 474.8 198.6 479.9L140 504.9L158 471.9zM208 336C225.7 336 240 321.7 240 304C240 286.3 225.7 272 208 272C190.3 272 176 286.3 176 304C176 321.7 190.3 336 208 336zM352 304C352 286.3 337.7 272 320 272C302.3 272 288 286.3 288 304C288 321.7 302.3 336 320 336C337.7 336 352 321.7 352 304zM432 336C449.7 336 464 321.7 464 304C464 286.3 449.7 272 432 272C414.3 272 400 286.3 400 304C400 321.7 414.3 336 432 336z" />
-                            </svg>
+                        <!-- ICON ACTIVE -->
+
+                        <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                            <path fill="rgb(0, 0, 0)" d="M64 304C64 358.4 83.3 408.6 115.9 448.9L67.1 538.3C65.1 542 64 546.2 64 550.5C64 564.6 75.4 576 89.5 576C93.5 576 97.3 575.4 101 573.9L217.4 524C248.8 536.9 283.5 544 320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304zM158 471.9C167.3 454.8 165.4 433.8 153.2 418.7C127.1 386.4 112 346.8 112 304C112 200.8 202.2 112 320 112C437.8 112 528 200.8 528 304C528 407.2 437.8 496 320 496C289.8 496 261.3 490.1 235.7 479.6C223.8 474.7 210.4 474.8 198.6 479.9L140 504.9L158 471.9zM208 336C225.7 336 240 321.7 240 304C240 286.3 225.7 272 208 272C190.3 272 176 286.3 176 304C176 321.7 190.3 336 208 336zM352 304C352 286.3 337.7 272 320 272C302.3 272 288 286.3 288 304C288 321.7 302.3 336 320 336C337.7 336 352 321.7 352 304zM432 336C449.7 336 464 321.7 464 304C464 286.3 449.7 272 432 272C414.3 272 400 286.3 400 304C400 321.7 414.3 336 432 336z" />
+                        </svg>
+
                         @else
                             <!-- ICON NORMAL -->
 
@@ -199,7 +205,7 @@
                 </div>
             </div>
 
-            <div class="profile a   vatar-menu">
+            <div class="profile avatar-menu">
                 <button type="button" class="profile-btn" onclick="toggleAvatarMenu()">
                     <img src="{{ $avatar }}" alt="avatar">
                     <div>
@@ -250,13 +256,42 @@
         </div>
 
     </div>
+    <div class="modal fade" id="createPostModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel" style="color: black;">Tạo bài viết mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <textarea name="content" class="form-control" rows="4" placeholder="Bạn đang nghĩ gì?" required style="border: none; resize: none;"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="formFile" class="form-label" style="font-weight: bold; color: #555;">Thêm ảnh vào bài viết</label>
+                            <input class="form-control" type="file" name="image" id="formFile" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary" style="background-color: #007bff;">Đăng bài</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 <script>
     function toggleAvatarMenu() {
         document.getElementById('avatarDropdown').classList.toggle('show');
     }
 
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', function(e) {
         const menu = document.querySelector('.avatar-menu');
         const dropdown = document.getElementById('avatarDropdown');
 
@@ -265,6 +300,5 @@
         }
     });
 </script>
-<script src="{{ asset('js/search.js') }}"></script>
 
 </html>

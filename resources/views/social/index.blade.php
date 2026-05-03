@@ -5,83 +5,208 @@
 
 <div class="grid">
     @foreach ($posts as $post)
-        <div class="card">
-
-            {{-- HEADER: Avatar + Tên --}}
-            <div class="card-header">
-                <img class="avatar" src="{{ $post->user->avatar ?? 'https://i.pravatar.cc/40?u='.$post->user_id }}" alt="avatar">
-                <div class="info">
-                    <span class="name">{{ $post->user->fullname ?? 'Người dùng' }}</span>
-                    <span class="time">{{ $post->created_at->diffForHumans() }}</span>
-                </div>
-                <div class="more">⋯</div>
+    <div class="card">
+        <a href="{{ route('posts.show', $post->id) }}" class="card-link"></a>
+        {{-- HEADER: Avatar + Tên --}}
+        <div class="card-header">
+            <img class="avatar" src="{{ $post->user->avatar ?? 'https://i.pravatar.cc/40?u='.$post->user_id }}" alt="avatar">
+            <div class="info">
+                <span class="name">{{ $post->user->fullname ?? 'Người dùng' }}</span>
+                <span class="time">{{ $post->created_at->diffForHumans() }}</span>
             </div>
+            <div class="dropdown">
+                <button class="more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    ⋯
+                </button>
 
-            {{-- NỘI DUNG --}}
-            <div class="card-text">
+                <ul class="dropdown-menu">
+                    <li>
+                        <button class="dropdown-item"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editPostModal{{ $post->id }}">
+                            Sửa bài viết
+                        </button>
+                    </li>
+
+                    <li>
+                        <button class="dropdown-item text-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deletePostModal{{ $post->id }}">
+                            Xóa bài viết
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        {{-- NỘI DUNG --}}
+        <div class="card-text">
+            <a href="{{ route('posts.show', $post->id) }}">
                 {!! nl2br(e($post->content)) !!}
-            </div>
+            </a>
+        </div>
 
-            {{-- HÌNH ẢNH --}}
-            <img class="card-img" src="{{ $post->image_url ?? 'https://picsum.photos/seed/'.$post->id.'/400/500' }}" alt="post image">
+        {{-- HÌNH ẢNH --}}
+        @if($post->media->count())
+        <img class="card-img"
+            src="{{ asset($post->media->first()->media_url) }}"
+            alt="post image">
+        @endif
+        {{-- ACTIONS CONTAINER --}}
+        <div class="actions-container">
 
-            {{-- ACTIONS CONTAINER --}}
-            <div class="actions-container">
-                
-                {{-- HÀNG 1: CÁC NÚT TƯƠNG TÁC --}}
-                <div class="card-actions">
-                    <div class="left-actions">
-                        
-                        {{-- 1. NÚT LIKE --}}
-                        <form action="{{ route('post.like', $post->id) }}" method="POST" class="like-form">
-                            @csrf
-                            @php
-                                $userId = auth()->id() ?? 1;
-                                $checkLike = $post->likes->contains('user_id', $userId);
-                            @endphp
-                            <button type="submit" class="btn-action {{ $checkLike ? 'is-liked' : '' }}">
-                                <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                                </svg>
-                                <span class="like-count">{{ $post->likes->count() }}</span>
-                            </button>
-                        </form>
+            {{-- HÀNG 1: CÁC NÚT TƯƠNG TÁC --}}
+            <div class="card-actions">
+                <div class="left-actions">
 
-                        {{-- 2. NÚT COMMENT --}}
-                        <div class="btn-action">
+                    {{-- 1. NÚT LIKE --}}
+                    <form action="{{ route('post.like', $post->id) }}" method="POST" class="like-form">
+                        @csrf
+                        @php
+                        $userId = auth()->id() ?? 1;
+                        $checkLike = $post->likes->contains('user_id', $userId);
+                        @endphp
+                        <button type="submit" class="btn-action {{ $checkLike ? 'is-liked' : '' }}">
                             <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785c-.442.483.087 1.218.639.998a10.523 10.523 0 0 0 2.822-1.587c.433-.288.936-.439 1.403-.236 1.241.547 2.61.845 4.041.845Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
                             </svg>
-                            <span class="count-text">0</span>
-                        </div>
+                            <span class="like-count">{{ $post->likes->count() }}</span>
+                        </button>
+                    </form>
 
-                        {{-- 3. NÚT SAVE --}}
-                        <div class="btn-action">
-                            <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
-                            </svg>
-                        </div>
+                    {{-- 2. NÚT COMMENT --}}
+                    <div class="btn-action">
+                        <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785c-.442.483.087 1.218.639.998a10.523 10.523 0 0 0 2.822-1.587c.433-.288.936-.439 1.403-.236 1.241.547 2.61.845 4.041.845Z" />
+                        </svg>
+                        <span class="count-text">0</span>
                     </div>
 
-                    {{-- 4. NÚT SHARE --}}
-                    <div class="share-btn">
-                        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                            <path d="M457.5 71C450.6 64.1 440.3 62.1 431.3 65.8C422.3 69.5 416.5 78.3 416.5 88L416.5 144L368.5 144C280.1 144 208.5 215.6 208.5 304C208.5 350.7 229.2 384.4 252.1 407.4C260.2 415.6 268.6 422.3 276.4 427.8C285.6 434.3 298.1 433.5 306.5 425.9C314.9 418.3 316.7 405.9 311 396.1C307.4 389.8 304.5 381.2 304.5 369.4C304.5 333.2 333.8 303.9 370 303.9L416.5 303.9L416.5 359.9C416.5 369.6 422.3 378.4 431.3 382.1C440.3 385.8 450.6 383.8 457.5 376.9L593.5 240.9C602.9 231.5 602.9 216.3 593.5 207L457.5 71zM464.5 168L464.5 145.9L542.6 224L464.5 302.1L464.5 280C464.5 266.7 453.8 256 440.5 256L370 256C319.1 256 276.1 289.5 261.7 335.6C258.4 326.2 256.5 315.8 256.5 304C256.5 242.1 306.6 192 368.5 192L440.5 192C453.8 192 464.5 181.3 464.5 168zM144.5 160C100.3 160 64.5 195.8 64.5 240L64.5 496C64.5 540.2 100.3 576 144.5 576L400.5 576C444.7 576 480.5 540.2 480.5 496L480.5 472C480.5 458.7 469.8 448 456.5 448C443.2 448 432.5 458.7 432.5 472L432.5 496C432.5 513.7 418.2 528 400.5 528L144.5 528C126.8 528 112.5 513.7 112.5 496L112.5 240C112.5 222.3 126.8 208 144.5 208L168.5 208C181.8 208 192.5 197.3 192.5 184C192.5 170.7 181.8 160 168.5 160L144.5 160z" />
+                    {{-- 3. NÚT SAVE --}}
+                    <div class="btn-action">
+                        <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
                         </svg>
                     </div>
                 </div>
 
-                {{-- HÀNG 2: DÒNG XEM AI LIKE --}}
-                @if($post->likes->count() > 0)
-                <div class="likers-row">
-                    <a href="{{ route('post.likers', $post->id) }}" class="likers-link">
-                        Xem tất cả người đã thích
-                    </a>
+                {{-- 4. NÚT SHARE --}}
+                <div class="share-btn">
+                    <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                        <path d="M457.5 71C450.6 64.1 440.3 62.1 431.3 65.8C422.3 69.5 416.5 78.3 416.5 88L416.5 144L368.5 144C280.1 144 208.5 215.6 208.5 304C208.5 350.7 229.2 384.4 252.1 407.4C260.2 415.6 268.6 422.3 276.4 427.8C285.6 434.3 298.1 433.5 306.5 425.9C314.9 418.3 316.7 405.9 311 396.1C307.4 389.8 304.5 381.2 304.5 369.4C304.5 333.2 333.8 303.9 370 303.9L416.5 303.9L416.5 359.9C416.5 369.6 422.3 378.4 431.3 382.1C440.3 385.8 450.6 383.8 457.5 376.9L593.5 240.9C602.9 231.5 602.9 216.3 593.5 207L457.5 71zM464.5 168L464.5 145.9L542.6 224L464.5 302.1L464.5 280C464.5 266.7 453.8 256 440.5 256L370 256C319.1 256 276.1 289.5 261.7 335.6C258.4 326.2 256.5 315.8 256.5 304C256.5 242.1 306.6 192 368.5 192L440.5 192C453.8 192 464.5 181.3 464.5 168zM144.5 160C100.3 160 64.5 195.8 64.5 240L64.5 496C64.5 540.2 100.3 576 144.5 576L400.5 576C444.7 576 480.5 540.2 480.5 496L480.5 472C480.5 458.7 469.8 448 456.5 448C443.2 448 432.5 458.7 432.5 472L432.5 496C432.5 513.7 418.2 528 400.5 528L144.5 528C126.8 528 112.5 513.7 112.5 496L112.5 240C112.5 222.3 126.8 208 144.5 208L168.5 208C181.8 208 192.5 197.3 192.5 184C192.5 170.7 181.8 160 168.5 160L144.5 160z" />
+                    </svg>
                 </div>
-                @endif
+            </div>
+
+            {{-- HÀNG 2: DÒNG XEM AI LIKE --}}
+            @if($post->likes->count() > 0)
+            <div class="likers-row">
+                <a href="{{ route('post.likers', $post->id) }}" class="likers-link">
+                    Xem tất cả người đã thích
+                </a>
+            </div>
+            @endif
+
+        </div>
+    </div>
+    <!-- Modal sửa -->
+    <div class="modal fade" id="editPostModal{{ $post->id }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Sửa bài viết</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form action="{{ route('posts.update', $post->id) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="modal-body">
+
+                        {{-- Nội dung bài viết --}}
+                        <textarea
+                            name="content"
+                            class="form-control"
+                            rows="5"
+                            required>{{ $post->content }}</textarea>
+
+                        <br>
+
+                        {{-- Ảnh hiện tại --}}
+                        @if($post->media->count())
+                        <div style="margin-bottom: 15px;">
+                            <p><strong>Ảnh hiện tại:</strong></p>
+                            <img
+                                src="{{ asset($post->media->first()->media_url) }}"
+                                style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 10px;">
+                        </div>
+                        @endif
+
+                        {{-- Chọn ảnh mới --}}
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <strong>Thay ảnh mới</strong>
+                            </label>
+
+                            <input
+                                type="file"
+                                name="image"
+                                class="form-control"
+                                accept="image/*">
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Hủy
+                        </button>
+
+                        <button type="submit" class="btn btn-primary">
+                            Cập nhật
+                        </button>
+                    </div>
+                </form>
 
             </div>
         </div>
+    </div>
+    <!-- Modal xóa -->
+    <div class="modal fade" id="deletePostModal{{ $post->id }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">Xóa bài viết</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    Bạn có chắc muốn xóa bài viết này không?
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Hủy
+                    </button>
+
+                    <form action="{{ route('posts.destroy', $post->id) }}" method="POST">
+                        @csrf
+                        @method('DELETE')
+
+                        <button type="submit" class="btn btn-danger">
+                            Xóa
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
     @endforeach
+
+
 </div>
-@endsection 
+@endsection
