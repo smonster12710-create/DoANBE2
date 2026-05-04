@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Trang chủ</title>
+    <title>DoANBE2 - Chào mừng</title>
+    <!-- Nhớ link tới file CSS của Pro nha -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
 
@@ -16,9 +17,9 @@
         <nav class="menu">
             <a href="#">Giới thiệu</a>
             <a href="#">Tin tức</a>
-            <button class="button-login" type="button" onclick="openLogin()">Đăng nhập</button>
-            <button class="button-register" type="button" onclick="openRegister()">Đăng ký</button>
-
+            <!-- Đổi button thành thẻ <a> và trỏ thẳng vô route của Laravel -->
+            <a href="{{ route('login') }}" class="button-login" style="text-decoration: none;">Đăng nhập</a>
+            <a href="{{ route('user.createUser') }}" class="button-register" style="text-decoration: none;">Đăng ký</a>
         </nav>
     </header>
 
@@ -26,15 +27,12 @@
 
         <!-- HERO -->
         <section class="hero">
-
             <div class="hero-left">
                 <div class="bg-box"></div>
-
                 <img src="/img/welcome/food1.jpg" class="img main">
                 <img src="/img/welcome/food2.jpg" class="img small top">
                 <img src="/img/welcome/food3.jpg" class="img small left">
                 <img src="/img/welcome/food4.jpg" class="img small bottom">
-
                 <div class="overlay">
                     🔍 bữa tối với món gà dễ làm
                 </div>
@@ -46,21 +44,20 @@
                     Bạn muốn thử điều gì tiếp theo? Hãy nghĩ về ý tưởng bạn yêu thích—
                     như "bữa tối với món gà dễ làm"—và xem bạn tìm thấy gì.
                 </p>
-                <button>Khám phá</button>
+                <!-- Nút Khám phá cũng nên cho nhảy vô trang Login để bắt user đăng nhập mới cho coi -->
+                <a href="{{ route('login') }}" class="button-register" style="text-decoration: none;">Khám phá ngay</a>
             </div>
-
         </section>
 
         <!-- SECTION 2 -->
         <section class="section section-blue">
-
             <div class="content left">
-                <h2>Lưu ý ý tưởng bạn thích</h2>
+                <h2>Lưu lại ý tưởng bạn thích</h2>
                 <p>
                     Thu thập nội dung bạn yêu thích<br>
                     để bạn có thể quay lại xem sau.
                 </p>
-                <button>Khám phá</button>
+                <a href="{{ route('login') }}" class="button-login" style="text-decoration: none;">Bắt đầu</a>
             </div>
 
             <div class="gallery">
@@ -68,9 +65,7 @@
                 <img src="/img/welcome/cat1.jpg" class="item">
                 <img src="/img/welcome/cat2.jpg" class="item">
                 <img src="/img/welcome/city.jpg" class="item wide">
-
             </div>
-
         </section>
 
     </main>
@@ -81,88 +76,9 @@
         <a href="#">Chính sách</a>
         <a href="#">Trợ giúp</a>
     </footer>
-    <!-- Popup đăng nhập (đăng nhập thành công ->trang mxh) -->
-    <div id="loginPopup" class="popup">
-        <div class="popup-box">
 
-            <span class="close" onclick="closePopup()">×</span>
+    <!-- Đã dọn sạch sẽ đống HTML và Javascript của Popup ở đây -->
 
-            <h2>Đăng nhập</h2>
-
-            <form method="POST" action="/login">
-                @csrf
-                <input name="email" placeholder="Email">
-                <input name="password" type="password" placeholder="Mật khẩu">
-                <button>Đăng nhập</button>
-            </form>
-
-            <p>Chưa có tài khoản?
-                <a href="#" onclick="switchToRegister()">Đăng ký</a>
-            </p>
-
-        </div>
-    </div>
-    <!-- Popup đăng ký -->
-        <div id="registerPopup" class="popup">
-            <div class="popup-box register-box">
-
-                <span class="close" onclick="closePopup()">×</span>
-
-                <h2>Đăng ký</h2>
-
-                <form method="POST" action="{{ route('user.postUser') }}">
-                    @csrf
-
-                    <input name="name" placeholder="Họ và tên" required>
-
-                    <input name="email" type="email" placeholder="Email" required>
-
-                    <select name="gender" class="popup-input">
-                        <option value="">Chọn giới tính</option>
-                        <option value="male">Nam</option>
-                        <option value="female">Nữ</option>
-                        <option value="other">Khác</option>
-                    </select>
-
-                    <input name="phone" placeholder="Số điện thoại">
-
-                    <input name="password" type="password" placeholder="Mật khẩu" required>
-
-                    <input name="password_confirmation" type="password" placeholder="Xác nhận mật khẩu" required>
-
-                    <button type="submit">Đăng ký</button>
-                </form>
-
-                <p>Đã có tài khoản?
-                    <a href="#" onclick="switchToLogin()">Đăng nhập</a>
-                </p>
-
-            </div>
-        </div>        
-        <script>
-        function openLogin() {
-            document.getElementById('loginPopup').style.display = 'flex';
-        }
-
-        function openRegister() {
-            document.getElementById('registerPopup').style.display = 'flex';
-        }
-
-        function closePopup() {
-            document.getElementById('loginPopup').style.display = 'none';
-            document.getElementById('registerPopup').style.display = 'none';
-        }
-
-        function switchToRegister() {
-            closePopup();
-            openRegister();
-        }
-
-        function switchToLogin() {
-            closePopup();
-            openLogin();
-        }
-    </script>
 </body>
 
 </html>

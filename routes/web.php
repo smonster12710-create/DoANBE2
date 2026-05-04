@@ -3,64 +3,89 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CrudUserController;
 use App\Http\Controllers\PostController;
-
 use App\Http\Controllers\CommentController;
-
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SearchController;
-
-
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
 */
-
-Route::get('dashboard', [CrudUserController::class, 'dashboard']);
-
-Route::get('login', [CrudUserController::class, 'login'])->name('login');
-Route::post('login', [CrudUserController::class, 'authUser'])->name('user.authUser');
-
-Route::get('create', [CrudUserController::class, 'createUser'])->name('user.createUser');
-Route::post('create', [CrudUserController::class, 'postUser'])->name('user.postUser');
-
-Route::get('read', [CrudUserController::class, 'readUser'])->name('user.readUser');
-
-Route::delete('delete/{id}', [CrudUserController::class, 'deleteUser'])->name('user.deleteUser');
-
-Route::get('update/{id}', [CrudUserController::class, 'updateUser'])->name('user.updateUser');
-Route::post('update', [CrudUserController::class, 'postUpdateUser'])->name('user.postUpdateUser');
-
-Route::get('list', [CrudUserController::class, 'listUser'])->name('user.list');
-
-Route::get('signout', [CrudUserController::class, 'signOut'])->name('signout');
-Route::resource('posts', PostController::class);
-Route::get('/newsfeed', [App\Http\Controllers\PostController::class, 'index'])->name('posts.index');
-Route::get('/posts/{id}', [PostController::class, 'show'])->name('posts.show');
 
 // --- TRANG CHỦ ---
 Route::get('/', function () {
+    // Check coi ông này có đang đăng nhập không
+    if (Auth::check()) {
+        // Đăng nhập rồi thì đá thẳng vô trang mạng xã hội (hoặc '/dashboard' tuỳ ý Pro)
+        return redirect('/social');
+    }
+
+    // Chưa đăng nhập thì mới cho đứng ngoài cửa dòm trang welcome
     return view('welcome');
 });
 
-// --- SOCIAL NETWORK ---
-Route::get('/social', [PostController::class, 'index'])->name('social.index');
-Route::post('/post/{id}/like', [PostController::class, 'toggleLike'])->name('post.like');
-Route::get('/post/{id}/likers', [PostController::class, 'listLikers'])->name('post.likers');
+// ==========================================
+// KHU VỰC KHÁCH (CHƯA ĐĂNG NHẬP)
+// Dùng middleware 'guest' để chặn user đã login quay lại form này
+// ==========================================
+Route::middleware('guest')->group(function () {
+    Route::controller(CrudUserController::class)->group(function () {
+        // GIỮ NGUYÊN TÊN KHÔNG ĐỔI 1 CHỮ
+        Route::get('login', 'login')->name('login');
+        Route::post('login', 'authUser')->name('user.authUser');
 
-// --- SEARCH & MESSAGES ---
-Route::get('/user', [SearchController::class, 'searchUsers'])->name('search.user');
-Route::get('/hashtag', [SearchController::class, 'searchHashtags'])->name('search.hashtag');
-Route::get('/list_messages', [MessageController::class, 'index'])->name('messages.index');
-Route::get('/chat-messages/{id}', [MessageController::class, 'show'])->name('chat_messages');
+        Route::get('create', 'createUser')->name('user.createUser');
+        Route::post('create', 'postUser')->name('user.postUser');
+    });
+});
 
-// --- QUẢN LÝ USER (Ví dụ gộp nhóm cho gọn) ---
-Route::get('login', [CrudUserController::class, 'login'])->name('login');
-Route::post('login', [CrudUserController::class, 'authUser'])->name('user.authUser');
-Route::get('dashboard', [CrudUserController::class, 'dashboard']);
+// ==========================================
+// KHU VỰC BẢO MẬT (BẮT BUỘC ĐĂNG NHẬP)
+// ==========================================
+Route::middleware('auth')->group(function () {
+
+    // --- QUẢN LÝ USER ---
+    Route::controller(CrudUserController::class)->group(function () {
+        Route::get('read', 'readUser')->name('user.readUser');
+        Route::delete('delete/{id}', 'deleteUser')->name('user.deleteUser');
+        Route::get('update/{id}', 'updateUser')->name('user.updateUser');
+        Route::post('update', 'postUpdateUser')->name('user.postUpdateUser');
+        Route::get('list', 'listUser')->name('user.list');
+        Route::get('signout', 'signOut')->name('signout');
+    });
+
+    // --- MẠNG XÃ HỘI & POSTS ---
+    Route::controller(PostController::class)->group(function () {
+        // Tui giữ lại resource nhưng loại trừ mấy hàm Pro đã tự viết ở dưới để không bị đụng nhau
+        Route::resource('posts', PostController::class)->except(['index', 'store', 'show']);
+
+        // Các route Pro tự viết (GIỮ Y NGUYÊN TÊN VÀ URL CŨ)
+        Route::get('/newsfeed', 'index')->name('posts.index');
+        Route::post('/posts', 'store')->name('posts.store');
+        Route::get('/posts/{id}', 'show')->name('posts.show');
+        Route::get('/social', 'index')->name('social.index');
+
+        // Tương tác Bài viết (Giữ lại cả 2 version chữ 's' và không có chữ 's' của Pro luôn cho chắc cú)
+        Route::post('/posts/{id}/like', 'toggleLike')->name('posts.like');
+        Route::get('/posts/{id}/likers', 'listLikers')->name('posts.likers');
+
+        Route::post('/post/{id}/like', 'toggleLike')->name('post.like');
+        Route::get('/post/{id}/likers', 'listLikers')->name('post.likers');
+    });
+
+    // --- BÌNH LUẬN ---
+    Route::post('/posts/{id}/comments', [CommentController::class, 'store'])->name('comments.store');
+
+    // --- TÌM KIẾM ---
+    Route::controller(SearchController::class)->group(function () {
+        Route::get('/user', 'searchUsers')->name('search.user');
+        Route::get('/hashtag', 'searchHashtags')->name('search.hashtag');
+    });
+
+    // --- TIN NHẮN ---
+    Route::controller(MessageController::class)->group(function () {
+        Route::get('/list_messages', 'index')->name('messages.index');
+        Route::get('/chat-messages/{id}', 'show')->name('chat_messages');
+    });
+});

@@ -1,9 +1,9 @@
 @php
-$user = Auth::user();
+    $user = Auth::user();
 
 
-$avatar = $user && $user->avatar_url
-? asset($user->avatar_url)
+    $avatar = $user && $user->avatar_url
+        ? asset($user->avatar_url)
 
 : asset('img/user/user.jpg');@endphp
 <!DOCTYPE html>
@@ -14,6 +14,10 @@ $avatar = $user && $user->avatar_url
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/dashbroad.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/search.css') }}">
+    <!-- CSS Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- JS Bootstrap 5 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         .profile {
             position: relative;
@@ -300,5 +304,5 @@ $avatar = $user && $user->avatar_url
         }
     });
 </script>
-
+<script src="{{ asset('js/search.js') }}"></script>
 </html>
