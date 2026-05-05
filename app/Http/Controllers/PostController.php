@@ -51,7 +51,26 @@ class PostController extends Controller
         $post->content = $request->content;
         $post->privacy = 0;
         $post->save();
+        // ===========================================================================
+        //Xử lý hashtag
+        preg_match_all('/(?<=^|\s)#([\p{L}\p{N}_]+)/u', $post->content, $matches);
+        $tags = array_unique($matches[1]);
+        $tagIds = [];
+        foreach ($tags as $tagName) {
+            // firstOrCreate: Có rồi thì lấy ra xài, chưa có thì insert vô bảng hashtags
+            //  ép về chữ thường bằng mb_strtolower để tiếng Việt không bị lỗi
+            $hashtag = \App\Models\Hashtag::firstOrCreate([
+                'name' => mb_strtolower($tagName, 'UTF-8')
+            ]);
+            $hashtag->increment('usage_count'); // Tăng usage_count mỗi khi có bài viết mới dùng hashtag này
 
+            $tagIds[] = $hashtag->id;
+        }
+
+        // Đồng bộ ID hashtag vô bảng trung gian post_hashtags
+        if (!empty($tagIds)) {
+            $post->hashtags()->sync($tagIds);
+        }
         // nếu có ảnh thì lưu vào post_media
         if ($request->hasFile('image')) {
             $file = $request->file('image');
