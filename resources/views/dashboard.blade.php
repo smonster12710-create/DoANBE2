@@ -135,8 +135,6 @@
                     </a>
                 </div>
                 <div class="menu-item">
-
-
                     <a class="danh_muc" data-bs-toggle="modal" data-bs-target="#createPostModal">
                         <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
 

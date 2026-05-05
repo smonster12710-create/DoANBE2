@@ -9,31 +9,27 @@ use App\Models\Hashtag;
 class SearchController extends Controller
 {
     /**
-     * Logic Search User
+     * API: Tìm kiếm User (Trả về JSON cho AJAX gợi ý)
      */
     public function searchUsers(Request $request)
     {
-        // Lấy từ khóa search từ request (?q=abc)
         $keyword = $request->input('q');
 
-        // Nếu keyword rỗng thì trả về mảng rỗng cho nhẹ server
         if (empty($keyword)) {
-            return response()->json([
-                'success' => true,
-                'data' => []
-            ]);
+            return response()->json(['success' => true, 'data' => []]);
         }
 
-        // Query tìm user
-        $users = User::where('is_active', 1) //  acc đang hoạt động
-            ->where(function ($query) use ($keyword) {
-                // Search tương đối (LIKE) trên cả username và fullname
-                $query->where('username', 'LIKE', "%{$keyword}%")
-                    ->orWhere('fullname', 'LIKE', "%{$keyword}%");
-            })
+        // Ép từ khóa về chữ thường để tìm cho chuẩn
+        $keyword = mb_strtolower($keyword, 'UTF-8');
+
+        $users = User::where(function ($query) use ($keyword) {
+            $query->where('username', 'LIKE', "%{$keyword}%")
+                ->orWhere('fullname', 'LIKE', "%{$keyword}%");
+        })
+            // Nếu Pro không chắc user đã active chưa thì tạm thời bỏ cái where('is_active', 1) để test nhé!
             ->select('id', 'username', 'fullname', 'avatar_url', 'role')
             ->paginate(5);
-    
+
         return response()->json([
             'success' => true,
             'data' => $users
@@ -41,31 +37,50 @@ class SearchController extends Controller
     }
 
     /**
-     * Logic Search Hashtag
+     * API: Tìm kiếm Hashtag (Trả về JSON cho AJAX gợi ý)
      */
     public function searchHashtags(Request $request)
     {
         $keyword = $request->input('q');
 
         if (empty($keyword)) {
-            return response()->json([
-                'success' => true,
-                'data' => []
-            ]);
+            return response()->json(['success' => true, 'data' => []]);
         }
 
-        // Xóa dấu # ở đầu nếu user lỡ tay gõ luôn dấu # vô ô search
-        $cleanKeyword = ltrim($keyword, '#');
+        $cleanKeyword = mb_strtolower(ltrim($keyword, '#'), 'UTF-8');
 
-        // Bỏ comment khúc này khi Pro đã có bảng hashtags nghen
         $hashtags = Hashtag::where('name', 'LIKE', "%{$cleanKeyword}%")
-            ->orderBy('usage_count', 'desc') // Đếm số bài viết đang xài hashtag này
-            ->select('id', 'name', 'usage_count') // Thằng nào trending đưa lên đầu
+            ->withCount('posts') // Tự động đẻ ra biến posts_count
+            ->orderBy('posts_count', 'desc')
             ->paginate(5);
 
-        return response()->json([
-            'success' => true,
-            'data' => $hashtags
+        return response()->json(['success' => true, 'data' => $hashtags]);
+    }
+
+    /**
+     * VIEW: Hiển thị trang bài viết của Hashtag (Trả về Blade View)
+     * Đây là hàm để fix lỗi "BadMethodCallException" của Pro nè!
+     */
+    public function searchHashtag(Request $request)
+    {
+        $query = $request->query('q');
+        $cleanKeyword = mb_strtolower(ltrim($query, '#'), 'UTF-8');
+
+        if (empty($cleanKeyword)) {
+            return redirect()->route('home');
+        }
+
+        // Tìm hashtag và lấy các bài viết liên quan
+        $hashtag = Hashtag::where('name', $cleanKeyword)->first();
+
+        $posts = $hashtag
+            ? $hashtag->posts()->with(['user', 'media', 'likes'])->latest()->paginate(10)
+            : collect();
+
+        // Trả về view 'social.hashtag' mà anh em mình đã dựng
+        return view('social.hashtag', [
+            'posts' => $posts,
+            'cleanKeyword' => $cleanKeyword
         ]);
     }
 }

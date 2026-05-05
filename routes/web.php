@@ -57,16 +57,16 @@ Route::middleware('auth')->group(function () {
 
     // --- MẠNG XÃ HỘI & POSTS ---
     Route::controller(PostController::class)->group(function () {
-        // Tui giữ lại resource nhưng loại trừ mấy hàm Pro đã tự viết ở dưới để không bị đụng nhau
+        // giữ lại resource nhưng loại trừ mấy hàm đã tự viết ở dưới để không bị đụng nhau
         Route::resource('posts', PostController::class)->except(['index', 'store', 'show']);
 
-        // Các route Pro tự viết (GIỮ Y NGUYÊN TÊN VÀ URL CŨ)
+        // Các route 
         Route::get('/newsfeed', 'index')->name('posts.index');
         Route::post('/posts', 'store')->name('posts.store');
         Route::get('/posts/{id}', 'show')->name('posts.show');
         Route::get('/social', 'index')->name('social.index');
 
-        // Tương tác Bài viết (Giữ lại cả 2 version chữ 's' và không có chữ 's' của Pro luôn cho chắc cú)
+        // Tương tác Bài viết (Giữ lại cả 2 version chữ 's' và không có chữ 's' 
         Route::post('/posts/{id}/like', 'toggleLike')->name('posts.like');
         Route::get('/posts/{id}/likers', 'listLikers')->name('posts.likers');
 
@@ -80,10 +80,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->name('comments.destroy');
 
     // --- TÌM KIẾM ---
-    Route::controller(SearchController::class)->group(function () {
-        Route::get('/user', 'searchUsers')->name('search.user');
-        Route::get('/hashtag', 'searchHashtags')->name('search.hashtag');
+    Route::prefix('ajax')->group(function () {
+        Route::get('/users', [SearchController::class, 'searchUsers']);
+        Route::get('/hashtags', [SearchController::class, 'searchHashtags']);
     });
+    // --- 2. Cụm Giao diện cho người dùng (View) ---
+    Route::get('/hashtag', [SearchController::class, 'searchHashtag'])->name('hashtag.search');
+    // Route::get('/profile/{username}', [UserController::class, 'show'])->name('profile.show');
 
     // --- TIN NHẮN ---
     Route::controller(MessageController::class)->group(function () {

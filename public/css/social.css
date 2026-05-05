@@ -345,3 +345,14 @@ form {
 .pin-btn:hover {
     transform: scale(1.1);
 }
+/*  */
+a.hashtag-link {
+    color: #1877f2 !important;
+    font-weight: 600 !important;
+    text-decoration: none;
+}
+
+a.hashtag-link:hover {
+    text-decoration: underline;
+    color: #166fe5 !important;
+}
