@@ -241,20 +241,44 @@
                                     <hr>
 
                                     {{-- Danh sách các comment --}}
-                        @foreach($post->comments as $comment)
-                            <div class="d-flex mb-3">
-                                <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://i.pravatar.cc/40?u='.$comment->user_id }}" 
-                                    class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
-                                <div style="font-size: 13px;">
-                                    <strong>{{ $comment->user->fullname ?? 'Người dùng' }}</strong> {{ $comment->content }}
-                                    <div class="text-muted" style="font-size: 11px;">
-                                        @php \Carbon\Carbon::setLocale('vi'); @endphp
-                                        {{ $comment->created_at->diffForHumans() }}
-                                    </div>
+                                    @foreach ($post->comments as $comment)
+                                        <div class="d-flex mb-3 justify-content-between align-items-start">
+                                            <div class="d-flex">
+                                                <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://i.pravatar.cc/40?u=' . $comment->user_id }}"
+                                                    class="rounded-circle me-2" width="32" height="32"
+                                                    style="object-fit: cover;">
+                                                <div style="font-size: 13px;">
+                                                    <strong>{{ $comment->user->fullname ?? 'Người dùng' }}</strong>
+                                                    {{ $comment->content }}
+                                                    <div class="text-muted" style="font-size: 11px;">
+                                                        @php \Carbon\Carbon::setLocale('vi'); @endphp
+                                                        {{ $comment->created_at->diffForHumans() }}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {{-- Nút xóa --}}
+                                            @if (auth()->id() == $comment->user_id || auth()->id() == $post->user_id)
+                                                <form action="{{ route('comments.destroy', $comment->id) }}"
+                                                    method="POST" onsubmit="return confirm('Xóa bình luận này?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm text-danger p-0"
+                                                        style="font-size: 10px; border:none; background:none;">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14"
+                                                            height="14" fill="currentColor" class="bi bi-trash"
+                                                            viewBox="0 0 16 16">
+                                                            <path
+                                                                d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                                            <path
+                                                                d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    @endforeach
                                 </div>
-                            </div>
-                        @endforeach
-                    </div>
 
                                 {{-- Form đăng bình luận --}}
                                 <div class="border-top p-3">

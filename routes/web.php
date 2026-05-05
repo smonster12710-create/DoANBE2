@@ -77,6 +77,7 @@ Route::middleware('auth')->group(function () {
 
     // --- BÌNH LUẬN ---
     Route::post('/posts/{id}/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->name('comments.destroy');
 
     // --- TÌM KIẾM ---
     Route::controller(SearchController::class)->group(function () {
