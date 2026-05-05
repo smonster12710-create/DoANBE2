@@ -28,4 +28,20 @@ class CommentController extends Controller
 
         return back()->with('success', 'Đã thêm bình luận!');
     }
+
+    public function destroy($id)
+    {
+        $comment = Comment::findOrFail($id);
+
+        // Lấy ID người dùng hiện tại
+        $currentUserId = Auth::id();
+
+        // Kiểm tra quyền
+        if ($currentUserId == $comment->user_id || $currentUserId == $comment->post->user_id) {
+            $comment->delete();
+            return back()->with('success', 'Đã xóa bình luận!');
+        }
+
+        return back()->with('error', 'Bạn không có quyền xóa bình luận này.');
+    }
 }
