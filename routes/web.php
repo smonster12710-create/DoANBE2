@@ -6,7 +6,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SearchController;
-
+use Illuminate\Support\Facades\Auth;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -72,6 +72,7 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/post/{id}/like', 'toggleLike')->name('post.like');
         Route::get('/post/{id}/likers', 'listLikers')->name('post.likers');
+        Route::post('/post/{id}/pin', [PostController::class, 'togglePin'])->name('post.pin');
     });
 
     // --- BÌNH LUẬN ---
