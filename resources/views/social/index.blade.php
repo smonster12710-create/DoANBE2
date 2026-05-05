@@ -83,9 +83,16 @@
                     </form>
 
                     {{-- COMMENT --}}
-                    <div class="btn-action">
-                        💬 <span>0</span>
-                    </div>
+                    <button class="btn-action" data-bs-toggle="modal"
+                                data-bs-target="#instagramModal{{ $post->id }}"
+                                style="background:none; border:none; padding:0;">
+                                <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48l-1.115 2.91a.45.45 0 0 0 .584.584l2.91-1.115A8.97 8.97 0 0 0 12 20.25Z" />
+                                </svg>
+                                <span>{{ $post->comments->count() }}</span>
+                            </button>
 
                     {{-- SAVE (chưa xử lý) --}}
                     <div class="btn-action">
@@ -191,6 +198,84 @@
         </div>
     </div>
 
+    {{-- MODAL PHONG CÁCH INSTAGRAM --}}
+            <div class="modal fade" id="instagramModal{{ $post->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-content" style="border-radius: 4px; overflow: hidden; height: 85vh; border:none;">
+                        <div class="d-flex flex-row h-100">
+
+                            {{-- TRÁI: ẢNH --}}
+                            <div
+                                style="flex: 1.5; background: #000; display: flex; align-items: center; justify-content: center;">
+                                @if ($post->media->count())
+                                    <img src="{{ asset($post->media->first()->media_url) }}"
+                                        style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                @else
+                                    <div class="text-white">Không có ảnh</div>
+                                @endif
+                            </div>
+
+                            {{-- PHẢI: BÌNH LUẬN --}}
+                            <div style="flex: 1; background: #fff; display: flex; flex-direction: column; width: 400px;">
+
+                                {{-- Header người đăng --}}
+                                <div class="p-3 d-flex align-items-center border-bottom">
+                                    <img src="{{ $post->user->avatar ? asset('storage/' . $post->user->avatar) : 'https://i.pravatar.cc/40?u=' . $post->user_id }}"
+                                        class="rounded-circle me-2" width="32" height="32"
+                                        style="object-fit: cover;">
+                                    <strong style="font-size: 14px;">{{ $post->user->fullname ?? 'Người dùng' }}</strong>
+                                </div>
+
+                                {{-- List bình luận --}}
+                                <div class="flex-grow-1 p-3" style="overflow-y: auto;">
+                                    {{-- Caption bài viết --}}
+                                    <div class="d-flex mb-3">
+                                        <img src="{{ $post->user->avatar ? asset('storage/' . $post->user->avatar) : 'https://i.pravatar.cc/40?u=' . $post->user_id }}"
+                                            class="rounded-circle me-2" width="32" height="32"
+                                            style="object-fit: cover;">
+                                        <div style="font-size: 14px;">
+                                            <strong>{{ $post->user->fullname ?? 'Người dùng' }}</strong>
+                                            {{ $post->content }}
+                                        </div>
+                                    </div>
+                                    <hr>
+
+                                    {{-- Danh sách các comment --}}
+                        @foreach($post->comments as $comment)
+                            <div class="d-flex mb-3">
+                                <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://i.pravatar.cc/40?u='.$comment->user_id }}" 
+                                    class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
+                                <div style="font-size: 13px;">
+                                    <strong>{{ $comment->user->fullname ?? 'Người dùng' }}</strong> {{ $comment->content }}
+                                    <div class="text-muted" style="font-size: 11px;">
+                                        @php \Carbon\Carbon::setLocale('vi'); @endphp
+                                        {{ $comment->created_at->diffForHumans() }}
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                                {{-- Form đăng bình luận --}}
+                                <div class="border-top p-3">
+                                    <form action="{{ route('comments.store', $post->id) }}" method="POST"
+                                        class="d-flex align-items-center">
+                                        @csrf
+                                        <img src="{{ auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : 'https://i.pravatar.cc/40?u=' . auth()->id() }}"
+                                            class="rounded-circle me-2" width="28" height="28"
+                                            style="object-fit: cover;">
+
+                                        <input type="text" name="content"
+                                            class="form-control border-0 shadow-none p-0" placeholder="Thêm bình luận..."
+                                            style="font-size: 14px;">
+                                        <button type="submit" class="btn text-primary fw-bold shadow-none">Đăng</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
     @endforeach
 </div>
 
