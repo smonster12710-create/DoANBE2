@@ -121,3 +121,17 @@ body {
 .detail-likers a:hover {
     color: #1877f2;
 }
+
+.icon-svg {
+    width: 22px;
+    height: 22px;
+}
+
+.detail-liked .icon-svg {
+    fill: red;
+    color: red;
+}
+
+.detail-liked span {
+    color: red;
+}

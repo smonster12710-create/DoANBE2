@@ -18,7 +18,10 @@ class PostController extends Controller
     public function index()
     {
         // Lấy bài viết kèm theo user, media và cả likes (để hiển thị số lượt like)
-        $posts = Post::with(['user', 'media', 'likes'])->latest()->get();
+        $posts = Post::with(['user', 'media', 'likes'])
+            ->orderByDesc('is_pinned') // 🔥 ghim lên trước
+            ->latest()
+            ->get();
 
         // Trỏ vào view index trong thư mục social
         return view('social.index', compact('posts'));
@@ -179,5 +182,14 @@ class PostController extends Controller
         $post = Post::with('likedByUsers')->findOrFail($postId);
 
         return view('social.post_likers', compact('post'));
+    }
+    public function togglePin($id)
+    {
+        $post = Post::findOrFail($id);
+
+        $post->is_pinned = !$post->is_pinned;
+        $post->save();
+
+        return back();
     }
 }

@@ -8,6 +8,12 @@ body {
     column-count: 4;
     column-gap: 16px;
     padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+
+    align-items: start;
+    /* 🔥 FIX */
 }
 
 /* 🔥 FIX CHÍNH */
@@ -321,4 +327,21 @@ form {
     position: relative;
     z-index: 2;
     /* cao hơn overlay */
+}
+
+/* PIN mặc định */
+.pin-btn {
+    color: #555;
+    transition: 0.2s;
+}
+
+/* Khi đã ghim */
+.pin-btn.is-pinned {
+    color: #fbbf24;
+    /* vàng */
+}
+
+/* Hover cho đẹp */
+.pin-btn:hover {
+    transform: scale(1.1);
 }
