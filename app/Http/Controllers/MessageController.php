@@ -3,45 +3,75 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Conversation; // Nhớ use Model vào nhé
+use App\Models\Conversation;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Post;
 
 class MessageController extends Controller
 {
     public function index()
     {
-        // 1. Lấy ID của mình
         $myId = Auth::id();
 
-        // 2. Lấy các cuộc hội thoại mà mình có tham gia
         $conversations = Conversation::whereHas('participants', function ($query) use ($myId) {
             $query->where('user_id', $myId);
         })
-            ->with(['lastMessage', 'participants.user']) // Load sẵn tin nhắn cuối và thông tin người kia
+            ->with(['lastMessage', 'participants.user'])
             ->get();
 
-        // 3. Đẩy biến $conversations sang view list_messages
-        return view('social.list_messages', compact('conversations'));
+        $posts = Post::with([
+            'user',
+            'media',
+            'likes',
+            'comments'
+        ])->latest()->get();
+
+        return view('social.list_messages', compact('conversations', 'posts'));
     }
+
     public function show($id)
     {
         $myId = Auth::id();
-        // 1. Danh sách bên trái
+
+        // Danh sách chat bên trái
         $conversations = Conversation::whereHas('participants', function ($q) use ($myId) {
             $q->where('user_id', $myId);
-        })->with(['lastMessage', 'participants.user'])->get();
+        })
+            ->with(['lastMessage', 'participants.user'])
+            ->get();
 
-        // 2. Phòng chat hiện tại
-        $currentChat = Conversation::with(['messages', 'participants.user'])->findOrFail($id);
+        // Chỉ lấy chat mà user hiện tại có quyền xem
+        $currentChat = Conversation::whereHas('participants', function ($q) use ($myId) {
+            $q->where('user_id', $myId);
+        })
+            ->with([
+                'messages.sender',
+                'participants.user'
+            ])
+            ->find($id);
 
-        // 3. Người đang chat cùng (Partner thực sự của phòng này)
-        $activePartner = $currentChat->participants->where('user_id', '!=', $myId)->first()->user
-            ?? $currentChat->participants->first()->user;
+        if (!$currentChat) {
+            return redirect()
+                ->route('list_messages')
+                ->with('error', 'Bạn không có quyền xem cuộc trò chuyện này.');
+        }
+
+        // Người chat cùng
+        // Xử lý private / group
+        if ($currentChat->type === 'private') {
+            $activeParticipant = $currentChat->participants
+                ->where('user_id', '!=', $myId)
+                ->first();
+
+            $activePartner = $activeParticipant?->user;
+        } else {
+            $activePartner = null;
+        }
 
         return view('social.chat_messages', [
             'conversations' => $conversations,
             'messages'      => $currentChat->messages,
-            'activePartner' => $activePartner, // Dùng cái này cho Header
+            'activePartner' => $activePartner,
             'conversation'  => $currentChat
         ]);
     }

@@ -1,21 +1,31 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
 .main-container {
     display: flex;
     gap: 20px;
     padding: 20px;
     background-color: #f0f2f5;
+    height: calc(100vh - 110px);
+    box-sizing: border-box;
+    overflow: hidden;
 }
-
 /* Sidebar bên trái */
 .messages-sidebar {
     width: 320px;
     background: white;
     border-radius: 20px;
     padding: 20px;
-    height: calc(100vh - 40px);
-    position: sticky;
-    top: 20px;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
 }
 
+/* Search */
 .search-box {
     background: #f0f2f5;
     border-radius: 10px;
@@ -23,14 +33,20 @@
     display: flex;
     align-items: center;
     margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 .search-box input {
     border: none;
     background: transparent;
     outline: none;
-    margin-left: 10px;
     width: 100%;
+}
+
+/* Scroll list */
+.scrollable-list {
+    flex: 1;
+    overflow-y: auto;
 }
 
 /* Item tin nhắn */
@@ -54,6 +70,7 @@
     border-radius: 50%;
     border: 1px solid #ddd;
     margin-right: 15px;
+    object-fit: cover;
 }
 
 .user-name {
@@ -72,23 +89,42 @@
 .chat-main-area {
     flex: 1;
     background: white;
-
     padding: 20px;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 40px);
+    height: 100%;
     border: 1px solid #eee;
-    top: 20px;
-
+    border-radius: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
+/* Header */
+.header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+}
+
+.chat-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Messages */
 .chat-messages {
     flex: 1;
     overflow-y: auto;
-    padding-right: 10px;
+    padding: 20px 10px 10px;
+    min-height: 0;
 }
 
-/* Message Bubbles */
+/* Message bubbles */
 .message-wrapper {
     display: flex;
     margin-bottom: 10px;
@@ -120,43 +156,23 @@
     color: black;
 }
 
-.header-info {
+/* Input */
+.chat-input {
     display: flex;
-    /* Kích hoạt flexbox để các phần tử con nằm hàng ngang */
-    align-items: center;
-    /* Căn giữa ảnh và tên theo chiều dọc */
-    gap: 12px;
-    /* Tạo khoảng cách giữa ảnh và chữ */
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-    /* Đường kẻ ngang phân cách */
+    gap: 10px;
+    margin-top: 15px;
+    flex-shrink: 0;
 }
 
-.chat-avatar {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    /* Làm ảnh tròn */
-    object-fit: cover;
+.chat-input input {
+    flex: 1;
+    padding: 12px 15px;
+    border-radius: 25px;
+    border: 1px solid #ddd;
+    outline: none;
 }
 
-.user-details {
-    display: flex;
-    flex-direction: column;
-    /* Cho tên và username nằm chồng lên nhau */
-}
-
-.user-fullname {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.user-username {
-    color: gray;
-    font-size: 13px;
-}
-.scrollable-list a{
+.scrollable-list a {
     text-decoration: none;
     color: inherit;
 }
