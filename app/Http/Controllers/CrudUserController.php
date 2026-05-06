@@ -117,7 +117,7 @@ class CrudUserController extends Controller
             'gender' => $request->gender,
             'phone' => $request->phone,
             'avatar_url' => 'https://api.dicebear.com/7.x/adventurer/svg?seed=' . urlencode($username),
-            'cover_url' => 'https://picsum.photos/800/300?sig=cover_' . urlencode($username),
+            'cover_url' => 'img/cover/default-cover.jpg' . urlencode($username),
             'role' => 'user',
             'is_active' => 1,
             'created_at' => now(),
