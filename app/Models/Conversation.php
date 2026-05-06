@@ -5,36 +5,52 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Facades\Auth; // Để fix lỗi auth()->id()
-use App\Models\Message; // Model tin nhắn
-use App\Models\ConversationParticipant; // Model người tham gia
+use Illuminate\Support\Facades\Auth;
 
 class Conversation extends Model
 {
-    // 1. Quan hệ lấy danh sách người tham gia
+    protected $fillable = [
+        'name',
+        'image_url',
+        'type'
+    ];
+
+    // Danh sách thành viên
     public function participants(): HasMany
     {
         return $this->hasMany(ConversationParticipant::class, 'conversation_id');
     }
 
-    // 2. Quan hệ lấy tin nhắn
+    // Tin nhắn
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class, 'conversation_id');
     }
 
-    // 3. Lấy tin nhắn mới nhất để hiện ở List Chat
+    // Tin nhắn cuối
     public function lastMessage(): HasOne
     {
-        return $this->hasOne(Message::class, 'conversation_id')->latest();
+        return $this->hasOne(Message::class, 'conversation_id')->latestOfMany();
     }
 
-    // 4. Accessor lấy thông tin người chat cùng (Partner)
+    // Người chat cùng (chat private)
     public function getPartnerAttribute()
     {
-        $myId = Auth::id(); 
-        // Lấy participant không phải là mình
-        $participant = $this->participants->where('user_id', '!=', $myId)->first();
-        return $participant ? $participant->user : null;
+        $myId = Auth::id();
+
+        $participant = $this->participants()
+            ->where('user_id', '!=', $myId)
+            ->with('user')
+            ->first();
+
+        return $participant?->user;
+    }
+
+    // Kiểm tra user có thuộc conversation không
+    public function hasParticipant($userId): bool
+    {
+        return $this->participants()
+            ->where('user_id', $userId)
+            ->exists();
     }
 }
