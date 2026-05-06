@@ -225,12 +225,12 @@
                         </div>
                     </div>
 
-                    <a href="#">Xem tất cả trang cá nhân</a>
+                    <a href="{{ route('profile') }}">Xem tất cả trang cá nhân</a>                    
                     <a href="#">Cài đặt và quyền riêng tư</a>
                     <a href="#">Trợ giúp và hỗ trợ</a>
                     <a href="#">Màn hình và trợ năng</a>
                     <a href="#">Đóng góp ý kiến</a>
-                    <a href="{{ route('signout') }}" class="logout-link">Đăng Xuất</a>
+                    <a href="{{ route('signout') }}" class="logout-link">Đăng Xuất</a>  
                 </div>
             </div>
         </div>

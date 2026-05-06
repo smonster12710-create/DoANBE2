@@ -1,0 +1,154 @@
+.profile-page {
+    min-height: 100vh;
+    background: #f4f5f7;
+    padding: 25px 0;
+    font-family: Arial, sans-serif;
+}
+
+.profile-container {
+    width: 860px;
+    margin: auto;
+}
+
+.profile-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.cover-img {
+    width: 100%;
+    height: 230px;
+    object-fit: cover;
+    display: block;
+}
+
+.profile-info {
+    position: relative;
+    padding: 65px 35px 28px 170px;
+    min-height: 175px;
+}
+
+.profile-avatar {
+    position: absolute;
+    left: 35px;
+    top: -55px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 7px solid white;
+    object-fit: cover;
+    background: white;
+}
+
+.profile-name {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 0;
+    color: #111;
+}
+
+.profile-username {
+    margin-top: 4px;
+    color: #222;
+    font-size: 14px;
+}
+
+.profile-stats-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 14px;
+    color: #111;
+    flex-wrap: wrap;
+}
+
+.profile-stats-line strong {
+    font-weight: bold;
+    color: #111;
+}
+
+.profile-bio {
+    margin-top: 16px;
+    font-size: 14px;
+    color: #222;
+}
+
+.edit-btn {
+    position: absolute;
+    right: 35px;
+    top: 72px;
+    background: #e51f28;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    padding: 12px 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.profile-body {
+    margin-top: 22px;
+}
+
+.info-box {
+    width: 100%;
+    background: white;
+    border-radius: 10px;
+    padding: 26px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.box-title {
+    font-size: 17px;
+    font-weight: bold;
+    margin-bottom: 22px;
+    color: #111;
+}
+
+.box-title span {
+    color: #e51f28;
+    margin-right: 8px;
+}
+
+.info-list {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 130px;
+}
+
+.info-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #eef0f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #777;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.info-label {
+    font-size: 10px;
+    color: #777;
+    text-transform: uppercase;
+}
+
+.info-value {
+    margin-top: 3px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #111;
+}

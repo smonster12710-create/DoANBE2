@@ -65,6 +65,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/posts', 'store')->name('posts.store');
         Route::get('/posts/{id}', 'show')->name('posts.show');
         Route::get('/social', 'index')->name('social.index');
+        Route::get('/profile', function () {return view('social.profile');})->name('profile');
 
         // Tương tác Bài viết (Giữ lại cả 2 version chữ 's' và không có chữ 's' 
         Route::post('/posts/{id}/like', 'toggleLike')->name('posts.like');
