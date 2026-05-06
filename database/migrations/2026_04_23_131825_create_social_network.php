@@ -76,7 +76,7 @@ return new class extends Migration
             $table->text('content')->nullable();
             $table->text('image_url')->nullable(); // Ảnh gửi kèm tin nhắn
             $table->boolean('is_read')->default(false);
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
         });
 
         // 8. THÀNH VIÊN NHÓM CHAT (Participants)
