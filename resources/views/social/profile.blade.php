@@ -12,9 +12,8 @@
 
     $cover = $user && $user->cover_url
         ? asset($user->cover_url)
-        : 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200';
+        : asset('img/cover/cover.jpg');
 @endphp
-
 <div class="profile-page">
     <div class="profile-container">
 
@@ -44,11 +43,11 @@
                     </div>
 
                     <div class="profile-bio">
-                        Sinh viên yêu công nghệ, thích chia sẻ và kết nối.
+                        {{ $user->bio ?? 'Chưa có tiểu sử' }}
                     </div>
                 </div>
 
-                <button class="edit-btn">✎ Chỉnh sửa</button>
+                    <a href="{{ route('profile.edit') }}" class="edit-btn">✎ Chỉnh sửa</a>
             </div>
         </div>
 
@@ -61,7 +60,7 @@
                         <div class="info-icon">▦</div>
                         <div>
                             <div class="info-label">Ngày sinh</div>
-                            <div class="info-value">Chưa có</div>
+                            <div class="info-value">{{ $user->birthday ?? 'Chưa có' }}</div>
                         </div>
                     </div>
 
@@ -69,7 +68,7 @@
                         <div class="info-icon">☎</div>
                         <div>
                             <div class="info-label">Số điện thoại</div>
-                            <div class="info-value">Chưa có</div>
+                            <div class="info-value">{{ $user->phone ?? 'Chưa có' }}</div>
                         </div>
                     </div>
 
@@ -77,7 +76,7 @@
                         <div class="info-icon">✉</div>
                         <div>
                             <div class="info-label">Email</div>
-                            <div class="info-value">{{ $user->email ?? 'lam.pham@example.com' }}</div>
+                            <div class="info-value">{{ $user->email ?? 'Chưa có' }}</div>
                         </div>
                     </div>
 
@@ -85,7 +84,17 @@
                         <div class="info-icon">⚥</div>
                         <div>
                             <div class="info-label">Giới tính</div>
-                            <div class="info-value">Chưa có</div>
+                            <div class="info-value">
+                                @if($user->gender == 1)
+                                    Nam
+                                @elseif($user->gender == 2)
+                                    Nữ
+                                @elseif($user->gender == 3)
+                                    Khác
+                                @else
+                                    Chưa có
+                                @endif
+                            </div>
                         </div>
                     </div>
 
@@ -93,7 +102,7 @@
                         <div class="info-icon">⌖</div>
                         <div>
                             <div class="info-label">Địa chỉ</div>
-                            <div class="info-value">Chưa có</div>
+                            <div class="info-value">{{ $user->address ?? 'Chưa có' }}</div>
                         </div>
                     </div>
                 </div>

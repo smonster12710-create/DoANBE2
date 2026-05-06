@@ -65,7 +65,58 @@ Route::middleware('auth')->group(function () {
         Route::post('/posts', 'store')->name('posts.store');
         Route::get('/posts/{id}', 'show')->name('posts.show');
         Route::get('/social', 'index')->name('social.index');
+
+        // Profile
         Route::get('/profile', function () {return view('social.profile');})->name('profile');
+        Route::get('/profile/edit', function () {return view('social.edit-profile');})->name('profile.edit');
+        Route::post('/profile/update', function (\Illuminate\Http\Request $request) {
+
+            $user = Auth::user();
+
+            $user->fullname = $request->fullname;
+            $user->username = $request->username;
+            $user->email = $request->email;
+
+            $user->bio = $request->bio;
+            $user->birthday = $request->birthday;
+            $user->phone = $request->phone;
+            $user->gender = $request->gender;
+            $user->address = $request->address;
+
+            if ($request->hasFile('avatar')) {
+
+                $avatarName =
+                    time() . '_avatar.' .
+                    $request->avatar->extension();
+
+                $request->avatar->move(
+                    public_path('uploads_profile/avatar'),
+                    $avatarName
+                );
+
+                $user->avatar_url =
+                    'uploads_profile/avatar/' . $avatarName;
+            }
+
+            if ($request->hasFile('cover')) {
+
+                $coverName =
+                    time() . '_cover.' .
+                    $request->cover->extension();
+
+                $request->cover->move(
+                    public_path('uploads_profile/cover'),
+                    $coverName
+                );
+
+                $user->cover_url =
+                    'uploads_profile/cover/' . $coverName;
+            }
+
+            $user->save();
+            return redirect()->route('profile');
+
+        })->name('profile.update');
 
         // Tương tác Bài viết (Giữ lại cả 2 version chữ 's' và không có chữ 's' 
         Route::post('/posts/{id}/like', 'toggleLike')->name('posts.like');

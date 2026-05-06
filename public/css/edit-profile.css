@@ -1,0 +1,145 @@
+.edit-profile-page {
+    min-height: 100vh;
+    background: #f4f5f7;
+    padding: 25px 0;
+    font-family: Arial, sans-serif;
+}
+
+.edit-profile-container {
+    width: 860px;
+    margin: auto;
+}
+
+.edit-header {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    margin-bottom: 22px;
+}
+
+.edit-cover {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    display: block;
+}
+
+.edit-user {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 0 32px 28px;
+    margin-top: -45px;
+}
+
+.edit-avatar {
+    width: 105px;
+    height: 105px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 6px solid white;
+    background: white;
+}
+
+.edit-user h1 {
+    margin: 45px 0 4px;
+    font-size: 28px;
+    color: #111;
+}
+
+.edit-user p {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.edit-card {
+    background: white;
+    border-radius: 12px;
+    padding: 26px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.edit-card h2 {
+    font-size: 20px;
+    margin-bottom: 22px;
+    color: #111;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    border: 1px solid #ddd;
+    background: #f7f8fa;
+    border-radius: 8px;
+    padding: 13px 14px;
+    font-size: 15px;
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: #e51f28;
+    background: white;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 18px;
+}
+
+.form-group.full {
+    grid-column: 1 / 3;
+}
+
+.edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-bottom: 40px;
+}
+
+.cancel-btn,
+.save-btn {
+    border: none;
+    text-decoration: none;
+    padding: 13px 24px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    background: #e4e6eb;
+    color: #111;
+}
+
+.save-btn {
+    background: #e51f28;
+    color: white;
+}
+.clickable-image {
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.clickable-image:hover {
+    opacity: 0.85;
+}
