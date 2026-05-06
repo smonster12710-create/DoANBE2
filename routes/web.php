@@ -92,6 +92,8 @@ Route::middleware('auth')->group(function () {
     Route::controller(MessageController::class)->group(function () {
         Route::get('/list_messages', 'index')->name('messages.index');
         Route::get('/chat-messages/{id}', 'show')->name('chat_messages');
-        Route::get('/messages', [MessageController::class, 'index'])->name('list_messages');
+        Route::post('/messages/send', [MessageController::class, 'send']);
+        Route::get('/messages/{conversationId}', [MessageController::class, 'fetch']);
+        Route::get('/messages/{conversationId}/older', [MessageController::class, 'loadOlder']);
     });
 });

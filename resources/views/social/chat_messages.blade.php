@@ -94,30 +94,36 @@
         </div>
 
         <br>
-        <div class="chat-messages">
+        <div class="chat-messages" id="chat-box"
+            data-conversation="{{ $conversation->id ?? '' }}"
+            data-user="{{ auth()->id() }}"
+            {{-- Lấy ID của tin nhắn cuối cùng trong danh sách --}}
+            data-last-id="{{ $messages->count() > 0 ? $messages->last()->id : 0 }}"
+            {{-- Lấy ID của tin nhắn đầu tiên (để sau này load older messages) --}}
+            data-first-id="{{ $messages->count() > 0 ? $messages->first()->id : 0 }}">
+
             @forelse($messages as $msg)
-            <div class="message-wrapper {{ $msg->sender_id == auth()->id() ? 'me' : 'them' }}">
+            {{-- Kiểm tra tránh hiển thị tin nhắn rỗng --}}
+            @if(!empty(trim($msg->content)))
+            <div class="message-wrapper {{ $msg->sender_id == auth()->id() ? 'me' : 'them' }}" data-id="{{ $msg->id }}">
                 <div class="message-bubble">
                     {{ $msg->content }}
                 </div>
             </div>
+            @endif
             @empty
-            <div style="text-align:center;color:#aaa;margin-top:20px;">
+            <div id="empty-message" style="text-align:center;color:#aaa;margin-top:20px;">
                 Chưa có tin nhắn nào. Hãy chào nhau đi!
             </div>
             @endforelse
         </div>
 
-        {{-- FORM --}}
-        <form class="chat-input" action="" method="POST" style="margin-top:20px;display:flex;gap:10px;">
-            @csrf
-            <input
-                name="content"
-                type="text"
-                placeholder="Aa"
-                required
-                style="flex:1;padding:12px 15px;border-radius:25px;border:1px solid #ddd;outline:none;">
 
+        <form class="chat-input">
+            @csrf
+            <input type="hidden" name="conversation_id" value="{{ $conversation->id }}">
+
+            <input name="content" type="text" placeholder="Aa" required>
             <button type="submit"
                 style="background:none;border:none;font-size:20px;cursor:pointer;">
                 🚀
@@ -126,4 +132,5 @@
 
     </div>
 </div>
+<script src="/js/chat.js"></script>
 @endsection
