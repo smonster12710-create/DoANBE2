@@ -67,10 +67,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/social', 'index')->name('social.index');
 
         // Profile
-        Route::get('/profile', function () {return view('social.profile');})->name('profile');
-        Route::get('/profile/edit', function () {return view('social.edit-profile');})->name('profile.edit');
+        Route::get('/profile', function () {
+            return view('social.profile');
+        })->name('profile');
+        Route::get('/profile/edit', function () {
+            return view('social.edit-profile');
+        })->name('profile.edit');
         Route::post('/profile/update', function (\Illuminate\Http\Request $request) {
 
+            /** @var \App\Models\User $user */
             $user = Auth::user();
 
             $user->fullname = $request->fullname;
@@ -115,7 +120,6 @@ Route::middleware('auth')->group(function () {
 
             $user->save();
             return redirect()->route('profile');
-
         })->name('profile.update');
 
         // Tương tác Bài viết (Giữ lại cả 2 version chữ 's' và không có chữ 's' 

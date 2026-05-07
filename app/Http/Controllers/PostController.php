@@ -42,7 +42,7 @@ class PostController extends Controller
     {
         $request->validate([
             'content' => 'required|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,png,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
         ]);
 
         // tạo bài viết trước
@@ -111,6 +111,11 @@ class PostController extends Controller
     {
         $post = Post::findOrFail($id);
 
+        // CHỈ CHỦ BÀI VIẾT MỚI ĐƯỢC SỬA
+        if ($post->user_id != Auth::id()) {
+            abort(403, 'Bạn không có quyền sửa bài viết này.');
+        }
+
         $request->validate([
             'content' => 'required',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
@@ -119,7 +124,6 @@ class PostController extends Controller
         $post->content = $request->content;
         $post->save();
 
-        // nếu có ảnh mới thì cập nhật ảnh
         if ($request->hasFile('image')) {
 
             $file = $request->file('image');
@@ -127,12 +131,11 @@ class PostController extends Controller
 
             $file->move(public_path('uploads/posts'), $fileName);
 
-            // xóa ảnh cũ nếu có
+            // xóa ảnh cũ
             if ($post->media->count()) {
                 $post->media()->delete();
             }
 
-            // thêm ảnh mới
             $post->media()->create([
                 'media_url' => 'uploads/posts/' . $fileName,
                 'media_type' => 'image',
@@ -147,13 +150,17 @@ class PostController extends Controller
      */
     public function destroy($id)
     {
-        $post = \App\Models\Post::findOrFail($id);
+        $post = Post::findOrFail($id);
 
-        // 1. Xóa các bản ghi liên quan trong bảng post_media trước (để tránh lỗi khóa ngoại)
-        // Nếu bạn có file ảnh thật trong thư mục public, bạn cũng nên xóa nó đi ở đây.
+        // CHỈ CHỦ BÀI VIẾT MỚI ĐƯỢC XÓA
+        if ($post->user_id != Auth::id()) {
+            abort(403, 'Bạn không có quyền xóa bài viết này.');
+        }
+
+        // xóa media
         $post->media()->delete();
 
-        // 2. Xóa bài viết
+        // xóa bài viết
         $post->delete();
 
         return redirect()->back()->with('success', 'Đã xóa bài viết thành công!');
@@ -205,6 +212,11 @@ class PostController extends Controller
     public function togglePin($id)
     {
         $post = Post::findOrFail($id);
+
+        // CHỈ CHỦ BÀI VIẾT MỚI ĐƯỢC GHIM
+        if ($post->user_id != Auth::id()) {
+            abort(403, 'Bạn không có quyền ghim bài viết này.');
+        }
 
         $post->is_pinned = !$post->is_pinned;
         $post->save();
