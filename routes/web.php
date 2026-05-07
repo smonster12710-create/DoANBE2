@@ -151,5 +151,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/messages/send', [MessageController::class, 'send']);
         Route::get('/messages/{conversationId}', [MessageController::class, 'fetch']);
         Route::get('/messages/{conversationId}/older', [MessageController::class, 'loadOlder']);
+        Route::post('/messages/recall/{id}', [MessageController::class, 'recall']);
+        
     });
 });

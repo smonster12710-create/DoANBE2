@@ -19,7 +19,8 @@
         <div class="scrollable-list">
             @foreach($conversations as $chat)
 
-            <a href="{{ route('chat_messages', $chat->id) }}" class="message-item-link">
+            <a href="{{ route('chat_messages', $chat->id) }}"
+                class="message-item-link {{ isset($conversation) && $conversation->id == $chat->id ? 'active-chat' : '' }}">
                 <div class="message-item">
 
                     <div class="avatar-wrapper">
@@ -40,7 +41,16 @@
                         </h4>
 
                         <p class="last-message">
-                            {{ $chat->lastMessage->content ?? 'Bắt đầu trò chuyện ngay' }}
+                            @if($chat->lastMessage)
+                            @if($chat->lastMessage->is_deleted)
+                            <i class="text-muted">Tin nhắn đã được thu hồi</i>
+                            @else
+                            {{ Str::limit($chat->lastMessage->content, 30) }}
+                            {{-- Dùng Str::limit để tránh tin nhắn quá dài làm vỡ giao diện --}}
+                            @endif
+                            @else
+                            <span class="text-primary">Bắt đầu trò chuyện ngay</span>
+                            @endif
                         </p>
                     </div>
 
@@ -102,23 +112,81 @@
             {{-- Lấy ID của tin nhắn đầu tiên (để sau này load older messages) --}}
             data-first-id="{{ $messages->count() > 0 ? $messages->first()->id : 0 }}">
 
+
             @forelse($messages as $msg)
-            {{-- Kiểm tra tránh hiển thị tin nhắn rỗng --}}
+
             @if(!empty(trim($msg->content)))
-            <div class="message-wrapper {{ $msg->sender_id == auth()->id() ? 'me' : 'them' }}" data-id="{{ $msg->id }}">
-                <div class="message-bubble">
-                    {{ $msg->content }}
+
+            <div class="message-wrapper {{ $msg->sender_id == auth()->id() ? 'me' : 'them' }}"
+                data-id="{{ $msg->id }}">
+
+                @if($msg->is_deleted)
+
+                <div class="message-recalled">
+                    Tin nhắn đã được thu hồi
                 </div>
+
+                @else
+
+                <div class="message-bubble">
+
+                    <div class="message-content">
+                        {{ $msg->content }}
+                    </div>
+
+                    @if($msg->sender_id == auth()->id())
+
+                    <div class="message-actions">
+
+                        <button type="button" class="dots-btn">
+                            ⋯
+                        </button>
+
+                        <div class="message-menu">
+
+                            <button
+                                type="button"
+                                class="recall-btn"
+                                data-id="{{ $msg->id }}">
+                                Thu hồi
+                            </button>
+
+                            <button
+                                type="button"
+                                class="delete-btn"
+                                data-id="{{ $msg->id }}">
+                                Xoá ở phía bạn
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    @endif
+
+                </div>
+
+                @endif
+
             </div>
+
             @endif
+
             @empty
-            <div id="empty-message" style="text-align:center;color:#aaa;margin-top:20px;">
+
+            <div id="empty-message"
+                style="text-align:center;color:#aaa;margin-top:20px;">
                 Chưa có tin nhắn nào. Hãy chào nhau đi!
             </div>
+
             @endforelse
+
+
+
+
+
+
         </div>
-
-
         <form class="chat-input">
             @csrf
             <input type="hidden" name="conversation_id" value="{{ $conversation->id }}">
@@ -129,8 +197,6 @@
                 🚀
             </button>
         </form>
-
     </div>
-</div>
-<script src="/js/chat.js"></script>
-@endsection
+    <script src="/js/chat.js"></script>
+    @endsection

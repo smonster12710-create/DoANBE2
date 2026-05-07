@@ -46,13 +46,15 @@ class MessageController extends Controller
             $q->where('user_id', $myId);
         })
             ->with(['participants.user'])
-            ->find($id);
+            ->where('id', $id)
+            ->first();
 
         if (!$currentChat) {
-            return redirect()->route('list_messages')->with('error', 'Không có quyền xem.');
+            return redirect('/list_messages')
+                ->with('error', 'Lỗi không thể truy cập!');
         }
 
-        // 3. LẤY 50 TIN NHẮN MỚI NHẤT (Sửa ở đây)
+        // 3. LẤY 50 TIN NHẮN MỚI NHẤT 
         $messages = Message::where('conversation_id', $id)
             ->with('sender')
             ->orderBy('id', 'desc') // Lấy từ mới nhất trở về sau
@@ -116,5 +118,24 @@ class MessageController extends Controller
             ->values();
 
         return response()->json($messages);
+    }
+    public function recall($id)
+    {
+        $message = Message::findOrFail($id);
+
+        // chỉ chủ tin nhắn được thu hồi
+        if ($message->sender_id != Auth::id()) {
+
+            return response()->json([
+                'error' => 'Không có quyền'
+            ], 403);
+        }
+
+        $message->is_deleted = 1;
+        $message->save();
+
+        return response()->json([
+            'success' => true
+        ]);
     }
 }

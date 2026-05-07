@@ -152,23 +152,122 @@ document.querySelector('.chat-input').addEventListener('submit', function (e) {
         });
 });
 
-function appendMessage(msg) {
-    // CHẶN TRIỆT ĐỂ: Nếu nội dung null, rỗng hoặc chỉ có khoảng trắng thì biến mất luôn
-    if (!msg.content || msg.content.trim() === "") {
-        return;
+function createMessageHTML(msg) {
+    let isMe = msg.sender_id == currentUserId;
+    let wrapperClass = isMe ? 'me' : 'them';
+
+    // Nếu tin nhắn bị thu hồi
+    if (msg.is_deleted == 1) {
+        return `
+            <div class="message-wrapper ${wrapperClass}" data-id="${msg.id}">
+                <div class="message-recalled">Tin nhắn đã được thu hồi</div>
+            </div>`;
     }
 
-    let isMe = msg.sender_id == currentUserId;
-    let div = document.createElement('div');
-    div.className = 'message-wrapper ' + (isMe ? 'me' : 'them');
-    div.innerHTML = `<div class="message-bubble">${msg.content}</div>`;
-    chatBox.appendChild(div);
+    // Tin nhắn bình thường
+    return `
+        <div class="message-wrapper ${wrapperClass}" data-id="${msg.id}">
+            <div class="message-bubble">
+                <div class="message-content">${msg.content}</div>
+                ${isMe ? `
+                    <div class="message-actions">
+                        <button type="button" class="dots-btn">⋯</button>
+                        <div class="message-menu">
+                            <button type="button" class="recall-btn" data-id="${msg.id}">Thu hồi</button>
+                            <button type="button" class="delete-btn" data-id="${msg.id}">Xoá ở phía bạn</button>
+                        </div>
+                    </div>` : ''}
+            </div>
+        </div>`;
 }
 
+function appendMessage(msg) {
+    let div = document.createElement('div');
+    div.innerHTML = createMessageHTML(msg);
+    chatBox.appendChild(div.firstElementChild);
+}
+
+function prependMessage(msg) {
+    let div = document.createElement('div');
+    div.innerHTML = createMessageHTML(msg);
+    chatBox.insertBefore(div.firstElementChild, chatBox.firstChild);
+}
 function scrollBottom() {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
+function recallMessage(messageId) {
 
+    fetch(`/messages/recall/${messageId}`, {
+
+        method: 'POST',
+
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+        }
+
+    })
+        .then(res => res.json())
+        .then(data => {
+
+            if (data.success) {
+
+                let messageElement = document.querySelector(
+                    `.message-wrapper[data-id="${messageId}"] .message-bubble`
+                );
+
+                // đổi class
+                messageElement.classList.remove('message-bubble');
+                messageElement.classList.add('message-recalled');
+
+                // đổi nội dung
+                messageElement.innerHTML = `
+        Tin nhắn đã được thu hồi
+    `;
+
+            }
+        });
+
+}
+document.addEventListener('click', function (e) {
+
+    if (e.target.classList.contains('recall-btn')) {
+
+        let messageId = e.target.dataset.id;
+
+        recallMessage(messageId);
+
+    }
+
+});
+document.addEventListener('click', function (e) {
+
+    // click nút ...
+    if (e.target.classList.contains('dots-btn')) {
+
+        let menu = e.target.nextElementSibling;
+
+        // đóng menu khác
+        document.querySelectorAll('.message-menu').forEach(m => {
+            if (m !== menu) {
+                m.classList.remove('show');
+            }
+        });
+
+        menu.classList.toggle('show');
+
+        e.stopPropagation();
+    }
+
+    // click ngoài -> đóng
+    else {
+
+        document.querySelectorAll('.message-menu').forEach(m => {
+            m.classList.remove('show');
+        });
+
+    }
+
+});
 // KHỞI CHẠY
 loadMessages(); // Chạy lần đầu
 setInterval(loadMessages, 500); // Cứ 0.5 giây check một lần
