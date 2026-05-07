@@ -7,6 +7,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ProfileController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -66,61 +67,22 @@ Route::middleware('auth')->group(function () {
         Route::get('/posts/{id}', 'show')->name('posts.show');
         Route::get('/social', 'index')->name('social.index');
 
-        // Profile
-        Route::get('/profile', function () {
-            return view('social.profile');
-        })->name('profile');
-        Route::get('/profile/edit', function () {
-            return view('social.edit-profile');
-        })->name('profile.edit');
-        Route::post('/profile/update', function (\Illuminate\Http\Request $request) {
+        // ============================PROFILE=========================
+        Route::middleware(['auth'])->group(function () {
 
-            /** @var \App\Models\User $user */
-            $user = Auth::user();
+            // Xem trang cá nhân bất kỳ (Dùng cho Tìm kiếm)
+            Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.show');
 
-            $user->fullname = $request->fullname;
-            $user->username = $request->username;
-            $user->email = $request->email;
+            // Chỉnh sửa trang cá nhân
+            Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+            Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 
-            $user->bio = $request->bio;
-            $user->birthday = $request->birthday;
-            $user->phone = $request->phone;
-            $user->gender = $request->gender;
-            $user->address = $request->address;
+            // Route phụ: Nếu gõ domain.com/profile thì tự nhảy về profile của mình
+            Route::get('/profile', function () {
+                return redirect()->route('profile.show', ['username' => auth()->user()->username]);
+            })->name('profile');
 
-            if ($request->hasFile('avatar')) {
-
-                $avatarName =
-                    time() . '_avatar.' .
-                    $request->avatar->extension();
-
-                $request->avatar->move(
-                    public_path('uploads_profile/avatar'),
-                    $avatarName
-                );
-
-                $user->avatar_url =
-                    'uploads_profile/avatar/' . $avatarName;
-            }
-
-            if ($request->hasFile('cover')) {
-
-                $coverName =
-                    time() . '_cover.' .
-                    $request->cover->extension();
-
-                $request->cover->move(
-                    public_path('uploads_profile/cover'),
-                    $coverName
-                );
-
-                $user->cover_url =
-                    'uploads_profile/cover/' . $coverName;
-            }
-
-            $user->save();
-            return redirect()->route('profile');
-        })->name('profile.update');
+        });
 
         // Tương tác Bài viết (Giữ lại cả 2 version chữ 's' và không có chữ 's' 
         Route::post('/posts/{id}/like', 'toggleLike')->name('posts.like');
@@ -142,9 +104,9 @@ Route::middleware('auth')->group(function () {
     });
     // --- 2. Cụm Giao diện cho người dùng (View) ---
     Route::get('/hashtag', [SearchController::class, 'searchHashtag'])->name('hashtag.search');
-    // Route::get('/profile/{username}', [UserController::class, 'show'])->name('profile.show');
 
-    // --- TIN NHẮN ---
+    // ============================== TIN NHẮN ================================
+
     Route::controller(MessageController::class)->group(function () {
         Route::get('/list_messages', 'index')->name('messages.index');
         Route::get('/chat-messages/{id}', 'show')->name('chat_messages');
