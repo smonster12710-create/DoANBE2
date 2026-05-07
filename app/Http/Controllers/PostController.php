@@ -95,7 +95,7 @@ class PostController extends Controller
     public function show($id)
     {
         $post = Post::with(['user', 'media', 'likes'])->findOrFail($id);
-        return view('social.show', compact('post')); // 👈 đúng chỗ này
+        return view('social.show', compact('post'));
     }
     public function edit(Post $post)
     {
