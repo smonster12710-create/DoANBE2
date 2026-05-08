@@ -1,6 +1,5 @@
 {{-- VÒNG LẶP 2: ĐƯA TẤT CẢ MODAL VỀ CUỐI FILE (NGOÀI THẺ GRID) --}}
-@foreach ($posts as $post)
-    {{-- MODAL SỬA --}}
+{{-- MODAL SỬA --}}
     <div class="modal fade" id="editPostModal{{ $post->id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -121,4 +120,3 @@
             </div>
         </div>
     </div>
-@endforeach

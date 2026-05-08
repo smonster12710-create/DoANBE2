@@ -1,6 +1,6 @@
 <div class="grid">
     {{-- VÒNG LẶP 1: CHỈ HIỂN THỊ DANH SÁCH BÀI VIẾT --}}
-    @foreach ($posts as $post)
+    
         <div class="card mb-4">
             {{-- HEADER --}}
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -120,5 +120,5 @@
                 @endif
             </div>
         </div>
-    @endforeach
+    
 </div>
