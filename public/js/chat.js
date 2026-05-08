@@ -16,7 +16,7 @@ let firstMessageId = chatBox.dataset.firstId; // Lấy từ data-first-id bạn 
 
 chatBox.addEventListener('scroll', function () {
     // Nếu cuộn lên đỉnh và không đang trong quá trình load
-    if (chatBox.scrollTop === 0 && !isLoadingOlder && firstMessageId > 0) {
+    if (chatBox.scrollTop <= 10 && !isLoadingOlder && firstMessageId > 0) {
         loadOlderMessages();
     }
 });
