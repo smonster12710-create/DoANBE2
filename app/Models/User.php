@@ -2,14 +2,6 @@
 
 namespace App\Models;
 
-use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Notifications\Notifiable;
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-
-namespace App\Models;
-
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -28,6 +20,9 @@ class User extends Authenticatable
         'fullname',
         'gender',
         'phone',
+        'bio',
+        'birthday',
+        'address',
         'avatar_url',
         'cover_url',
         'role',
@@ -42,6 +37,7 @@ class User extends Authenticatable
     {
         return $this->password_hash;
     }
+
     public function posts()
     {
         return $this->hasMany(Post::class, 'user_id', 'id');

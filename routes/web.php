@@ -70,12 +70,15 @@ Route::middleware('auth')->group(function () {
         // ============================PROFILE=========================
         Route::middleware(['auth'])->group(function () {
 
+          // Chỉnh sửa trang cá nhân
+  Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+  Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
             // Xem trang cá nhân bất kỳ (Dùng cho Tìm kiếm)
             Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.show');
 
-            // Chỉnh sửa trang cá nhân
-            Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-            Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+          
+          
+          
 
             // Route phụ: Nếu gõ domain.com/profile thì tự nhảy về profile của mình
             Route::get('/profile', function () {
