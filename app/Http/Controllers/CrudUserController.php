@@ -61,7 +61,7 @@ class CrudUserController extends Controller
             return redirect()->intended('/social')->with('success', 'Đăng nhập thành công, vô việc thôi Pro!');
         }
 
-        // Đăng nhập thất bại thì đá về trang cũ kèm câu chửi, giữ lại cái email đã gõ
+        // Đăng nhập thất bại thì đá về trang cũ kèm thông báo, giữ lại cái email đã gõ
         return back()->withErrors([
             'email' => 'Email/Mật khẩu không đúng, hoặc tài khoản đang bị khóa nghen.'
         ])->onlyInput('email');
@@ -79,27 +79,69 @@ class CrudUserController extends Controller
      */
     public function postUser(Request $request)
     {
-        // 1. Validate: Thêm cái 'unique:users,email' để chặn đứng mấy tay xài email cũ
-        $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|max:100|unique:users,email',
-            'password' => 'required|min:6|confirmed',
-            'gender' => 'nullable|in:male,female,other',
-            'phone' => 'nullable|max:20',
-        ], [
-            // Dịch câu chửi lỗi cho nó thân thiện
-            'email.unique' => 'Email này đã có người xài rồi nghen Pro!'
-        ]);
+        /*
+    |--------------------------------------------------------------------------
+    | 1. Validate dữ liệu đăng ký
+    |--------------------------------------------------------------------------
+    | - name: bắt buộc nhập họ tên
+    | - email: bắt buộc, đúng định dạng email, không được trùng trong bảng users
+    | - password: bắt buộc, tối thiểu 6 ký tự, phải khớp với password_confirmation
+    | - gender, phone: không bắt buộc, nhưng nếu có thì kiểm tra nhẹ
+    */
+        try {
+            $request->validate([
+                'name' => 'required|string|max:100',
+                'email' => 'required|email|max:100|unique:users,email',
+                'password' => 'required|min:6|confirmed',
+                'gender' => 'nullable|in:1,2,3',
+                'phone' => 'nullable|string|max:20',
+            ], [
+                'name.required' => 'Vui lòng nhập họ và tên!',
+                'email.required' => 'Vui lòng nhập email!',
+                'email.email' => 'Email không đúng định dạng!',
+                'email.unique' => 'Email đã có người sử dụng!',
+                'password.required' => 'Vui lòng nhập mật khẩu!',
+                'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự!',
+                'password.confirmed' => 'Xác nhận mật khẩu không khớp!',
+                'gender.in' => 'Giới tính không hợp lệ!',
+                'phone.max' => 'Số điện thoại không được quá 20 ký tự!',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
 
-        // KHÔNG CÓ CHECK VÀ UPDATE USER CŨ Ở ĐÂY NỮA NHA!
+            // Nếu validate lỗi thì quay lại trang đăng ký,
+            // giữ lại dữ liệu đã nhập và gửi message lỗi để hiện toast.
+            return back()
+                ->withInput()
+                ->with('error', $e->validator->errors()->first());
+        }
 
-        // 2. Tạo username tự động
-        $baseUsername = Str::slug(strtolower(strtok($request->email, '@')), '_');
+        /*
+    |--------------------------------------------------------------------------
+    | 2. Tạo username tự động từ email
+    |--------------------------------------------------------------------------
+    | Ví dụ:
+    | Email: abc@gmail.com
+    | Username gốc: abc
+    */
+        $baseUsername = Str::slug(
+            strtolower(strtok($request->email, '@')),
+            '_'
+        );
 
+        // Nếu email bị lỗi phần trước @ hoặc username rỗng thì dùng mặc định là "user"
         if (empty($baseUsername)) {
             $baseUsername = 'user';
         }
 
+        /*
+    |--------------------------------------------------------------------------
+    | 3. Chống trùng username
+    |--------------------------------------------------------------------------
+    | Nếu username đã tồn tại thì thêm số phía sau:
+    | abc
+    | abc_1
+    | abc_2
+    */
         $username = $baseUsername;
         $count = 1;
 
@@ -108,29 +150,50 @@ class CrudUserController extends Controller
             $count++;
         }
 
-        // 3. Insert xuống DB và chộp ngay cái ID vừa tạo bằng insertGetId
-        $newUserId = DB::table('users')->insertGetId([
+        /*
+    |--------------------------------------------------------------------------
+    | 4. Thêm user mới vào database
+    |--------------------------------------------------------------------------
+    | Lưu ý:
+    | - Bảng users của bạn dùng password_hash, không phải password
+    | - avatar_url tạo avatar tự động bằng Dicebear
+    | - cover_url dùng ảnh nền mặc định
+    | - bio, birthday, address để null vì đăng ký chưa cần nhập
+    */
+        DB::table('users')->insert([
             'username' => $username,
             'email' => $request->email,
             'password_hash' => Hash::make($request->password),
             'fullname' => $request->name,
+
             'gender' => $request->gender,
             'phone' => $request->phone,
+            'bio' => null,
+            'birthday' => null,
+            'address' => null,
+
             'avatar_url' => 'https://api.dicebear.com/7.x/adventurer/svg?seed=' . urlencode($username),
-            'cover_url' => 'img/cover/default-cover.jpg' . urlencode($username),
+            'cover_url' => 'img/cover/default-cover.jpg',
+
             'role' => 'user',
             'is_active' => 1,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        // 4. Ép đăng nhập tự động luôn cho mượt
-        Auth::loginUsingId($newUserId);
-        $request->session()->regenerate();
-
-        // 5. Đẩy thẳng vô trang Social
-        return redirect('/social')->with('success', 'Đăng ký và tự động đăng nhập thành công!');
-    }   
+        /*
+    |--------------------------------------------------------------------------
+    | 5. Đăng ký thành công
+    |--------------------------------------------------------------------------
+    | Theo yêu cầu:
+    | Đăng ký xong -> chuyển sang trang đăng nhập -> hiện toast success
+    |
+    | Route login trong web.php của bạn là ->name('login')
+    */
+        return redirect()
+            ->route('login')
+            ->with('success', 'Đăng ký thành công! Vui lòng đăng nhập.');
+    }
     /**
      * View user detail page
      */
@@ -210,5 +273,6 @@ class CrudUserController extends Controller
         Session::flush();
         Auth::logout();
 
-        return Redirect('/');    }
+        return Redirect('/');
+    }
 }

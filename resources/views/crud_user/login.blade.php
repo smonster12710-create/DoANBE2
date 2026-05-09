@@ -23,12 +23,49 @@
 
         .form-control:focus {
             border-color: #e60023;
-            box-shadow: 0 0 0 0.25 row rgba(230, 0, 35, 0.25);
+            box-shadow: 0 0 0 0.25rem rgba(230, 0, 35, 0.25);
+        }
+
+        .custom-toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            min-width: 280px;
+            max-width: 420px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            z-index: 9999999;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.35s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+        }
+
+        .custom-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-success {
+            background: #16a34a;
+        }
+
+        .toast-error {
+            background: #e60023;
         }
     </style>
 </head>
 
 <body style="background-color: #fafafa;">
+    @if(session('success') || session('error') || $errors->any())
+    <div id="toast-message"
+        class="custom-toast {{ session('success') ? 'toast-success' : 'toast-error' }}">
+        {{ session('success') ?? session('error') ?? $errors->first() }}
+    </div>
+    @endif
 
     <main class="d-flex align-items-center" style="min-height: 100vh;">
         <div class="container">
@@ -75,6 +112,22 @@
             </div>
         </div>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toast = document.getElementById('toast-message');
+
+            if (toast) {
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 100);
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3500);
+            }
+        });
+    </script>
 </body>
 
 </html>
