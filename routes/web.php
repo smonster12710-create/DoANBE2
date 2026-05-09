@@ -70,21 +70,20 @@ Route::middleware('auth')->group(function () {
         // ============================PROFILE=========================
         Route::middleware(['auth'])->group(function () {
 
-          // Chỉnh sửa trang cá nhân
-  Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-  Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+            // Chỉnh sửa trang cá nhân
+            Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+            Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
             // Xem trang cá nhân bất kỳ (Dùng cho Tìm kiếm)
             Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.show');
 
-          
-          
-          
+
+
+
 
             // Route phụ: Nếu gõ domain.com/profile thì tự nhảy về profile của mình
             Route::get('/profile', function () {
-                return redirect()->route('profile.show', ['username' => auth()->user()->username]);
+                return redirect()->route('profile.show', ['username' => auth::user()->username]);
             })->name('profile');
-
         });
 
         // Tương tác Bài viết (Giữ lại cả 2 version chữ 's' và không có chữ 's' 
@@ -117,6 +116,5 @@ Route::middleware('auth')->group(function () {
         Route::get('/messages/{conversationId}', [MessageController::class, 'fetch']);
         Route::get('/messages/{conversationId}/older', [MessageController::class, 'loadOlder']);
         Route::post('/messages/recall/{id}', [MessageController::class, 'recall']);
-        
     });
 });

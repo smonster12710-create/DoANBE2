@@ -1,7 +1,6 @@
 @extends('dashboard')
 
 @section('content')
-
 <main class="signup-form">
     <link href="{{ asset('css/add.css') }}" rel="stylesheet">
     <script src="{{ asset('js/password.js') }}"></script>
