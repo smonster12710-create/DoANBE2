@@ -4,32 +4,29 @@ body {
 }
 
 /* ===== PINTEREST LAYOUT ===== */
+/* ===== GRID LAYOUT (FIXED) ===== */
 .grid {
-    column-count: 4;
-    column-gap: 16px;
-    padding: 20px;
     display: grid;
+    /* Tự động tính số cột dựa trên kích thước màn hình, tối thiểu 300px mỗi cột */
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
-
+    padding: 20px;
     align-items: start;
-    /* 🔥 FIX */
+    /* Giúp các card không bị kéo dài bằng nhau nếu nội dung ngắn dài khác nhau */
 }
 
 /* 🔥 FIX CHÍNH */
+/* 🔥 CARD FIX */
 .card {
-
-    display: inline-block;
-    /* bắt buộc */
-
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    break-inside: avoid;
-    margin-bottom: 16px;
-
     background: #fff;
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0;
+    /* Grid đã quản lý gap rồi nên không cần margin-bottom */
 }
 
 /* hover nhẹ */
@@ -345,6 +342,7 @@ form {
 .pin-btn:hover {
     transform: scale(1.1);
 }
+
 /*  */
 a.hashtag-link {
     color: #1877f2 !important;
@@ -356,6 +354,7 @@ a.hashtag-link:hover {
     text-decoration: underline;
     color: #166fe5 !important;
 }
+
 .save-btn.saved {
     color: #fc5421;
 }

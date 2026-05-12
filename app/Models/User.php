@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-
+use App\Models\Post;
 class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
@@ -41,5 +41,10 @@ class User extends Authenticatable
     public function posts()
     {
         return $this->hasMany(Post::class, 'user_id', 'id');
+    }
+    public function savedPosts()
+    {
+        return $this->belongsToMany(Post::class, 'saved_posts')
+            ->withTimestamps();
     }
 }

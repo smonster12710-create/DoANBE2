@@ -223,4 +223,24 @@ class PostController extends Controller
 
         return back();
     }
+    public function save(Post $post)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $user->savedPosts()->toggle($post->id);
+
+        return back();
+    }
+    public function saved()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $posts = $user->savedPosts()
+            ->latest()
+            ->get();
+
+        return view('posts.saved', compact('posts'));
+    }
 }

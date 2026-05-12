@@ -88,5 +88,9 @@ class Post extends Model
 
         return preg_replace($regex, $replacement, $nl2brContent);
     }
-    
+    public function savedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'saved_posts')
+            ->withTimestamps();
+    }
 }
