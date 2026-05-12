@@ -243,4 +243,17 @@ class PostController extends Controller
 
         return view('posts.saved', compact('posts'));
     }
+    public function searchPosts(Request $request)
+    {
+        $q = $request->q;
+
+        $posts = Post::with('user')
+            ->where('content', 'LIKE', "%{$q}%")
+            ->latest()
+            ->paginate(5);
+
+        return response()->json([
+            'data' => $posts
+        ]);
+    }
 }

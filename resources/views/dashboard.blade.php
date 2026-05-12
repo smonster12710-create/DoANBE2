@@ -367,5 +367,6 @@ $avatar = $user && $user->avatar_url
     });
 </script>
 <script src="{{ asset('js/search.js') }}"></script>
+<script src="{{ asset('js/search_post.js') }}"></script>
 
 </html>
