@@ -104,6 +104,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/users', [SearchController::class, 'searchUsers']);
         Route::get('/hashtags', [SearchController::class, 'searchHashtags']);
     });
+    //----Lưu bài viết
+    Route::post('/posts/{post}/save', [PostController::class, 'save'])
+        ->name('posts.save')
+        ->middleware('auth');
+    Route::get('/saved', [PostController::class, 'saved'])
+        ->name('posts.saved');
     // --- 2. Cụm Giao diện cho người dùng (View) ---
     Route::get('/hashtag', [SearchController::class, 'searchHashtag'])->name('hashtag.search');
 
