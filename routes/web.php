@@ -104,6 +104,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/users', [SearchController::class, 'searchUsers']);
         Route::get('/hashtags', [SearchController::class, 'searchHashtags']);
     });
+    Route::get('/ajax/posts', [PostController::class, 'searchPosts']);
     //----Lưu bài viết
     Route::post('/posts/{post}/save', [PostController::class, 'save'])
         ->name('posts.save')
