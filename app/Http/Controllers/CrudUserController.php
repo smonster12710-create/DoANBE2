@@ -264,7 +264,66 @@ class CrudUserController extends Controller
 
         return redirect("login")->withSuccess('You are not allowed to access');
     }
+    /**
+     * Forgot PassWord
+     */
+    public function forgotPassword(Request $request)
+    {
+        if ($request->has('fresh')) {
+            session()->forget(['forgot_email', 'forgot_captcha']);
+        }
 
+        return view('crud_user.forgot-password');
+    }
+    public function checkForgotEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $user = DB::table('users')
+            ->where('email', $request->email)
+            ->first();
+
+        if (!$user) {
+            return back()
+                ->withInput()
+                ->with('error', 'Email chưa được đăng ký!');
+        }
+
+        session([
+            'forgot_email' => $request->email,
+            'forgot_captcha' => rand(1000, 9999),
+        ]);
+
+        return redirect()
+            ->route('forgot.password')
+            ->with('success', 'Email hợp lệ! Vui lòng nhập mật khẩu mới.');
+    }
+
+    public function updateForgotPassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|min:6|confirmed',
+            'captcha' => 'required',
+        ]);
+
+        if ($request->captcha != session('forgot_captcha')) {
+            return back()->with('error', 'Mã captcha không đúng!');
+        }
+
+        DB::table('users')
+            ->where('email', session('forgot_email'))
+            ->update([
+                'password_hash' => Hash::make($request->password),
+            ]);
+
+        session()->forget(['forgot_email', 'forgot_captcha']);
+
+        return redirect()
+            ->route('login')
+            ->with('success', 'Đổi mật khẩu thành công!');
+    }
     /**
      * Sign out
      */

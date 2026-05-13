@@ -39,6 +39,12 @@ Route::middleware('guest')->group(function () {
 
         Route::get('create', 'createUser')->name('user.createUser');
         Route::post('create', 'postUser')->name('user.postUser');
+
+        Route::get('forgot-password', 'forgotPassword')->name('forgot.password');
+
+        Route::post('forgot-password/check', 'checkForgotEmail')->name('forgot.password.check');
+
+        Route::post('forgot-password/update', 'updateForgotPassword')->name('forgot.password.update');
     });
 });
 

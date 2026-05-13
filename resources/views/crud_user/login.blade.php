@@ -56,6 +56,24 @@
         .toast-error {
             background: #e60023;
         }
+
+        .forgot-link {
+            display: block;
+            text-align: center;
+            margin-top: 18px;
+
+            color: #666;
+            text-decoration: none;
+
+            font-size: 15px;
+            font-weight: 500;
+
+            transition: 0.2s;
+        }
+
+        .forgot-link:hover {
+            color: #ef0028;
+        }
     </style>
 </head>
 
@@ -99,7 +117,9 @@
                                     <button type="submit" class="btn btn-brand btn-lg fw-bold rounded-pill">Đăng
                                         nhập</button>
                                 </div>
-                                <a href="#" class="text-decoration-none small text-secondary">Quên mật khẩu?</a>
+                                <a href="{{ route('forgot.password', ['fresh' => 1]) }}" class="forgot-link">
+                                    Quên mật khẩu?
+                                </a>
                                 <hr class="my-4">
                                 <p class="mb-0">Chưa có tài khoản?</p>
                                 <a href="{{ route('user.createUser') }}" class="btn btn-outline-secondary btn-md fw-bold rounded-pill mt-2 px-4">Đăng ký
