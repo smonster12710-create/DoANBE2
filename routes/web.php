@@ -8,6 +8,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\NotificationController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -123,5 +124,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/messages/{conversationId}', [MessageController::class, 'fetch']);
         Route::get('/messages/{conversationId}/older', [MessageController::class, 'loadOlder']);
         Route::post('/messages/recall/{id}', [MessageController::class, 'recall']);
+    });
+
+    // ============================== THÔNG BÁO ================================
+    Route::controller(NotificationController::class)->group(function () {
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'readSingle'])->name('notifications.read');
     });
 });

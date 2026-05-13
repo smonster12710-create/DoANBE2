@@ -194,7 +194,15 @@ class PostController extends Controller
                 'post_id' => $postId,
                 'user_id' => $userId
             ]);
-
+            if ($post->user_id != $userId) {
+                \App\Models\Notification::create([
+                    'user_id' => $post->user_id, // Chủ bài viết nhận
+                    'actor_id' => $userId,       // Đứa đi like
+                    'type' => 'like_post',       // Phân loại cho dễ xử lý sau này
+                    'reference_id' => $postId,   // Gắn ID bài viết vào
+                    'is_read' => 0
+                ]);
+            }
             // Tăng số lượng like
             $post->increment('like_count');
         }
