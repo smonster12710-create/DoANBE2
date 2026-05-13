@@ -23,24 +23,24 @@
     {{-- Danh sách thông báo --}}
     @forelse($notifications as $noti)
         @php
-            // Setup màu sắc Bootstrap tùy theo loại thông báo
-            $badgeColor = 'bg-primary'; // Mặc định là Like (Xanh dương)
-            $icon = '👍';
-            $actionText = 'đã thích bài viết của bạn.';
+    // Setup màu sắc Bootstrap tùy theo loại thông báo
+    $badgeColor = 'bg-primary'; // Mặc định là Like (Xanh dương)
+    $icon = '👍';
+    $actionText = 'đã thích bài viết của bạn.';
 
-            if ($noti->type == 'comment') {
-                $badgeColor = 'bg-success'; // Màu xanh lá
-                $icon = '💬';
-                $actionText = 'đã bình luận về bài viết của bạn.';
-            } elseif ($noti->type == 'mention') {
-                $badgeColor = 'bg-danger';  // Màu đỏ
-                $icon = '📌';
-                $actionText = 'đã nhắc đến bạn trong một bình luận.';
-            }
+    if ($noti->type == 'comment') {
+        $badgeColor = 'bg-success'; // Màu xanh lá
+        $icon = '💬';
+        $actionText = 'đã bình luận về bài viết của bạn.';
+    } elseif ($noti->type == 'mention') {
+        $badgeColor = 'bg-danger';  // Màu đỏ
+        $icon = '📌';
+        $actionText = 'đã nhắc đến bạn trong một bình luận.';
+    }
 
-            // Xử lý class cho trạng thái Chưa đọc / Đã đọc
-            $bgClass = $noti->is_read == 0 ? 'bg-primary bg-opacity-10' : 'noti-hover';
-            $timeClass = $noti->is_read == 0 ? 'text-primary fw-bold' : 'text-muted fw-medium';
+    // Xử lý class cho trạng thái Chưa đọc / Đã đọc
+    $bgClass = $noti->is_read == 0 ? 'bg-primary bg-opacity-10' : 'noti-hover';
+    $timeClass = $noti->is_read == 0 ? 'text-primary fw-bold' : 'text-muted fw-medium';
         @endphp
 
         {{-- Thẻ a bọc từng thông báo (Dùng Flexbox của Bootstrap) --}}
