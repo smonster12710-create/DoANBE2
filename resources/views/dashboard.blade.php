@@ -379,5 +379,4 @@
 <script src="{{ asset('js/search_post.js') }}"></script>
 <script src="{{ asset('js/index.js') }}"></script>
 
-<script src="{{ asset('js/notification.js') }}"></script>
 </html>
