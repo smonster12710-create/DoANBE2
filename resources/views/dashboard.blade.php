@@ -72,11 +72,9 @@ $avatar = $user && $user->avatar_url
         .avatar-dropdown {
             display: none;
             position: absolute;
-            /* Thay left bằng right */
             right: -9px;
             bottom: 75px;
             width: 220px;
-            /* Giữ nguyên các phần khác */
             background: white;
             border-radius: 14px;
             padding: 12px;
@@ -114,6 +112,32 @@ $avatar = $user && $user->avatar_url
         .avatar-dropdown .logout-link {
             color: crimson;
             font-weight: bold;
+        }
+
+        .avatar-header div {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .avatar-header small {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+        }
+
+        .text-truncate-custom {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+        }
+
+        .profile-btn div {
+            min-width: 0;
+            flex: 1;
         }
     </style>
 
@@ -154,16 +178,6 @@ $avatar = $user && $user->avatar_url
 
                     </div>
                     <div class="menu-item">
-                        <a class="danh_muc">
-                            <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
-                                <path fill="rgb(0, 0, 0)"
-                                    d="M128 176C119.2 176 112 183.2 112 192L112 448C112 456.8 119.2 464 128 464L512 464C520.8 464 528 456.8 528 448L528 192C528 183.2 520.8 176 512 176L128 176zM64 192C64 156.7 92.7 128 128 128L512 128C547.3 128 576 156.7 576 192L576 448C576 483.3 547.3 512 512 512L128 512C92.7 512 64 483.3 64 448L64 192zM224 384C224 401.7 209.7 416 192 416C174.3 416 160 401.7 160 384C160 366.3 174.3 352 192 352C209.7 352 224 366.3 224 384zM192 288C174.3 288 160 273.7 160 256C160 238.3 174.3 224 192 224C209.7 224 224 238.3 224 256C224 273.7 209.7 288 192 288zM296 232L456 232C469.3 232 480 242.7 480 256C480 269.3 469.3 280 456 280L296 280C282.7 280 272 269.3 272 256C272 242.7 282.7 232 296 232zM296 360L456 360C469.3 360 480 370.7 480 384C480 397.3 469.3 408 456 408L296 408C282.7 408 272 397.3 272 384C272 370.7 282.7 360 296 360z" />
-                            </svg>
-                            <span>Bảng của bạn</span>
-                        </a>
-                    </div>
-                    <div class="menu-item">
                         <a class="danh_muc" data-bs-toggle="modal" data-bs-target="#createPostModal">
                             <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
 
@@ -185,23 +199,19 @@ $avatar = $user && $user->avatar_url
                         </a>
                     </div>
                     <div class="menu-item">
-
-
-                        <a class="danh_muc" href="{{ url('/list_messages') }}" class="menu-item {{ request()->is('list_messages') ? 'active' : '' }}">
-                            @if(request()->is('social'))
+                        <a class="danh_muc {{ request()->is('list_messages*') ? 'active' : '' }}" href="{{ url('/list_messages') }}">
+                            @if(request()->is('list_messages'))
                             <!-- ICON ACTIVE -->
 
                             <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
-                                <path fill="rgb(0, 0, 0)" d="M64 304C64 358.4 83.3 408.6 115.9 448.9L67.1 538.3C65.1 542 64 546.2 64 550.5C64 564.6 75.4 576 89.5 576C93.5 576 97.3 575.4 101 573.9L217.4 524C248.8 536.9 283.5 544 320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304zM158 471.9C167.3 454.8 165.4 433.8 153.2 418.7C127.1 386.4 112 346.8 112 304C112 200.8 202.2 112 320 112C437.8 112 528 200.8 528 304C528 407.2 437.8 496 320 496C289.8 496 261.3 490.1 235.7 479.6C223.8 474.7 210.4 474.8 198.6 479.9L140 504.9L158 471.9zM208 336C225.7 336 240 321.7 240 304C240 286.3 225.7 272 208 272C190.3 272 176 286.3 176 304C176 321.7 190.3 336 208 336zM352 304C352 286.3 337.7 272 320 272C302.3 272 288 286.3 288 304C288 321.7 302.3 336 320 336C337.7 336 352 321.7 352 304zM432 336C449.7 336 464 321.7 464 304C464 286.3 449.7 272 432 272C414.3 272 400 286.3 400 304C400 321.7 414.3 336 432 336z" />
+                                <path d="M320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304C64 358.3 83.2 408.3 115.6 448.5L66.8 540.8C62 549.8 63.5 560.8 70.4 568.3C77.3 575.8 88.2 578.1 97.5 574.1L215.9 523.4C247.7 536.6 282.9 544 320 544zM192 272C209.7 272 224 286.3 224 304C224 321.7 209.7 336 192 336C174.3 336 160 321.7 160 304C160 286.3 174.3 272 192 272zM320 272C337.7 272 352 286.3 352 304C352 321.7 337.7 336 320 336C302.3 336 288 321.7 288 304C288 286.3 302.3 272 320 272zM416 304C416 286.3 430.3 272 448 272C465.7 272 480 286.3 480 304C480 321.7 465.7 336 448 336C430.3 336 416 321.7 416 304z" />
                             </svg>
 
                             @else
                             <!-- ICON NORMAL -->
 
-                            <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
-                                <path fill="rgb(0, 0, 0)"
-                                    d="M320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304C64 358.3 83.2 408.3 115.6 448.5L66.8 540.8C62 549.8 63.5 560.8 70.4 568.3C77.3 575.8 88.2 578.1 97.5 574.1L215.9 523.4C247.7 536.6 282.9 544 320 544zM192 272C209.7 272 224 286.3 224 304C224 321.7 209.7 336 192 336C174.3 336 160 321.7 160 304C160 286.3 174.3 272 192 272zM320 272C337.7 272 352 286.3 352 304C352 321.7 337.7 336 320 336C302.3 336 288 321.7 288 304C288 286.3 302.3 272 320 272zM416 304C416 286.3 430.3 272 448 272C465.7 272 480 286.3 480 304C480 321.7 465.7 336 448 336C430.3 336 416 321.7 416 304z" />
+                            <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                                <path d="M64 304C64 358.4 83.3 408.6 115.9 448.9L67.1 538.3C65.1 542 64 546.2 64 550.5C64 564.6 75.4 576 89.5 576C93.5 576 97.3 575.4 101 573.9L217.4 524C248.8 536.9 283.5 544 320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304zM158 471.9C167.3 454.8 165.4 433.8 153.2 418.7C127.1 386.4 112 346.8 112 304C112 200.8 202.2 112 320 112C437.8 112 528 200.8 528 304C528 407.2 437.8 496 320 496C289.8 496 261.3 490.1 235.7 479.6C223.8 474.7 210.4 474.8 198.6 479.9L140 504.9L158 471.9zM208 336C225.7 336 240 321.7 240 304C240 286.3 225.7 272 208 272C190.3 272 176 286.3 176 304C176 321.7 190.3 336 208 336zM352 304C352 286.3 337.7 272 320 272C302.3 272 288 286.3 288 304C288 321.7 302.3 336 320 336C337.7 336 352 321.7 352 304zM432 336C449.7 336 464 321.7 464 304C464 286.3 449.7 272 432 272C414.3 272 400 286.3 400 304C400 321.7 414.3 336 432 336z" />
                             </svg>
                             @endif
                             <span>Tin nhắn</span>
@@ -275,17 +285,19 @@ $avatar = $user && $user->avatar_url
                     <button type="button" class="profile-btn" onclick="toggleAvatarMenu()">
                         <img src="{{ $avatar }}" alt="avatar">
                         <div>
-                            <strong>{{ $user->fullname ?? 'Người dùng' }}</strong><br>
-                            <small>{{ '@' . ($user->username ?? 'user') }}</small>
+                            <strong class="text-truncate-custom">{{ $user->fullname ?? 'Người dùng' }}</strong>
+                            <!-- Thêm class vào đây -->
+                            <small class="text-truncate-custom">{{ '@' . ($user->username ?? 'user') }}</small>
                         </div>
                     </button>
 
                     <div id="avatarDropdown" class="avatar-dropdown sidebar-dropdown">
                         <div class="avatar-header">
                             <img src="{{ $avatar }}" alt="avatar">
-                            <div>
-                                <strong>{{ $user->fullname ?? 'Người dùng' }}</strong><br>
-                                <small>{{ $user->email ?? '' }}</small>
+                            <div style="min-width: 0; flex: 1;">
+                                <strong class="text-truncate-custom">{{ $user->fullname ?? 'Người dùng' }}</strong>
+                                <!-- Thêm class vào đây -->
+                                <small class="text-truncate-custom" title="{{ $user->email }}">{{ $user->email ?? '' }}</small>
                             </div>
                         </div>
 
