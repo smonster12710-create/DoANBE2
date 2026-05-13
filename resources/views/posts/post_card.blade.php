@@ -1,7 +1,8 @@
 <div class="grid">
     {{-- VÒNG LẶP 1: CHỈ HIỂN THỊ DANH SÁCH BÀI VIẾT --}}
 
-    <div class="card mb-4">
+    <div class="card mb-4 post-clickable"
+        data-post-id="{{ $post->id }}">
         {{-- HEADER --}}
         <div class="card-header d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
@@ -17,7 +18,7 @@
             </div>
 
             @if (auth()->id() == $post->user_id)
-            <div class="dropdown">
+            <div class="dropdown prevent-post-modal no-post-modal">
                 <button class="more-btn border-0 bg-transparent" type="button" data-bs-toggle="dropdown">
                     ⋯
                 </button>
@@ -48,18 +49,23 @@
             </div>
 
             @if ($post->media->count())
-            <div class="card-img-container mb-3" style="cursor: pointer;" data-bs-toggle="modal"
-                data-bs-target="#instagramModal{{ $post->id }}">
-                <img class="card-img w-100 rounded" src="{{ asset($post->media->first()->media_url) }}"
-                    style="max-height: 500px; object-fit: cover;">
+            <div class="card-img-container mb-3"
+                style="cursor:pointer;"
+                onclick="event.stopPropagation()"
+                data-bs-toggle="modal"
+                data-bs-target="#imagePreviewModal{{ $post->id }}">
+
+                <img class="card-img w-100 rounded"
+                    src="{{ asset($post->media->first()->media_url) }}"
+                    style="max-height:500px; object-fit:cover;">
             </div>
             @endif
 
             {{-- ACTIONS (Like, Comment, Pin) - Updated SVG Style --}}
-            <div class="card-actions d-flex justify-content-between align-items-center border-top pt-3 px-1">
+            <div class="card-actions d-flex justify-content-between align-items-center border-top pt-3 px-1 prevent-post-modal no-post-modal">
                 <div class="d-flex align-items-center gap-3">
                     {{-- LIKE --}}
-                    <form action="{{ route('post.like', $post->id) }}" method="POST" class="m-0">
+                    <form action="{{ route('post.like', $post->id) }}" method="POST" class="m-0 no-post-modal">
                         @csrf
                         @php
                         $userId = auth()->id();
@@ -94,7 +100,7 @@
                     ->savedPosts
                     ->contains($post->id);
                     @endphp
-                    <form action="{{ route('posts.save', $post->id) }}" method="POST">
+                    <form action="{{ route('posts.save', $post->id) }}" method="POST" class="no-post-modal">
                         @csrf
 
                         <button type="submit"
@@ -117,7 +123,7 @@
                     </form>
                     {{-- Pin--}}
                     @if(auth()->id() == $post->user_id)
-                    <form action="{{ route('post.pin', $post->id) }}" method="POST">
+                    <form action="{{ route('post.pin', $post->id) }}" method="POST" class="no-post-modal">
                         @csrf
 
                         <button type="submit"
