@@ -7,7 +7,7 @@ use App\Models\PostMedia;
 use App\Models\Like;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use App\Services\TextProcessorService;
 
 class PostController extends Controller
 {
@@ -38,7 +38,7 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, TextProcessorService $hashtagService)
     {
         $request->validate([
             'content' => 'required|string',
@@ -53,18 +53,19 @@ class PostController extends Controller
         $post->save();
         // ===========================================================================
         //Xử lý hashtag
-        preg_match_all('/(?<=^|\s)#([\p{L}\p{N}_]+)/u', $post->content, $matches);
-        $tags = array_unique($matches[1]);
+        $tagNames = $hashtagService->getHashtags($post->content);
         $tagIds = [];
-        foreach ($tags as $tagName) {
-            // firstOrCreate: Có rồi thì lấy ra xài, chưa có thì insert vô bảng hashtags
-            //  ép về chữ thường bằng mb_strtolower để tiếng Việt không bị lỗi
-            $hashtag = \App\Models\Hashtag::firstOrCreate([
-                'name' => mb_strtolower($tagName, 'UTF-8')
-            ]);
-            $hashtag->increment('usage_count'); // Tăng usage_count mỗi khi có bài viết mới dùng hashtag này
-
-            $tagIds[] = $hashtag->id;
+        if (!empty($tagNames)) {
+            foreach ($tagNames as $tagName) {
+                $hashtag = \App\Models\Hashtag::firstOrCreate([
+                    'name' => mb_strtolower($tagName, 'UTF-8')
+                ]);
+                // Tăng count lên 1 nhịp
+                $hashtag->increment('usage_count');
+                // Nhét cái ID (số nguyên) vô mảng
+                $tagIds[] = $hashtag->id;
+            }
+            $post->hashtags()->sync($tagIds);
         }
 
         // Đồng bộ ID hashtag vô bảng trung gian post_hashtags
