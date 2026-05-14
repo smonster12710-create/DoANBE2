@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Post;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,18 +15,167 @@ class ProfileController extends Controller
      */
     public function show($username)
     {
-        // 1. Tìm user theo username, không có thì văng 404
         $user = User::where('username', $username)->firstOrFail();
 
-        // 2. Lấy danh sách bài viết của user này (Fix lỗi Undefined $posts)
-        $posts = $user->posts()
-            ->with(['user', 'media', 'likes', 'comments'])
+        $posts = \App\Models\Post::with(['user', 'media', 'likes', 'comments'])
+            ->where('user_id', $user->id)
             ->latest()
             ->get();
 
-        return view('social.profile', compact('user', 'posts'));
+        $authId = auth()->id();
+
+        $friendsCount = DB::table('friendships')
+            ->where('user_id', $user->id)
+            ->orWhere('friend_id', $user->id)
+            ->count();
+
+        $postsCount = $posts->count();
+
+        $followersCount = DB::table('follows')
+            ->where('following_id', $user->id)
+            ->count();
+
+        $followingCount = DB::table('follows')
+            ->where('follower_id', $user->id)
+            ->count();
+
+        $isFriend = DB::table('friendships')
+            ->where(function ($q) use ($authId, $user) {
+                $q->where('user_id', $authId)
+                    ->where('friend_id', $user->id);
+            })
+            ->orWhere(function ($q) use ($authId, $user) {
+                $q->where('user_id', $user->id)
+                    ->where('friend_id', $authId);
+            })
+            ->exists();
+
+        $isFollowing = DB::table('follows')
+            ->where('follower_id', $authId)
+            ->where('following_id', $user->id)
+            ->exists();
+
+        return view('social.profile', compact(
+            'user',
+            'posts',
+            'friendsCount',
+            'postsCount',
+            'followersCount',
+            'followingCount',
+            'isFriend',
+            'isFollowing'
+        ));
+    }
+    public function toggleFriend($username)
+    {
+        $targetUser = User::where('username', $username)->firstOrFail();
+
+        if (auth()->id() == $targetUser->id) {
+            return back();
+        }
+
+        $authId = auth()->id();
+
+        $friendship = DB::table('friendships')
+            ->where(function ($q) use ($authId, $targetUser) {
+                $q->where('user_id', $authId)
+                    ->where('friend_id', $targetUser->id);
+            })
+            ->orWhere(function ($q) use ($authId, $targetUser) {
+                $q->where('user_id', $targetUser->id)
+                    ->where('friend_id', $authId);
+            })
+            ->first();
+
+        if ($friendship) {
+            DB::table('friendships')->where('id', $friendship->id)->delete();
+        } else {
+            DB::table('friendships')->insert([
+                'user_id' => $authId,
+                'friend_id' => $targetUser->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return back();
     }
 
+    public function toggleFollow($username)
+    {
+        $targetUser = User::where('username', $username)->firstOrFail();
+
+        if (auth()->id() == $targetUser->id) {
+            return back();
+        }
+
+        $authId = auth()->id();
+
+        $follow = DB::table('follows')
+            ->where('follower_id', $authId)
+            ->where('following_id', $targetUser->id)
+            ->first();
+
+        if ($follow) {
+            DB::table('follows')->where('id', $follow->id)->delete();
+        } else {
+            DB::table('follows')->insert([
+                'follower_id' => $authId,
+                'following_id' => $targetUser->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return back();
+    }
+    public function friends($username)
+    {
+        $user = User::where('username', $username)->firstOrFail();
+
+        $friendIds = DB::table('friendships')
+            ->where('user_id', $user->id)
+            ->pluck('friend_id')
+            ->merge(
+                DB::table('friendships')
+                    ->where('friend_id', $user->id)
+                    ->pluck('user_id')
+            );
+
+        $users = User::whereIn('id', $friendIds)->get();
+
+        $title = 'Bạn bè của bạn';
+
+        return view('social.profile_list', compact('user', 'users', 'title'));
+    }
+
+    public function followers($username)
+    {
+        $user = User::where('username', $username)->firstOrFail();
+
+        $ids = DB::table('follows')
+            ->where('following_id', $user->id)
+            ->pluck('follower_id');
+
+        $users = User::whereIn('id', $ids)->get();
+
+        $title = 'Người theo dõi của bạn';
+        return view('social.profile_list', compact('user', 'users', 'title'));
+    }
+
+    public function following($username)
+    {
+        $user = User::where('username', $username)->firstOrFail();
+
+        $ids = DB::table('follows')
+            ->where('follower_id', $user->id)
+            ->pluck('following_id');
+
+        $users = User::whereIn('id', $ids)->get();
+
+        $title = 'Đang theo dõi';
+        return view('social.profile_list', compact('user', 'users', 'title'));
+    }
     /**
      * Hiển thị trang chỉnh sửa (Chỉ cho chính mình)
      */
