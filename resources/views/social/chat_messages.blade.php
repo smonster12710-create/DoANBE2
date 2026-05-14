@@ -1,10 +1,10 @@
+
+@extends('dashboard')
 @if(session('error'))
 <div class="alert alert-danger mx-3 mt-3">
     {{ session('error') }}
 </div>
 @endif
-@extends('dashboard')
-
 @section('content')
 <div class="topbar" style="display: flex; gap: 15px; align-items: center;">
     <div style="position: relative; flex: 1;">

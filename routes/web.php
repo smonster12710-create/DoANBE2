@@ -131,7 +131,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/messages/{conversationId}/older', [MessageController::class, 'loadOlder']);
         Route::post('/messages/recall/{id}', [MessageController::class, 'recall']);
         Route::get('/messages/conversations/{id}', 'getConversations');
-        Route::post('/messages/delete-for-me/{id}',[MessageController::class, 'deleteForMe']);
+        Route::post('/messages/delete-for-me/{id}', [MessageController::class, 'deleteForMe']);
+        Route::get('/messages/{conversationId}/read-status', [MessageController::class, 'readStatus']);
+        Route::post('/messages/{conversation}/mark-read',[MessageController::class, 'markAsRead']);
     });
 
     // ============================== THÔNG BÁO ================================
