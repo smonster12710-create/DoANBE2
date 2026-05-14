@@ -132,18 +132,30 @@ Route::middleware('auth')->group(function () {
     Route::get('/hashtag', [SearchController::class, 'searchHashtag'])->name('hashtag.search');
 
     // ============================== TIN NHẮN ================================
-
     Route::controller(MessageController::class)->group(function () {
-        Route::get('/list_messages', 'index')->name('messages.index');
-        Route::get('/chat-messages/{id}', 'show')->name('chat_messages');
-        Route::post('/messages/send', [MessageController::class, 'send']);
-        Route::get('/messages/{conversationId}', [MessageController::class, 'fetch']);
-        Route::get('/messages/{conversationId}/older', [MessageController::class, 'loadOlder']);
-        Route::post('/messages/recall/{id}', [MessageController::class, 'recall']);
-        Route::get('/messages/conversations/{id}', 'getConversations');
-        Route::post('/messages/delete-for-me/{id}', [MessageController::class, 'deleteForMe']);
-    });
 
+        Route::get('/list_messages', 'index')->name('messages.index');
+
+        Route::get('/messages/unread-count', 'unreadCount');
+
+        Route::get('/chat-messages/{id}', 'show')->name('chat_messages');
+
+        Route::get('/messages/conversations/{id}', 'getConversations');
+
+        Route::get('/messages/{conversationId}', 'fetch');
+
+        Route::get('/messages/{conversationId}/older', 'loadOlder');
+
+        Route::get('/messages/{conversationId}/read-status', 'readStatus');
+
+        Route::post('/messages/send', 'send');
+
+        Route::post('/messages/recall/{id}', 'recall');
+
+        Route::post('/messages/delete-for-me/{id}', 'deleteForMe');
+
+        Route::post('/messages/{conversation}/mark-read', 'markAsRead');
+    });
     // ============================== THÔNG BÁO ================================
     Route::controller(NotificationController::class)->group(function () {
         Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');

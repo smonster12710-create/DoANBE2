@@ -19,7 +19,7 @@ body {
 
 .message-item:hover {
     background: #f2f4f7;
-  
+
 }
 
 .active-chat .message-item {
@@ -384,30 +384,61 @@ body {
         transform: translateY(0);
     }
 }
+
 /* ===== ACTION BUTTON LEFT/RIGHT ===== */
 
 /* tin mình */
-.message-wrapper.me .message-actions{
+.message-wrapper.me .message-actions {
     left: -45px;
     right: auto;
 }
 
 /* tin người khác */
-.message-wrapper.them .message-actions{
+.message-wrapper.them .message-actions {
     right: -45px;
     left: auto;
 }
 
 /* tránh bị cắt */
-.message-bubble{
+.message-bubble {
     overflow: visible;
 }
 
-.message-wrapper.them .message-menu{
+.message-wrapper.them .message-menu {
     left: 0;
     right: auto;
 }
-.message-wrapper.me .message-menu{
+
+.message-wrapper.me .message-menu {
     right: 0;
     left: auto;
+}
+
+.message-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.unread-badge {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: red;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.message-status {
+    font-size: 11px;
+    color: gray;
+    margin-top: 5px;
+    text-align: right;
 }

@@ -30,10 +30,11 @@ class Conversation extends Model
     // Tin nhắn cuối
     public function lastMessage(): HasOne
     {
-        return $this->hasOne(Message::class, 'conversation_id')->latestOfMany();
+        return $this->hasOne(Message::class, 'conversation_id')
+            ->latestOfMany();
     }
 
-    // Người chat cùng (chat private)
+    // Người chat cùng
     public function getPartnerAttribute()
     {
         $myId = Auth::id();
@@ -46,7 +47,7 @@ class Conversation extends Model
         return $participant?->user;
     }
 
-    // Kiểm tra user có thuộc conversation không
+    // Kiểm tra user thuộc conversation
     public function hasParticipant($userId): bool
     {
         return $this->participants()

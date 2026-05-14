@@ -253,3 +253,24 @@ a.hashtag-link {
 a.hashtag-link:hover {
     text-decoration: underline;
 }
+.message-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+}
+
+.unread-badge{
+    min-width:20px;
+    height:20px;
+    padding:0 6px;
+    border-radius:999px;
+    background:red;
+    color:white;
+    font-size:11px;
+    font-weight:bold;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}

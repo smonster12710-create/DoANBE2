@@ -93,7 +93,7 @@ function loadMessages() {
             if (hasNew) {
 
                 scrollBottom();
-
+                markAsRead();
                 updateSidebar();
             }
 
@@ -173,25 +173,81 @@ function loadOlderMessages() {
 // ========================
 // SEND MESSAGE
 // ========================
-document.querySelector('.chat-input').addEventListener('submit', function (e) {
-    e.preventDefault();
-    let formData = new FormData(this);
-    let input = this.querySelector('input[name="content"]');
+document.querySelector('.chat-input')
+    .addEventListener('submit', function (e) {
 
-    fetch('/messages/send', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': this.querySelector('input[name="_token"]').value
-        },
-        body: formData
-    })
-        .then(res => res.json())
-        .then(() => {
-            input.value = '';
-            loadMessages(); // Load ngay lập tức sau khi gửi
-            updateSidebar(); // Cập nhật sidebar sau khi gửi
-        });
-});
+        e.preventDefault();
+
+        // chặn spam
+        if (isSending) return;
+
+        isSending = true;
+
+        let formData = new FormData(this);
+
+        let input = this.querySelector(
+            'input[name="content"]'
+        );
+
+        let submitBtn = this.querySelector(
+            'button[type="submit"]'
+        );
+
+        submitBtn.disabled = true;
+        input.disabled = true;
+        fetch('/messages/send', {
+
+            method: 'POST',
+
+            headers: {
+
+                'X-CSRF-TOKEN':
+                    this.querySelector(
+                        'input[name="_token"]'
+                    ).value
+
+            },
+
+            body: formData
+
+        })
+
+            .then(res => res.json())
+
+            .then(() => {
+
+                input.value = '';
+
+                loadMessages();
+
+                updateSidebar();
+
+            })
+
+            .catch(err => {
+
+                console.log(
+                    'Send error:',
+                    err
+                );
+
+            })
+
+            .finally(() => {
+
+                // mở lại sau 700ms
+                setTimeout(() => {
+
+                    isSending = false;
+                    input.disabled = false;
+                    
+                    submitBtn.disabled = false;
+
+                }, 700);
+
+            });
+
+    });
 
 // ========================
 // RENDER HELPERS
@@ -583,11 +639,15 @@ function startPolling() {
         )
     ) return;
 
-    messageInterval =
-        setInterval(
-            loadMessages,
-            2000
-        );
+    messageInterval = setInterval(() => {
+
+        loadMessages();
+
+        updateSidebar();
+
+        syncReadStatus();
+
+    }, 2000);
 
 }
 
@@ -608,7 +668,58 @@ document.addEventListener(
 
         forceScrollBottom();
 
+        markAsRead();
+
         startPolling();
 
     }
 );
+function syncReadStatus() {
+
+    fetch(`/messages/${conversationId}/read-status`)
+
+        .then(res => res.json())
+
+        .then(data => {
+
+            data.forEach(msg => {
+
+                let wrapper = document.querySelector(
+                    `.message-wrapper[data-id="${msg.id}"]`
+                );
+
+                if (!wrapper) return;
+
+                let status = wrapper.querySelector(
+                    '.message-status'
+                );
+
+                if (!status) return;
+
+                status.innerText =
+                    msg.is_read ? 'Đã xem' : 'Đã gửi';
+
+            });
+
+        });
+
+}
+function markAsRead() {
+
+    fetch(`/messages/${conversationId}/mark-read`, {
+
+        method: 'POST',
+
+        headers: {
+
+            'X-CSRF-TOKEN':
+                document.querySelector(
+                    'meta[name="csrf-token"]'
+                ).content,
+
+            'Accept': 'application/json'
+        }
+
+    });
+
+}

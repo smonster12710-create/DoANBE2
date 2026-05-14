@@ -19,6 +19,12 @@ class MessageController extends Controller
             $query->where('user_id', $myId);
         })
             ->with(['lastMessage', 'participants.user'])
+            ->withCount([
+                'messages as unread_count' => function ($query) use ($myId) {
+                    $query->where('sender_id', '!=', $myId)
+                        ->where('is_read', 0);
+                }
+            ])
             ->get();
 
         $posts = Post::with([
@@ -40,6 +46,12 @@ class MessageController extends Controller
             $q->where('user_id', $myId);
         })
             ->with(['lastMessage', 'participants.user'])
+            ->withCount([
+                'messages as unread_count' => function ($query) use ($myId) {
+                    $query->where('sender_id', '!=', $myId)
+                        ->where('is_read', 0);
+                }
+            ])
             ->get();
 
         // 2. Lấy thông tin cuộc trò chuyện hiện tại
@@ -56,6 +68,16 @@ class MessageController extends Controller
         }
 
         // 3. LẤY 50 TIN NHẮN MỚI NHẤT 
+        $myId = Auth::id();
+
+        // đánh dấu đã đọc
+        Message::where('conversation_id', $id)
+            ->where('sender_id', '!=', $myId)
+            ->where('is_read', 0)
+            ->update([
+                'is_read' => 1
+            ]);
+
         $messages = Message::where('conversation_id', $id)
             ->whereNotIn('id', function ($query) use ($myId) {
                 $query->select('message_id')
@@ -63,10 +85,10 @@ class MessageController extends Controller
                     ->where('user_id', $myId);
             })
             ->with('sender')
-            ->orderBy('id', 'desc') // Lấy từ mới nhất trở về sau
-            ->take(50)              // Lấy 50 cái
+            ->orderBy('id', 'desc')
+            ->take(50)
             ->get()
-            ->sortBy('id');         // Đảo ngược lại để hiện thị đúng thứ tự thời gian (cũ trên mới dưới)
+            ->sortBy('id'); // Đảo ngược lại để hiện thị đúng thứ tự thời gian (cũ trên mới dưới)
 
         // 4. Xử lý partner (Giữ nguyên)
         $activePartner = null;
@@ -168,6 +190,12 @@ class MessageController extends Controller
             $query->where('user_id', $myId);
         })
             ->with(['lastMessage', 'participants.user'])
+            ->withCount([
+                'messages as unread_count' => function ($query) use ($myId) {
+                    $query->where('sender_id', '!=', $myId)
+                        ->where('is_read', 0);
+                }
+            ])
             ->get()
             ->sortByDesc(function ($chat) {
                 return $chat->lastMessage->created_at ?? $chat->created_at;
@@ -192,5 +220,50 @@ class MessageController extends Controller
     public function deletedBy()
     {
         return $this->hasMany(DeletedMessage::class);
+    }
+    public function readStatus($conversationId)
+    {
+        $messages = Message::where(
+            'conversation_id',
+            $conversationId
+        )
+            ->where('sender_id', Auth::id())
+            ->select('id', 'is_read')
+            ->get();
+
+        return response()->json($messages);
+    }
+    public function markAsRead($conversationId)
+    {
+        Message::where('conversation_id', $conversationId)
+            ->where('sender_id', '!=', auth()->id())
+            ->where('is_read', 0)
+            ->update([
+                'is_read' => 1
+            ]);
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+    public function unreadCount()
+    {
+        $userId = auth()->id();
+
+        // Nếu không lấy được ID, trả về 0 để tránh lỗi JS
+        if (!$userId) {
+            return response()->json(['count' => 0]);
+        }
+
+        $count = Message::whereHas('conversation.participants', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        })
+            ->where('sender_id', '!=', $userId) // Không tính tin nhắn do mình gửi
+            ->where('is_read', 0)               // Chỉ lấy tin nhắn chưa đọc
+            ->count();
+
+        return response()->json([
+            'count' => (int)$count
+        ]);
     }
 }
