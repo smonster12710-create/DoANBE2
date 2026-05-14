@@ -31,6 +31,24 @@
                         {{ $post->created_at->diffForHumans() }}
                     </span>
                 </div>
+                {{-- NÚT THEO DÕI --}}
+                @if (auth()->check() && auth()->id() !== $post->user_id)
+                    <form action="{{ route('follow.toggle', $post->user_id) }}" method="POST" class="ms-5 m-0">
+                        @csrf
+                        @php
+                            // Kiểm tra xem user hiện tại có đang theo dõi chủ bài viết không
+                            $isFollowing = false;
+                            if (auth()->check()) {
+                                $isFollowing = auth()->user()->isFollowing($post->user_id);
+                            }
+                        @endphp
+
+                        <button type="submit" class="btn p-0 border-0 fw-bold"
+                            style="font-size: 13px; color: {{ $isFollowing ? '#6c757d' : '#0095f6' }};">
+                            {{ $isFollowing ? 'Đang theo dõi' : 'Theo dõi' }}
+                        </button>
+                    </form>
+                @endif
             </div>
             @if (auth()->id() == $post->user_id)
             <div class="dropdown prevent-post-modal no-post-modal">

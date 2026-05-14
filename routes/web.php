@@ -9,6 +9,7 @@ use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\FollowController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -110,6 +111,10 @@ Route::middleware('auth')->group(function () {
     // --- BÌNH LUẬN ---
     Route::post('/posts/{id}/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->name('comments.destroy');
+
+    // --- THEO DÕI ---
+    Route::post('/follow/{user}', [FollowController::class, 'toggle'])->name('follow.toggle')->middleware('auth');
+    Route::get('/following', [FollowController::class, 'followingList'])->name('user.following')->middleware('auth');
 
     // --- TÌM KIẾM ---
     Route::prefix('ajax')->group(function () {

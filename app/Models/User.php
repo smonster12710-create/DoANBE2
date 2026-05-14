@@ -47,4 +47,20 @@ class User extends Authenticatable
         return $this->belongsToMany(Post::class, 'saved_posts')
             ->withTimestamps();
     }
+
+    public function followings()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id');
+    }
+
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id');
+    }
+
+    // Hàm kiểm tra xem mình đã follow người này chưa
+    public function isFollowing($userId)
+    {
+        return $this->followings()->where('following_id', (int)$userId)->exists();
+    }
 }
