@@ -6,6 +6,17 @@
 @extends('dashboard')
 
 @section('content')
+<div class="topbar" style="display: flex; gap: 15px; align-items: center;">
+    <div style="position: relative; flex: 1;">
+        <input id="search-input" class="search" style="width: 100%;" placeholder="Tìm kiếm....." autocomplete="off">
+        <div id="search-results" class="search-results-dropdown"></div>
+    </div>
+    <!-- 2 Nút bên phải -->
+    <div style="display: flex; gap: 10px;">
+        <button class="btn-top">Bạn Bè</button>
+        <button class="btn-top">Theo Dõi</button>
+    </div>
+</div>
 <link rel="stylesheet" href="{{ asset('css/chat_messages.css') }}">
 
 <div class="main-container">
@@ -13,54 +24,14 @@
     {{-- SIDEBAR --}}
     <div class="messages-sidebar">
         <div class="search-box">
-            <input type="text" placeholder="Tìm kiếm ....">
+            <input type="text" id="sidebar-search" placeholder="Tìm kiếm ....">
         </div>
 
         <div class="scrollable-list">
-            @foreach($conversations as $chat)
-
-            <a href="{{ route('chat_messages', $chat->id) }}"
-                class="message-item-link {{ isset($conversation) && $conversation->id == $chat->id ? 'active-chat' : '' }}">
-                <div class="message-item">
-
-                    <div class="avatar-wrapper">
-                        @if($chat->type === 'group')
-                        <img src="{{ $chat->image_url ?? 'https://i.pravatar.cc/40' }}" class="chat-avatar">
-                        @else
-                        <img src="{{ $chat->partner?->avatar_url ?? 'https://i.pravatar.cc/40' }}" class="chat-avatar">
-                        @endif
-                    </div>
-
-                    <div class="message-info">
-                        <h4 class="user-name">
-                            @if($chat->type === 'group')
-                            {{ $chat->name ?? 'Nhóm chat' }}
-                            @else
-                            {{ $chat->partner?->fullname ?? 'Tin nhắn đã lưu' }}
-                            @endif
-                        </h4>
-
-                        <p class="last-message">
-                            @if($chat->lastMessage)
-                            @if($chat->lastMessage->is_deleted)
-                            <i class="text-muted">Tin nhắn đã được thu hồi</i>
-                            @else
-                            {{ Str::limit($chat->lastMessage->content, 30) }}
-                            {{-- Dùng Str::limit để tránh tin nhắn quá dài làm vỡ giao diện --}}
-                            @endif
-                            @else
-                            <span class="text-primary">Bắt đầu trò chuyện ngay</span>
-                            @endif
-                        </p>
-                    </div>
-
-                </div>
-            </a>
-
-            @endforeach
+            {{-- Gọi file partial lúc load trang lần đầu --}}
+            @include('partials.list_chat', ['conversations' => $conversations])
         </div>
     </div>
-
     {{-- KHUNG CHAT --}}
     <div class="chat-main-area">
 
@@ -134,8 +105,6 @@
                         {{ $msg->content }}
                     </div>
 
-                    @if($msg->sender_id == auth()->id())
-
                     <div class="message-actions">
 
                         <button type="button" class="dots-btn">
@@ -144,12 +113,16 @@
 
                         <div class="message-menu">
 
+                            @if($msg->sender_id == auth()->id())
+
                             <button
                                 type="button"
                                 class="recall-btn"
                                 data-id="{{ $msg->id }}">
                                 Thu hồi
                             </button>
+
+                            @endif
 
                             <button
                                 type="button"
@@ -162,7 +135,6 @@
 
                     </div>
 
-                    @endif
 
                 </div>
 
@@ -198,5 +170,5 @@
             </button>
         </form>
     </div>
-    <script src="/js/chat.js"></script>
+    <script src="/js/chat.js?v={{ time() }}"></script>
     @endsection

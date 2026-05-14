@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Post;
 use App\Models\Message;
+use App\Models\DeletedMessage;
 
 class MessageController extends Controller
 {
@@ -56,6 +57,11 @@ class MessageController extends Controller
 
         // 3. LẤY 50 TIN NHẮN MỚI NHẤT 
         $messages = Message::where('conversation_id', $id)
+            ->whereNotIn('id', function ($query) use ($myId) {
+                $query->select('message_id')
+                    ->from('deleted_messages')
+                    ->where('user_id', $myId);
+            })
             ->with('sender')
             ->orderBy('id', 'desc') // Lấy từ mới nhất trở về sau
             ->take(50)              // Lấy 50 cái
@@ -93,12 +99,20 @@ class MessageController extends Controller
     public function fetch($conversationId)
     {
         $lastId = request('last_id', 0);
+        $myId = Auth::id();
 
         $messages = Message::with('sender')
             ->where('conversation_id', $conversationId)
             ->where('id', '>', $lastId)
-            ->whereNotNull('content') //  Không lấy tin nhắn null
-            ->where('content', '!=', '') // Không lấy tin nhắn rỗng
+
+            ->whereNotIn('id', function ($query) use ($myId) {
+                $query->select('message_id')
+                    ->from('deleted_messages')
+                    ->where('user_id', $myId);
+            })
+
+            ->whereNotNull('content')
+            ->where('content', '!=', '')
             ->orderBy('id')
             ->get();
 
@@ -107,14 +121,22 @@ class MessageController extends Controller
     public function loadOlder(Request $request, $conversationId)
     {
         $firstId = $request->query('first_id');
+        $myId = Auth::id();
 
         $messages = Message::with('sender')
             ->where('conversation_id', $conversationId)
-            ->where('id', '<', $firstId) // Lấy những tin cũ hơn tin đầu tiên hiện tại
-            ->orderBy('id', 'desc')      // Lấy từ tin gần nhất ngược về quá khứ
-            ->take(20)                   // Mỗi lần lấy 20 tin
+            ->where('id', '<', $firstId)
+
+            ->whereNotIn('id', function ($query) use ($myId) {
+                $query->select('message_id')
+                    ->from('deleted_messages')
+                    ->where('user_id', $myId);
+            })
+
+            ->orderBy('id', 'desc')
+            ->take(20)
             ->get()
-            ->sortBy('id')               // Đảo lại để chèn vào HTML cho đúng thứ tự
+            ->sortBy('id')
             ->values();
 
         return response()->json($messages);
@@ -137,5 +159,38 @@ class MessageController extends Controller
         return response()->json([
             'success' => true
         ]);
+    }
+    public function getConversations($id)
+    {
+        $myId = Auth::id();
+
+        $conversations = Conversation::whereHas('participants', function ($query) use ($myId) {
+            $query->where('user_id', $myId);
+        })
+            ->with(['lastMessage', 'participants.user'])
+            ->get()
+            ->sortByDesc(function ($chat) {
+                return $chat->lastMessage->created_at ?? $chat->created_at;
+            });
+
+        return view('partials.list_chat', [
+            'conversations' => $conversations,
+            'conversation'  => (object)['id' => $id] // Truyền ID này để file blade so sánh và thêm class 'active-chat'
+        ])->render();
+    }
+    public function deleteForMe($id)
+    {
+        DeletedMessage::firstOrCreate([
+            'message_id' => $id,
+            'user_id' => Auth::id()
+        ]);
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+    public function deletedBy()
+    {
+        return $this->hasMany(DeletedMessage::class);
     }
 }
