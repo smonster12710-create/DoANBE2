@@ -6,17 +6,32 @@
         {{-- HEADER --}}
         <div class="card-header d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
-                <img class="avatar" src="{{ $post->user->avatar_url
-            ? asset($post->user->avatar_url)
-            : 'https://i.pravatar.cc/40?u=' . $post->user_id }}"
-                    style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+
+                <a href="{{ route('profile.show', $post->user->username) }}"
+                    onclick="event.stopPropagation()"
+                    class="post-user-link">
+
+                    <img class="avatar" src="{{ $post->user->avatar_url
+                ? asset($post->user->avatar_url)
+                : asset('img/user/user.jpg') }}"
+                        style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                </a>
 
                 <div class="info ms-2">
-                    <strong class="name d-block">{{ $post->user->fullname ?? 'Người dùng' }}</strong>
-                    <span class="time text-muted small">{{ $post->created_at->diffForHumans() }}</span>
+                    <a href="{{ route('profile.show', $post->user->username) }}"
+                        onclick="event.stopPropagation()"
+                        class="post-user-link">
+
+                        <strong class="name d-block">
+                            {{ $post->user->fullname ?? 'Người dùng' }}
+                        </strong>
+                    </a>
+
+                    <span class="time text-muted small">
+                        {{ $post->created_at->diffForHumans() }}
+                    </span>
                 </div>
             </div>
-
             @if (auth()->id() == $post->user_id)
             <div class="dropdown prevent-post-modal no-post-modal">
                 <button class="more-btn border-0 bg-transparent" type="button" data-bs-toggle="dropdown">

@@ -80,9 +80,14 @@ Route::middleware('auth')->group(function () {
             // Chỉnh sửa trang cá nhân
             Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
             Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
-            // Xem trang cá nhân bất kỳ (Dùng cho Tìm kiếm)
+            // tương tác thêm bạn bè theo dõi giữa các người dùng
+            Route::post('/profile/{username}/friend', [ProfileController::class, 'toggleFriend'])->name('profile.friend.toggle');
+            Route::post('/profile/{username}/follow', [ProfileController::class, 'toggleFollow'])->name('profile.follow.toggle');
+            Route::get('/profile/{username}/friends', [ProfileController::class, 'friends'])->name('profile.friends');
+            Route::get('/profile/{username}/followers', [ProfileController::class, 'followers'])->name('profile.followers');
+            Route::get('/profile/{username}/following', [ProfileController::class, 'following'])->name('profile.following');
+            // Xem trang cá nhân bất kỳ
             Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.show');
-
 
 
 
@@ -131,7 +136,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/messages/{conversationId}/older', [MessageController::class, 'loadOlder']);
         Route::post('/messages/recall/{id}', [MessageController::class, 'recall']);
         Route::get('/messages/conversations/{id}', 'getConversations');
-        Route::post('/messages/delete-for-me/{id}',[MessageController::class, 'deleteForMe']);
+        Route::post('/messages/delete-for-me/{id}', [MessageController::class, 'deleteForMe']);
     });
 
     // ============================== THÔNG BÁO ================================
