@@ -168,47 +168,30 @@ class PostController extends Controller
     }
     public function toggleLike($postId)
     {
-        // 1. Xác định User
-        $userId = \Illuminate\Support\Facades\Auth::id() ?? 1;
+        $userId = Auth::id();
+        if (!$userId) return response()->json(['error' => 'Unauthenticated'], 401);
 
-        // 2. Tìm bài viết
-        $post = Post::findOrFail($postId);
+        // Tìm xem đã like chưa
+        $likeQuery = Like::where('post_id', $postId)->where('user_id', $userId);
 
-        // 3. Kiểm tra xem user này đã like bài này chưa
-        $like = Like::where('post_id', $postId)
-            ->where('user_id', $userId)
-            ->first();
+        if ($likeQuery->exists()) {
 
-        if ($like) {
-            // Xóa trực tiếp bằng Query Builder để tránh lỗi Primary Key
-            Like::where('post_id', $postId)
-                ->where('user_id', $userId)
-                ->delete();
-
-            // Chỉ giảm số lượng nếu like_count đang lớn hơn 0
-            if ($post->like_count > 0) {
-                $post->decrement('like_count');
-            }
+            $likeQuery->delete();
+            $isLiked = false;
         } else {
-            // Thêm mới lượt like
             Like::create([
                 'post_id' => $postId,
                 'user_id' => $userId
             ]);
-            if ($post->user_id != $userId) {
-                \App\Models\Notification::create([
-                    'user_id' => $post->user_id, // Chủ bài viết nhận
-                    'actor_id' => $userId,       // Đứa đi like
-                    'type' => 'like_post',       // Phân loại cho dễ xử lý sau này
-                    'reference_id' => $postId,   // Gắn ID bài viết vào
-                    'is_read' => 0
-                ]);
-            }
-            // Tăng số lượng like
-            $post->increment('like_count');
+            $isLiked = true;
         }
 
-        return redirect()->back();
+        $count = Like::where('post_id', $postId)->count();
+
+        return response()->json([
+            'isLiked' => $isLiked,
+            'likeCount' => (int)$count
+        ]);
     }
 
     public function listLikers($postId)

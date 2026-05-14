@@ -99,11 +99,11 @@ Route::middleware('auth')->group(function () {
         });
 
         // Tương tác Bài viết (Giữ lại cả 2 version chữ 's' và không có chữ 's' 
-        Route::post('/posts/{id}/like', 'toggleLike')->name('posts.like');
-        Route::get('/posts/{id}/likers', 'listLikers')->name('posts.likers');
+        // Route::post('/posts/{id}/like', 'toggleLike')->name('posts.like');
+        // Route::get('/posts/{id}/likers', 'listLikers')->name('posts.likers');
 
-        Route::post('/post/{id}/like', 'toggleLike')->name('post.like');
-        Route::get('/post/{id}/likers', 'listLikers')->name('post.likers');
+        Route::post('/post/{id}/like', [PostController::class, 'toggleLike'])->name('post.like');
+        Route::get('/post/{id}/likers', [PostController::class, 'listLikers'])->name('post.likers');
         Route::post('/post/{id}/pin', [PostController::class, 'togglePin'])->name('post.pin');
     });
 
