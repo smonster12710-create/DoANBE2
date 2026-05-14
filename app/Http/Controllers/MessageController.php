@@ -246,4 +246,24 @@ class MessageController extends Controller
             'success' => true
         ]);
     }
+    public function unreadCount()
+    {
+        $userId = auth()->id();
+
+        // Nếu không lấy được ID, trả về 0 để tránh lỗi JS
+        if (!$userId) {
+            return response()->json(['count' => 0]);
+        }
+
+        $count = Message::whereHas('conversation.participants', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        })
+            ->where('sender_id', '!=', $userId) // Không tính tin nhắn do mình gửi
+            ->where('is_read', 0)               // Chỉ lấy tin nhắn chưa đọc
+            ->count();
+
+        return response()->json([
+            'count' => (int)$count
+        ]);
+    }
 }

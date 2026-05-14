@@ -260,12 +260,16 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
                                 @endif
 
                                 {{-- Badge đỏ --}}
-                                @if($unreadMessageCount > 0)
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                    style="font-size:10px;">
-                                    {{ $unreadMessageCount > 99 ? '99+' : $unreadMessageCount }}
+                                <span
+                                    id="message-badge"
+                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                    style="font-size:10px; @if($unreadMessageCount <= 0) display: none; @endif">
+                                    @if($unreadMessageCount > 99)
+                                    99+
+                                    @elseif($unreadMessageCount > 0)
+                                    {{ $unreadMessageCount }}
+                                    @endif
                                 </span>
-                                @endif
 
                             </div>
 
@@ -406,5 +410,6 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
 <script src="{{ asset('js/search_post.js') }}"></script>
 <script src="{{ asset('js/index.js') }}"></script>
 <script src="{{ asset('js/notification.js') }}"></script>
+<script src="{{ asset('js/chat_dashboard.js') }}"></script>
 
 </html>
