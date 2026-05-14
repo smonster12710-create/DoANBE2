@@ -411,5 +411,7 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
 <script src="{{ asset('js/index.js') }}"></script>
 <script src="{{ asset('js/notification.js') }}"></script>
 <script src="{{ asset('js/chat_dashboard.js') }}"></script>
+<script src="{{ asset('js/like.js') }}"></script>
+
 
 </html>

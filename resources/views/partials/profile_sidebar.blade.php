@@ -1,7 +1,7 @@
 <div class="info-box">
     <div class="box-title"><span>●</span> Giới thiệu</div>
 
-    <div class="info-list">
+    <div class="info-list info-list-vertical">
         <div class="info-row">
             <div class="info-icon">▦</div>
             <div>
@@ -32,13 +32,13 @@
                 <div class="info-label">Giới tính</div>
                 <div class="info-value">
                     @if($user->gender == 1)
-                        Nam
+                    Nam
                     @elseif($user->gender == 2)
-                        Nữ
+                    Nữ
                     @elseif($user->gender == 3)
-                        Khác
+                    Khác
                     @else
-                        Chưa có
+                    Chưa có
                     @endif
                 </div>
             </div>

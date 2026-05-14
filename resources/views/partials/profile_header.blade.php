@@ -11,21 +11,63 @@
             <div class="profile-username">{{ '@' . $user->username }}</div>
 
             <div class="profile-stats-line">
-                {{-- Những con số này Pro sẽ truyền từ Controller qua --}}
-                <span><strong>{{ $friendsCount ?? 0 }}</strong> bạn bè</span>
-                <span>·</span>
-                <span><strong>{{ $postsCount ?? 0 }}</strong> bài viết</span>
-                <span>·</span>
-                <span><strong>{{ $followersCount ?? 0 }}</strong> người theo dõi</span>
-            </div>
+                <a href="{{ route('profile.friends', $user->username) }}" class="profile-stat-link">
+                    <strong>{{ $friendsCount ?? 0 }}</strong> bạn bè
+                </a>
 
+                <span>·</span>
+
+                <span class="profile-stat-link">
+                    <strong>{{ $postsCount ?? 0 }}</strong> bài viết
+                </span>
+
+                <span>·</span>
+
+                <a href="{{ route('profile.followers', $user->username) }}" class="profile-stat-link">
+                    <strong>{{ $followersCount ?? 0 }}</strong> người theo dõi
+                </a>
+
+                <span>·</span>
+
+                <a href="{{ route('profile.following', $user->username) }}" class="profile-stat-link">
+                    <strong>{{ $followingCount ?? 0 }}</strong> đang theo dõi
+                </a>
+            </div>
             <div class="profile-bio">{{ $user->bio ?? 'Chưa có tiểu sử' }}</div>
         </div>
 
         @if(auth()->id() == $user->id)
-            <a href="{{ route('profile.edit') }}" class="edit-btn">✎ Chỉnh sửa</a>
+
+        <a href="{{ route('profile.edit') }}" class="edit-btn">
+            ✎ Chỉnh sửa
+        </a>
+
         @else
-            <button class="btn btn-primary rounded-pill px-4">Theo dõi</button>
+
+        <div class="profile-action-buttons">
+
+            <form method="POST" action="{{ route('profile.friend.toggle', $user->username) }}">
+                @csrf
+
+                <button type="submit" class="profile-action-btn {{ $isFriend ? 'secondary' : 'primary' }}">
+                    {{ $isFriend ? 'Bạn bè' : 'Thêm bạn bè' }}
+                </button>
+            </form>
+
+            <a href="#" class="profile-action-btn primary">
+                Nhắn tin
+            </a>
+
+            <form method="POST" action="{{ route('profile.follow.toggle', $user->username) }}">
+                @csrf
+
+                <button type="submit" class="profile-action-btn {{ $isFollowing ? 'secondary' : 'primary' }}">
+                    {{ $isFollowing ? 'Đã theo dõi' : 'Theo dõi' }}
+                </button>
+            </form>
+
+        </div>
+
         @endif
     </div>
 </div>

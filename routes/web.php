@@ -9,6 +9,7 @@ use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\FollowController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -80,9 +81,14 @@ Route::middleware('auth')->group(function () {
             // Chỉnh sửa trang cá nhân
             Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
             Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
-            // Xem trang cá nhân bất kỳ (Dùng cho Tìm kiếm)
+            // tương tác thêm bạn bè theo dõi giữa các người dùng
+            Route::post('/profile/{username}/friend', [ProfileController::class, 'toggleFriend'])->name('profile.friend.toggle');
+            Route::post('/profile/{username}/follow', [ProfileController::class, 'toggleFollow'])->name('profile.follow.toggle');
+            Route::get('/profile/{username}/friends', [ProfileController::class, 'friends'])->name('profile.friends');
+            Route::get('/profile/{username}/followers', [ProfileController::class, 'followers'])->name('profile.followers');
+            Route::get('/profile/{username}/following', [ProfileController::class, 'following'])->name('profile.following');
+            // Xem trang cá nhân bất kỳ
             Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.show');
-
 
 
 
@@ -94,17 +100,21 @@ Route::middleware('auth')->group(function () {
         });
 
         // Tương tác Bài viết (Giữ lại cả 2 version chữ 's' và không có chữ 's' 
-        Route::post('/posts/{id}/like', 'toggleLike')->name('posts.like');
-        Route::get('/posts/{id}/likers', 'listLikers')->name('posts.likers');
+        // Route::post('/posts/{id}/like', 'toggleLike')->name('posts.like');
+        // Route::get('/posts/{id}/likers', 'listLikers')->name('posts.likers');
 
-        Route::post('/post/{id}/like', 'toggleLike')->name('post.like');
-        Route::get('/post/{id}/likers', 'listLikers')->name('post.likers');
+        Route::post('/post/{id}/like', [PostController::class, 'toggleLike'])->name('post.like');
+        Route::get('/post/{id}/likers', [PostController::class, 'listLikers'])->name('post.likers');
         Route::post('/post/{id}/pin', [PostController::class, 'togglePin'])->name('post.pin');
     });
 
     // --- BÌNH LUẬN ---
     Route::post('/posts/{id}/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->name('comments.destroy');
+
+    // --- THEO DÕI ---
+    Route::post('/follow/{user}', [FollowController::class, 'toggle'])->name('follow.toggle')->middleware('auth');
+    Route::get('/following', [FollowController::class, 'followingList'])->name('user.following')->middleware('auth');
 
     // --- TÌM KIẾM ---
     Route::prefix('ajax')->group(function () {
@@ -122,12 +132,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/hashtag', [SearchController::class, 'searchHashtag'])->name('hashtag.search');
 
     // ============================== TIN NHẮN ================================
-
     Route::controller(MessageController::class)->group(function () {
 
         Route::get('/list_messages', 'index')->name('messages.index');
 
-        Route::get('/messages/unread-count', 'unreadCount'); // 👈 PHẢI LÊN TRÊN
+        Route::get('/messages/unread-count', 'unreadCount');
 
         Route::get('/chat-messages/{id}', 'show')->name('chat_messages');
 
@@ -147,7 +156,6 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/messages/{conversation}/mark-read', 'markAsRead');
     });
-
     // ============================== THÔNG BÁO ================================
     Route::controller(NotificationController::class)->group(function () {
         Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');

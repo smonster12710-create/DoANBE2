@@ -6,17 +6,50 @@
         {{-- HEADER --}}
         <div class="card-header d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
-                <img class="avatar" src="{{ $post->user->avatar_url
-            ? asset($post->user->avatar_url)
-            : 'https://i.pravatar.cc/40?u=' . $post->user_id }}"
-                    style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+
+                <a href="{{ route('profile.show', $post->user->username) }}"
+                    onclick="event.stopPropagation()"
+                    class="post-user-link">
+
+                    <img class="avatar" src="{{ $post->user->avatar_url
+                ? asset($post->user->avatar_url)
+                : asset('img/user/user.jpg') }}"
+                        style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                </a>
 
                 <div class="info ms-2">
-                    <strong class="name d-block">{{ $post->user->fullname ?? 'Người dùng' }}</strong>
-                    <span class="time text-muted small">{{ $post->created_at->diffForHumans() }}</span>
-                </div>
-            </div>
+                    <a href="{{ route('profile.show', $post->user->username) }}"
+                        onclick="event.stopPropagation()"
+                        class="post-user-link">
 
+                        <strong class="name d-block">
+                            {{ $post->user->fullname ?? 'Người dùng' }}
+                        </strong>
+                    </a>
+
+                    <span class="time text-muted small">
+                        {{ $post->created_at->diffForHumans() }}
+                    </span>
+                </div>
+                {{-- NÚT THEO DÕI --}}
+                @if (auth()->check() && auth()->id() !== $post->user_id)
+                    <form action="{{ route('follow.toggle', $post->user_id) }}" method="POST" class="ms-5 m-0">
+                        @csrf
+                        @php
+                            // Kiểm tra xem user hiện tại có đang theo dõi chủ bài viết không
+                            $isFollowing = false;
+                            if (auth()->check()) {
+                                $isFollowing = auth()->user()->isFollowing($post->user_id);
+                            }
+                        @endphp
+
+                        <button type="submit" class="btn p-0 border-0 fw-bold"
+                            style="font-size: 13px; color: {{ $isFollowing ? '#6c757d' : '#0095f6' }};">
+                            {{ $isFollowing ? 'Đang theo dõi' : 'Theo dõi' }}
+                        </button>
+                    </form>
+                @endif
+            </div>
             @if (auth()->id() == $post->user_id)
             <div class="dropdown prevent-post-modal no-post-modal">
                 <button class="more-btn border-0 bg-transparent" type="button" data-bs-toggle="dropdown">
@@ -65,21 +98,28 @@
             <div class="card-actions d-flex justify-content-between align-items-center border-top pt-3 px-1 prevent-post-modal no-post-modal">
                 <div class="d-flex align-items-center gap-3">
                     {{-- LIKE --}}
-                    <form action="{{ route('post.like', $post->id) }}" method="POST" class="m-0 no-post-modal">
+                    <form action="{{ route('post.like', $post->id) }}" method="POST" class="m-0 like-form">
                         @csrf
                         @php
-                        $userId = auth()->id();
-                        $checkLike = $userId ? $post->likes->contains('user_id', $userId) : false;
+                            $userId = auth()->id();
+                            $checkLike = $userId ? $post->likes->contains('user_id', $userId) : false;
                         @endphp
+
                         <button type="submit"
-                            class="btn-action border-0 bg-transparent p-0 d-flex align-items-center {{ $checkLike ? 'text-danger' : '' }}"
+                            class="btn-action border-0 bg-transparent p-0 d-flex align-items-center btn-like-ajax {{ $checkLike ? 'text-danger' : '' }}"
                             style="gap: 5px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="{{ $checkLike ? 'currentColor' : 'none' }}"
-                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="24" height="24">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" class="like-icon"
+                                fill="{{ $checkLike ? 'currentColor' : 'none' }}" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" width="24" height="24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
                             </svg>
-                            <span class="fw-bold" style="font-size: 14px;">{{ $post->likes->count() }}</span>
+
+                            {{-- Class like-count-text rất quan trọng để JS cập nhật số --}}
+                            <span class="fw-bold like-count-text" style="font-size: 14px;">
+                                {{ $post->likes->count() }}
+                            </span>
                         </button>
                     </form>
 
