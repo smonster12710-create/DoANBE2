@@ -130,6 +130,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/messages/{conversationId}', [MessageController::class, 'fetch']);
         Route::get('/messages/{conversationId}/older', [MessageController::class, 'loadOlder']);
         Route::post('/messages/recall/{id}', [MessageController::class, 'recall']);
+        Route::get('/messages/conversations/{id}', 'getConversations');
+        Route::post('/messages/delete-for-me/{id}',[MessageController::class, 'deleteForMe']);
     });
 
     // ============================== THÔNG BÁO ================================

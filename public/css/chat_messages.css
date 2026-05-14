@@ -384,3 +384,30 @@ body {
         transform: translateY(0);
     }
 }
+/* ===== ACTION BUTTON LEFT/RIGHT ===== */
+
+/* tin mình */
+.message-wrapper.me .message-actions{
+    left: -45px;
+    right: auto;
+}
+
+/* tin người khác */
+.message-wrapper.them .message-actions{
+    right: -45px;
+    left: auto;
+}
+
+/* tránh bị cắt */
+.message-bubble{
+    overflow: visible;
+}
+
+.message-wrapper.them .message-menu{
+    left: 0;
+    right: auto;
+}
+.message-wrapper.me .message-menu{
+    right: 0;
+    left: auto;
+}

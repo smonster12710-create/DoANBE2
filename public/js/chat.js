@@ -5,133 +5,173 @@ let chatBox = document.getElementById('chat-box');
 let conversationId = chatBox.dataset.conversation;
 let currentUserId = chatBox.dataset.user;
 
-let lastMessageId = chatBox.dataset.lastId || 0; // Lấy ID cuối cùng đã có sẵn trong HTML
+let lastMessageId = Number(chatBox.dataset.lastId) || 0;
+let firstMessageId = Number(chatBox.dataset.firstId) || 0;
+
 let isSending = false;
-// Hàm cuộn xuống đáy không điều kiện (dùng cho lần đầu vào trang)
+let isLoadingOlder = false;
+let messageInterval = null;
+
+// ========================
+// SCROLL LOGIC
+// ========================
 function forceScrollBottom() {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
-let isLoadingOlder = false;
-let firstMessageId = chatBox.dataset.firstId; // Lấy từ data-first-id bạn đã đặt trong Blade
 
+function scrollBottom() {
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// load tin cũ khi kéo lên
 chatBox.addEventListener('scroll', function () {
-    // Nếu cuộn lên đỉnh và không đang trong quá trình load
-    if (chatBox.scrollTop <= 10 && !isLoadingOlder && firstMessageId > 0) {
+
+    if (
+        chatBox.scrollTop <= 10 &&
+        !isLoadingOlder &&
+        firstMessageId > 0
+    ) {
         loadOlderMessages();
     }
+
 });
 
+// ========================
+// LOAD NEW MESSAGES
+// ========================
+function loadMessages() {
+
+    fetch(`/messages/${conversationId}?last_id=${lastMessageId}`)
+
+        .then(res => {
+
+            if (!res.ok) {
+
+                if (
+                    res.status === 401 ||
+                    res.status === 403
+                ) {
+
+                    stopPolling();
+
+                    window.location.href =
+                        "/list_messages";
+                }
+
+                return null;
+            }
+
+            return res.json();
+        })
+
+        .then(data => {
+
+            if (!data || data.length === 0) return;
+
+            let hasNew = false;
+
+            data.forEach(msg => {
+
+                // tránh append trùng
+                if (
+                    !document.querySelector(
+                        `.message-wrapper[data-id="${msg.id}"]`
+                    )
+                ) {
+
+                    appendMessage(msg);
+
+                    hasNew = true;
+                }
+
+                if (msg.id > lastMessageId) {
+                    lastMessageId = msg.id;
+                }
+
+            });
+
+            if (hasNew) {
+
+                scrollBottom();
+
+                updateSidebar();
+            }
+
+        })
+
+        .catch(err => {
+            console.log("Chat error:", err);
+        });
+
+}
+
+// ========================
+// LOAD OLDER MESSAGES
+// ========================
 function loadOlderMessages() {
+
+    if (
+        isLoadingOlder ||
+        firstMessageId <= 0
+    ) return;
+
     isLoadingOlder = true;
 
-    // Lưu lại chiều cao trước khi chèn tin nhắn mới
-    const oldScrollHeight = chatBox.scrollHeight;
+    let oldHeight = chatBox.scrollHeight;
 
-    fetch(`/messages/${conversationId}/older?first_id=${firstMessageId}`)
+    fetch(
+        `/messages/${conversationId}/older?first_id=${firstMessageId}`
+    )
+
         .then(res => res.json())
+
         .then(data => {
-            if (data.length > 0) {
-                // Duyệt ngược data để chèn vào đầu chat-box
-                data.reverse().forEach(msg => {
-                    prependMessage(msg);
-                });
 
-                // Cập nhật lại firstMessageId là ID của tin nhắn cũ nhất vừa tải
-                firstMessageId = data[data.length - 1].id;
+            if (!data || data.length === 0) {
 
-                // GIỮ VỊ TRÍ CUỘN: 
-                // Chiều cao mới - Chiều cao cũ = Khoảng cách cần bù đắp
-                const newScrollHeight = chatBox.scrollHeight;
-                chatBox.scrollTop = newScrollHeight - oldScrollHeight;
-            } else {
-                firstMessageId = 0; // Hết tin nhắn cũ để tải
+                firstMessageId = 0;
+
+                return;
             }
+
+            data.reverse().forEach(msg => {
+
+                // tránh load trùng
+                if (
+                    !document.querySelector(
+                        `.message-wrapper[data-id="${msg.id}"]`
+                    )
+                ) {
+                    prependMessage(msg);
+                }
+
+            });
+
+            firstMessageId = Math.min(
+                ...data.map(m => m.id)
+            );
+
+            // giữ vị trí scroll
+            chatBox.scrollTop =
+                chatBox.scrollHeight - oldHeight;
+
         })
+
+        .catch(err => {
+            console.error(
+                "Lỗi load tin cũ:",
+                err
+            );
+        })
+
         .finally(() => {
             isLoadingOlder = false;
         });
+
 }
 
-// Hàm chèn tin nhắn vào đầu danh sách
-function prependMessage(msg) {
-    let isMe = msg.sender_id == currentUserId;
-    let div = document.createElement('div');
-    div.className = 'message-wrapper ' + (isMe ? 'me' : 'them');
-    div.innerHTML = `<div class="message-bubble">${msg.content}</div>`;
-
-    // Chèn vào vị trí đầu tiên của chatBox
-    chatBox.insertBefore(div, chatBox.firstChild);
-}
-// Khi trang vừa load xong
-document.addEventListener('DOMContentLoaded', function () {
-    forceScrollBottom();
-
-    // Nếu bạn có dùng hình ảnh trong tin nhắn, 
-    // hãy đợi ảnh load xong rồi cuộn lần nữa cho chắc chắn
-    window.onload = forceScrollBottom;
-});
-document.querySelector('.chat-input').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    const input = this.querySelector('input[name="content"]');
-    const messageText = input.value.trim(); // Lấy giá trị và trim luôn
-
-    // Nếu đang gửi hoặc nội dung trống thì thoát ngay
-    if (isSending || messageText === "") return;
-
-    isSending = true;
-    input.value = ""; // Xóa giao diện ngay lập tức cho người dùng rảnh tay
-    input.disabled = true; // Khóa ô nhập liệu tạm thời
-
-    let formData = new FormData();
-    formData.append('content', messageText); // Dùng giá trị đã lưu trong biến, không lấy từ input nữa
-    formData.append('conversation_id', this.querySelector('input[name="conversation_id"]').value);
-    formData.append('_token', this.querySelector('input[name="_token"]').value);
-
-    fetch('/messages/send', {
-        method: 'POST',
-        body: formData
-    })
-        .then(res => res.json())
-        .then(data => {
-            // Chỉ thêm vào nếu data trả về có nội dung (tránh server trả về null)
-            if (data && data.content) {
-                loadMessages();
-            }
-        })
-        .finally(() => {
-            isSending = false;
-            input.disabled = false;
-            input.focus();
-        });
-});
 // ========================
-// LOAD MESSAGES FUNCTION
-function loadMessages() {
-    fetch(`/messages/${conversationId}?last_id=${lastMessageId}`)
-        .then(res => res.json())
-        .then(data => {
-            // Kiểm tra xem có tin nhắn mới thực sự không
-            if (data.length > 0) {
-                let hasNewMessage = false;
-
-                data.forEach(msg => {
-                    if (msg.id > lastMessageId && msg.content) {
-                        appendMessage(msg);
-                        lastMessageId = msg.id;
-                        hasNewMessage = true; // Xác nhận có tin mới
-                    }
-                });
-
-                // Nếu có tin mới thì mới kích hoạt hàm cuộn
-                if (hasNewMessage) {
-                    scrollBottom();
-                }
-            }
-        });
-}
-// ========================
-// SEND MESSAGE (Giữ nguyên của bạn)
+// SEND MESSAGE
 // ========================
 document.querySelector('.chat-input').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -149,125 +189,426 @@ document.querySelector('.chat-input').addEventListener('submit', function (e) {
         .then(() => {
             input.value = '';
             loadMessages(); // Load ngay lập tức sau khi gửi
+            updateSidebar(); // Cập nhật sidebar sau khi gửi
         });
 });
 
+// ========================
+// RENDER HELPERS
+// ========================
 function createMessageHTML(msg) {
+
     let isMe = msg.sender_id == currentUserId;
+
     let wrapperClass = isMe ? 'me' : 'them';
 
-    // Nếu tin nhắn bị thu hồi
+
+    // tin thu hồi
     if (msg.is_deleted == 1) {
+
         return `
             <div class="message-wrapper ${wrapperClass}" data-id="${msg.id}">
-                <div class="message-recalled">Tin nhắn đã được thu hồi</div>
-            </div>`;
+                <div class="message-recalled">
+                    Tin nhắn đã được thu hồi
+                </div>
+            </div>
+        `;
     }
 
-    // Tin nhắn bình thường
     return `
         <div class="message-wrapper ${wrapperClass}" data-id="${msg.id}">
+
             <div class="message-bubble">
-                <div class="message-content">${msg.content}</div>
-                ${isMe ? `
-                    <div class="message-actions">
-                        <button type="button" class="dots-btn">⋯</button>
-                        <div class="message-menu">
-                            <button type="button" class="recall-btn" data-id="${msg.id}">Thu hồi</button>
-                            <button type="button" class="delete-btn" data-id="${msg.id}">Xoá ở phía bạn</button>
-                        </div>
-                    </div>` : ''}
+
+                <div class="message-content">
+                    ${msg.content}
+                </div>
+
+                <div class="message-actions">
+
+                    <button
+                        type="button"
+                        class="dots-btn">
+                        ⋯
+                    </button>
+
+                    <div class="message-menu">
+
+                        ${isMe ? `
+                            <button
+                                type="button"
+                                class="recall-btn"
+                                data-id="${msg.id}">
+                                Thu hồi
+                            </button>
+                        ` : ''}
+
+                        <button
+                            type="button"
+                            class="delete-btn"
+                            data-id="${msg.id}">
+                            Xoá ở phía bạn
+                        </button>
+
+                    </div>
+
+                </div>
+
             </div>
-        </div>`;
-}
 
-function appendMessage(msg) {
-    let div = document.createElement('div');
-    div.innerHTML = createMessageHTML(msg);
-    chatBox.appendChild(div.firstElementChild);
-}
-
-function prependMessage(msg) {
-    let div = document.createElement('div');
-    div.innerHTML = createMessageHTML(msg);
-    chatBox.insertBefore(div.firstElementChild, chatBox.firstChild);
-}
-function scrollBottom() {
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-function recallMessage(messageId) {
-
-    fetch(`/messages/recall/${messageId}`, {
-
-        method: 'POST',
-
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
-        }
-
-    })
-        .then(res => res.json())
-        .then(data => {
-
-            if (data.success) {
-
-                let messageElement = document.querySelector(
-                    `.message-wrapper[data-id="${messageId}"] .message-bubble`
-                );
-
-                // đổi class
-                messageElement.classList.remove('message-bubble');
-                messageElement.classList.add('message-recalled');
-
-                // đổi nội dung
-                messageElement.innerHTML = `
-        Tin nhắn đã được thu hồi
+        </div>
     `;
-
-            }
-        });
-
 }
+
+// ========================
+// Xoá tin nhắn 1 chiều
+// ========================
 document.addEventListener('click', function (e) {
 
-    if (e.target.classList.contains('recall-btn')) {
+    if (e.target.classList.contains('delete-btn')) {
 
         let messageId = e.target.dataset.id;
 
-        recallMessage(messageId);
+        fetch(`/messages/delete-for-me/${messageId}`, {
+
+            method: 'POST',
+
+            headers: {
+
+                'X-CSRF-TOKEN':
+                    document.querySelector(
+                        'input[name="_token"]'
+                    ).value
+
+            }
+
+        })
+
+            .then(res => res.json())
+
+            .then(data => {
+
+                if (data.success) {
+
+                    let message = document.querySelector(
+                        `.message-wrapper[data-id="${messageId}"]`
+                    );
+
+                    if (message) {
+                        message.remove();
+                    }
+
+                    updateSidebar();
+                }
+
+            });
 
     }
 
 });
+// ========================
+// APPEND / PREPEND
+// ========================
+function appendMessage(msg) {
+
+    let div = document.createElement('div');
+
+    div.innerHTML =
+        createMessageHTML(msg);
+
+    chatBox.appendChild(
+        div.firstElementChild
+    );
+}
+
+function prependMessage(msg) {
+
+    let div = document.createElement('div');
+
+    div.innerHTML =
+        createMessageHTML(msg);
+
+    chatBox.insertBefore(
+        div.firstElementChild,
+        chatBox.firstChild
+    );
+}
+
+// ========================
+// TOGGLE MENU
+// ========================
 document.addEventListener('click', function (e) {
 
-    // click nút ...
-    if (e.target.classList.contains('dots-btn')) {
+    // mở menu
+    if (
+        e.target.classList.contains(
+            'dots-btn'
+        )
+    ) {
 
-        let menu = e.target.nextElementSibling;
+        e.stopPropagation();
+
+        let menu =
+            e.target.nextElementSibling;
 
         // đóng menu khác
-        document.querySelectorAll('.message-menu').forEach(m => {
+        document.querySelectorAll(
+            '.message-menu'
+        ).forEach(m => {
+
             if (m !== menu) {
-                m.classList.remove('show');
+                m.classList.remove(
+                    'show'
+                );
             }
+
         });
 
         menu.classList.toggle('show');
 
-        e.stopPropagation();
+        return;
     }
 
-    // click ngoài -> đóng
-    else {
+    // click trong menu
+    if (
+        e.target.closest(
+            '.message-menu'
+        )
+    ) {
+        return;
+    }
 
-        document.querySelectorAll('.message-menu').forEach(m => {
-            m.classList.remove('show');
+    // click ngoài
+    document.querySelectorAll(
+        '.message-menu'
+    ).forEach(m => {
+
+        m.classList.remove('show');
+
+    });
+
+});
+
+// ========================
+// RECALL MESSAGE
+// ========================
+function recallMessage(messageId) {
+
+    fetch(
+        `/messages/recall/${messageId}`,
+        {
+
+            method: 'POST',
+
+            headers: {
+
+                'X-CSRF-TOKEN':
+                    document.querySelector(
+                        'meta[name="csrf-token"]'
+                    ).content,
+
+                'Accept':
+                    'application/json'
+            }
+
+        }
+    )
+
+        .then(res => res.json())
+
+        .then(data => {
+
+            if (!data.success) return;
+
+            let messageWrapper =
+                document.querySelector(
+                    `.message-wrapper[data-id="${messageId}"]`
+                );
+
+            if (!messageWrapper) return;
+
+            let isMe =
+                messageWrapper.classList.contains(
+                    'me'
+                );
+
+            messageWrapper.innerHTML = `
+                <div class="message-recalled">
+                    Tin nhắn đã được thu hồi
+                </div>
+            `;
+
+            updateSidebar();
+
+        })
+
+        .catch(err => {
+            console.log(
+                "Recall error:",
+                err
+            );
         });
+
+}
+
+// click recall
+document.addEventListener('click', function (e) {
+
+    if (
+        e.target.classList.contains(
+            'recall-btn'
+        )
+    ) {
+
+        let messageId =
+            e.target.dataset.id;
+
+        recallMessage(messageId);
+    }
+
+});
+
+// ========================
+// DELETE FOR ME
+// ========================
+document.addEventListener('click', function (e) {
+
+    if (
+        e.target.classList.contains(
+            'delete-btn'
+        )
+    ) {
+
+        let messageId =
+            e.target.dataset.id;
+
+        fetch(
+            `/messages/delete-for-me/${messageId}`,
+            {
+
+                method: 'POST',
+
+                headers: {
+
+                    'X-CSRF-TOKEN':
+                        document.querySelector(
+                            'meta[name="csrf-token"]'
+                        ).content,
+
+                    'Accept':
+                        'application/json'
+                }
+
+            }
+        )
+
+            .then(res => res.json())
+
+            .then(data => {
+
+                if (!data.success) return;
+
+                let message =
+                    document.querySelector(
+                        `.message-wrapper[data-id="${messageId}"]`
+                    );
+
+                if (message) {
+                    message.remove();
+                }
+
+                updateSidebar();
+
+            })
+
+            .catch(err => {
+
+                console.log(
+                    "Delete error:",
+                    err
+                );
+
+            });
 
     }
 
 });
-// KHỞI CHẠY
-loadMessages(); // Chạy lần đầu
-setInterval(loadMessages, 500); // Cứ 0.5 giây check một lần
+
+// ========================
+// SIDEBAR UPDATE
+// ========================
+function updateSidebar() {
+
+    fetch(
+        `/messages/conversations/${conversationId}`
+    )
+
+        .then(res =>
+            res.ok
+                ? res.text()
+                : null
+        )
+
+        .then(html => {
+
+            if (!html) return;
+
+            const list =
+                document.querySelector(
+                    '.scrollable-list'
+                );
+
+            if (
+                list &&
+                list.innerHTML.trim() !==
+                html.trim()
+            ) {
+
+                list.innerHTML = html;
+
+            }
+
+        });
+
+}
+
+// ========================
+// POLLING
+// ========================
+function startPolling() {
+
+    if (
+        !window.location.pathname.includes(
+            'chat-messages'
+        )
+    ) return;
+
+    messageInterval =
+        setInterval(
+            loadMessages,
+            2000
+        );
+
+}
+
+function stopPolling() {
+
+    clearInterval(
+        messageInterval
+    );
+
+}
+
+// ========================
+// INIT
+// ========================
+document.addEventListener(
+    'DOMContentLoaded',
+    function () {
+
+        forceScrollBottom();
+
+        startPolling();
+
+    }
+);
