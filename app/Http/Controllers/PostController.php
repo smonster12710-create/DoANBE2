@@ -169,28 +169,49 @@ class PostController extends Controller
     public function toggleLike($postId)
     {
         $userId = Auth::id();
-        if (!$userId) return response()->json(['error' => 'Unauthenticated'], 401);
+        if (!$userId)
+            return response()->json(['error' => 'Unauthenticated'], 401);
 
         // Tìm xem đã like chưa
-        $likeQuery = Like::where('post_id', $postId)->where('user_id', $userId);
+        $likeQuery = \App\Models\Like::where('post_id', $postId)->where('user_id', $userId);
 
         if ($likeQuery->exists()) {
-
+            // Trường hợp BỎ LIKE: Xóa like cũ
             $likeQuery->delete();
             $isLiked = false;
         } else {
-            Like::create([
+            // Trường hợp LIKE MỚI: Tạo record
+            \App\Models\Like::create([
                 'post_id' => $postId,
                 'user_id' => $userId
             ]);
             $isLiked = true;
+
+            // ====================================================================
+            // LOGIC BẮN THÔNG BÁO
+            // ====================================================================
+            $post = \App\Models\Post::find($postId);
+
+            // Check coi bài viết có tồn tại không, và thằng like CÓ PHẢI LÀ CHỦ BÀI KHÔNG
+            if ($post && $post->user_id !== $userId) {
+                \App\Models\Notification::create([
+                    'user_id' => $post->user_id,      // Đứa nhận thông báo (chủ bài viết)
+                    'actor_id' => $userId,            // Đứa thả tim (chính là mình)
+                    'type' => 'like',                 // Phân loại là 'like' để mốt Frontend biết đường hiện icon cho chuẩn
+                    'reference_id' => $postId,        // Lưu ID bài để mốt click vô nó đá qua đúng bài
+                    'is_read' => 0,                   // Đánh dấu chưa đọc
+                ]);
+            }
+            // ====================================================================
         }
 
-        $count = Like::where('post_id', $postId)->count();
+        // Đếm lại tổng số tim
+        $count = \App\Models\Like::where('post_id', $postId)->count();
 
+        // Nhả cục JSON về cho con Frontend nó render
         return response()->json([
             'isLiked' => $isLiked,
-            'likeCount' => (int)$count
+            'likeCount' => (int) $count
         ]);
     }
 
