@@ -30,23 +30,39 @@ class CommentController extends Controller
         $comment->content = $request->content;
         $comment->save();
 
+        // ====================================================================
+        //  BẮN THÔNG BÁO 
+        // ====================================================================
+        $post = Post::find($postId);
+        // Luật giang hồ: Không tự báo cho mình nếu tự comment bài mình
+        if ($post && $post->user_id !== Auth::id()) {
+            Notification::create([
+                'user_id' => $post->user_id,      // Người nhận là chủ bài viết
+                'actor_id' => Auth::id(),         // Người comment (chính là mình)
+                'type' => 'comment',              // Loại thông báo: comment
+                'reference_id' => $postId,        // Gắn ID bài viết để mốt click vô nhảy cho lẹ
+                'is_read' => 0,                   // Chưa đọc
+            ]);
+        }
+        // ====================================================================
+
+        // LOGIC XỬ LÝ MENTION 
         $mentionedUsernames = $textProcessorService->getMentions($comment->content);
 
         if (!empty($mentionedUsernames)) {
-            // 3. Chọt DB, gom cổ mấy ông nội có tên trong mảng này lên
-            // Lưu ý: Cột 'username' phải khớp với tên cột tài khoản trong DB của Pro nha
+            // vào db lấy user có tên trong mảng này lên
             $mentionedUsers = User::whereIn('username', $mentionedUsernames)->get();
 
-            // 4. Bơm thông báo cho từng người
+            //  thông báo cho từng người bị tag
             foreach ($mentionedUsers as $user) {
-                // Luật giang hồ: Không tự bắn thông báo cho chính mình (lỡ tay gõ @ten_minh)
+                // Không tự bắn thông báo cho chính mình (lỡ tay gõ @ten_minh)
                 if ($user->id !== Auth::id()) {
                     Notification::create([
-                        'user_id' => $user->id,          // Người bị réo tên (nhận thông báo)
-                        'actor_id' => Auth::id(),        // Người gõ phím tag (chính là mình)
-                        'type' => 'mention',             // Loại thông báo: mention
-                        'reference_id' => $comment->post_id, // Gắn ID bài viết vô để mốt click thông báo nó bay tới đây
-                        'is_read' => 0,                  // Chưa đọc
+                        'user_id' => $user->id,
+                        'actor_id' => Auth::id(),
+                        'type' => 'mention',
+                        'reference_id' => $comment->post_id,
+                        'is_read' => 0,
                     ]);
                 }
             }
