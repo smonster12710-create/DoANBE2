@@ -11,7 +11,10 @@
         <!-- 2 Nút bên phải -->
         <div style="display: flex; gap: 10px;">
             <button class="btn-top">Bạn Bè</button>
-            <button class="btn-top">Theo Dõi</button>
+            <a href="{{ route('user.following') }}"
+                class="btn-top text-decoration-none text-dark d-flex align-items-center">
+                Theo Dõi
+            </a>
         </div>
     </div>
     <div class="grid">
@@ -23,5 +26,4 @@
     @foreach ($posts as $post)
         @include('partials.post_modals', ['post' => $post])
     @endforeach
-
 @endsection
