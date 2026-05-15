@@ -11,10 +11,7 @@
         <!-- 2 Nút bên phải -->
         <div style="display: flex; gap: 10px;">
             <button class="btn-top">Bạn Bè</button>
-            <a href="{{ route('user.following') }}"
-                class="btn-top text-decoration-none text-dark d-flex align-items-center">
-                Theo Dõi
-            </a>
+            <button class="btn-top">Theo Dõi</button>
         </div>
     </div>
     <div class="grid">

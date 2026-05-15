@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class FollowController extends Controller
 {
-    public function toggle($userId) // Nhận ID trực tiếp để tránh lỗi Route Binding
+    public function toggle($userId)
 {
     $me = Auth::user();
     $targetUser = User::findOrFail($userId);
@@ -31,14 +32,17 @@ class FollowController extends Controller
     }
 }
 
-    public function followingList()
+    public function following($username)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
+        $user = User::where('username', $username)->firstOrFail();
 
-        // Lấy danh sách người được follow, phân trang 12 người mỗi trang
-        $followings = $user->followings()->paginate(12);
+        $ids = DB::table('follows')
+            ->where('follower_id', $user->id)
+            ->pluck('following_id');
 
-        return view('social.followings', compact('followings'));
+        $users = User::whereIn('id', $ids)->get();
+
+        $title = 'Đang theo dõi';
+        return view('social.profile_list', compact('user', 'users', 'title'));
     }
 }
