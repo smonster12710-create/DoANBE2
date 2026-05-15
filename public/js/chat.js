@@ -240,7 +240,7 @@ document.querySelector('.chat-input')
 
                     isSending = false;
                     input.disabled = false;
-                    
+
                     submitBtn.disabled = false;
 
                 }, 700);
@@ -309,9 +309,13 @@ function createMessageHTML(msg) {
                     </div>
 
                 </div>
-
+          
             </div>
-
+  ${isMe ? `
+                <div class="message-status">
+                    ${msg.is_read ? 'Đã xem' : 'Đã gửi'}
+                </div>
+            ` : ''}
         </div>
     `;
 }

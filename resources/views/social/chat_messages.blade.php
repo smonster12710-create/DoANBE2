@@ -1,4 +1,3 @@
-
 @extends('dashboard')
 @if(session('error'))
 <div class="alert alert-danger mx-3 mt-3">
@@ -105,6 +104,8 @@
                         {{ $msg->content }}
                     </div>
 
+
+
                     <div class="message-actions">
 
                         <button type="button" class="dots-btn">
@@ -137,7 +138,13 @@
 
 
                 </div>
-
+                @if($msg->sender_id == auth()->id())
+                <div class="message-status-row">
+                    <small class="message-status" data-id="{{ $msg->id }}">
+                        {{ $msg->is_read ? 'Đã xem' : 'Đã gửi' }}
+                    </small>
+                </div>
+                @endif
                 @endif
 
             </div>
