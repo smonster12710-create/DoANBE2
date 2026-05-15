@@ -165,7 +165,7 @@ body {
 
 .message-bubble {
     max-width: 70%;
-    padding: 10px 15px;
+    padding: 5px 15px;
     border-radius: 18px;
     font-size: 14px;
     line-height: 1.4;
@@ -436,9 +436,47 @@ body {
     justify-content: center;
 }
 
+
+
+
+
+/* Container tổng của một dòng tin nhắn */
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
+    /* Xếp dọc: Bubble trên, Status dưới */
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+/* Nếu là tin nhắn của tớ (bên phải) */
+.message-wrapper.me {
+    align-items: flex-end;
+    /* Căn tất cả về bên phải */
+}
+
+/* Nếu là tin nhắn của họ (bên trái) */
+.message-wrapper.them {
+    align-items: flex-start;
+    /* Căn tất cả về bên trái */
+}
+
+
+
+.me .message-bubble {
+    background-color: #0084ff;
+    color: white;
+
+}
+
+/* Dòng trạng thái dưới tin nhắn */
+.message-status-row {
+    margin-top: 2px;
+    /* Khoảng cách nhỏ với bubble */
+    padding: 0 5px;
+}
+
 .message-status {
     font-size: 11px;
-    color: gray;
-    margin-top: 5px;
-    text-align: right;
+    color: #888;
 }
