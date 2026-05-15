@@ -70,7 +70,7 @@ body {
 
 /* ================= PROFILE ================= */
 .profile {
-    margin-top: auto;
+    margin-bottom: auto;
     /* 🔥 đẩy xuống đáy */
 
     display: flex;
@@ -160,3 +160,4 @@ body {
     text-decoration: none;
     color: black;
 }
+
