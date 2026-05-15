@@ -3,8 +3,8 @@
         alt="cover">
 
     <div class="profile-info">
-        <img class="profile-avatar"
-            src="{{ $user->avatar_url ? asset($user->avatar_url) : asset('img/user/user.jpg') }}" alt="avatar">
+        <img class="profile-avatar" src="{{ $user->avatar_url ? asset($user->avatar_url) : asset('img/user/user.jpg') }}"
+            alt="avatar">
 
         <div class="profile-main">
             <h1 class="profile-name">{{ $user->fullname ?? 'Người dùng' }}</h1>
@@ -36,37 +36,41 @@
             <div class="profile-bio">{{ $user->bio ?? 'Chưa có tiểu sử' }}</div>
         </div>
 
-        @if(auth()->id() == $user->id)
+        @if (auth()->id() == $user->id)
 
-        <a href="{{ route('profile.edit') }}" class="edit-btn">
-            ✎ Chỉnh sửa
-        </a>
-
-        @else
-
-        <div class="profile-action-buttons">
-
-            <form method="POST" action="{{ route('profile.friend.toggle', $user->username) }}">
-                @csrf
-
-                <button type="submit" class="profile-action-btn {{ $isFriend ? 'secondary' : 'primary' }}">
-                    {{ $isFriend ? 'Bạn bè' : 'Thêm bạn bè' }}
-                </button>
-            </form>
-
-            <a href="#" class="profile-action-btn primary">
-                Nhắn tin
+            <a href="{{ route('profile.edit') }}" class="edit-btn">
+                ✎ Chỉnh sửa
             </a>
+        @else
+            <div class="profile-action-buttons">
 
-            <form method="POST" action="{{ route('profile.follow.toggle', $user->username) }}">
-                @csrf
+                <form method="POST" action="{{ route('profile.friend.toggle', $user->username) }}">
+                    @csrf
 
-                <button type="submit" class="profile-action-btn {{ $isFollowing ? 'secondary' : 'primary' }}">
-                    {{ $isFollowing ? 'Đã theo dõi' : 'Theo dõi' }}
-                </button>
-            </form>
+                    <button type="submit" class="profile-action-btn {{ $isFriend ? 'secondary' : 'primary' }}">
+                        {{ $isFriend ? 'Bạn bè' : 'Thêm bạn bè' }}
+                    </button>
+                </form>
 
-        </div>
+                <a href="#" class="profile-action-btn primary">
+                    Nhắn tin
+                </a>
+
+                {{-- NÚT THEO DÕI (Đã chỉnh lại style) --}}
+                @if (auth()->check() && auth()->id() !== $user->id)
+                    <form action="{{ route('follow.toggle', $user->id) }}" method="POST" class="m-0">
+                        @csrf
+                        @php
+                            $isFollowing = auth()->user()->isFollowing($user->id);
+                        @endphp
+
+                        <button type="submit" class="profile-action-btn {{ $isFollowing ? 'secondary' : 'primary' }}">
+                            {{ $isFollowing ? 'Đang theo dõi' : 'Theo dõi' }}
+                        </button>
+                    </form>
+                @endif
+
+            </div>
 
         @endif
     </div>

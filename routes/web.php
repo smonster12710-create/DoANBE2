@@ -83,10 +83,10 @@ Route::middleware('auth')->group(function () {
             Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
             // tương tác thêm bạn bè theo dõi giữa các người dùng
             Route::post('/profile/{username}/friend', [ProfileController::class, 'toggleFriend'])->name('profile.friend.toggle');
-            Route::post('/profile/{username}/follow', [ProfileController::class, 'toggleFollow'])->name('profile.follow.toggle');
+            //Route::post('/profile/{username}/follow', [ProfileController::class, 'toggleFollow'])->name('profile.follow.toggle');
             Route::get('/profile/{username}/friends', [ProfileController::class, 'friends'])->name('profile.friends');
             Route::get('/profile/{username}/followers', [ProfileController::class, 'followers'])->name('profile.followers');
-            Route::get('/profile/{username}/following', [ProfileController::class, 'following'])->name('profile.following');
+            
             // Xem trang cá nhân bất kỳ
             Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.show');
 
@@ -114,7 +114,7 @@ Route::middleware('auth')->group(function () {
 
     // --- THEO DÕI ---
     Route::post('/follow/{user}', [FollowController::class, 'toggle'])->name('follow.toggle')->middleware('auth');
-    Route::get('/following', [FollowController::class, 'followingList'])->name('user.following')->middleware('auth');
+    Route::get('/profile/{username}/following', [FollowController::class, 'following'])->name('profile.following');
 
     // --- TÌM KIẾM ---
     Route::prefix('ajax')->group(function () {

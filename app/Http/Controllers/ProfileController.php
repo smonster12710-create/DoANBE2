@@ -101,34 +101,34 @@ class ProfileController extends Controller
         return back();
     }
 
-    public function toggleFollow($username)
-    {
-        $targetUser = User::where('username', $username)->firstOrFail();
+    // public function toggleFollow($username)
+    // {
+    //     $targetUser = User::where('username', $username)->firstOrFail();
 
-        if (auth()->id() == $targetUser->id) {
-            return back();
-        }
+    //     if (auth()->id() == $targetUser->id) {
+    //         return back();
+    //     }
 
-        $authId = auth()->id();
+    //     $authId = auth()->id();
 
-        $follow = DB::table('follows')
-            ->where('follower_id', $authId)
-            ->where('following_id', $targetUser->id)
-            ->first();
+    //     $follow = DB::table('follows')
+    //         ->where('follower_id', $authId)
+    //         ->where('following_id', $targetUser->id)
+    //         ->first();
 
-        if ($follow) {
-            DB::table('follows')->where('id', $follow->id)->delete();
-        } else {
-            DB::table('follows')->insert([
-                'follower_id' => $authId,
-                'following_id' => $targetUser->id,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
+    //     if ($follow) {
+    //         DB::table('follows')->where('id', $follow->id)->delete();
+    //     } else {
+    //         DB::table('follows')->insert([
+    //             'follower_id' => $authId,
+    //             'following_id' => $targetUser->id,
+    //             'created_at' => now(),
+    //             'updated_at' => now(),
+    //         ]);
+    //     }
 
-        return back();
-    }
+    //     return back();
+    // }
     public function friends($username)
     {
         $user = User::where('username', $username)->firstOrFail();
@@ -163,19 +163,7 @@ class ProfileController extends Controller
         return view('social.profile_list', compact('user', 'users', 'title'));
     }
 
-    public function following($username)
-    {
-        $user = User::where('username', $username)->firstOrFail();
-
-        $ids = DB::table('follows')
-            ->where('follower_id', $user->id)
-            ->pluck('following_id');
-
-        $users = User::whereIn('id', $ids)->get();
-
-        $title = 'Đang theo dõi';
-        return view('social.profile_list', compact('user', 'users', 'title'));
-    }
+    
     /**
      * Hiển thị trang chỉnh sửa (Chỉ cho chính mình)
      */
