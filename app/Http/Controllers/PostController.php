@@ -108,7 +108,7 @@ class PostController extends Controller
      */
     // Nhớ import ở đầu file
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, \App\Services\TextProcessorService $hashtagService)
     {
         $post = Post::findOrFail($id);
 
@@ -122,14 +122,36 @@ class PostController extends Controller
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
         ]);
 
+        // Cập nhật nội dung chữ trước
         $post->content = $request->content;
         $post->save();
 
-        if ($request->hasFile('image')) {
+        // =========================================================
+        // LOGIC LỌC VÀ CẬP NHẬT HASHTAG 
+        // =========================================================
+        $tagNames = $hashtagService->getHashtags($post->content);
+        $tagIds = [];
 
+        if (!empty($tagNames)) {
+            foreach ($tagNames as $tagName) {
+                $hashtag = \App\Models\Hashtag::firstOrCreate([
+                    'name' => mb_strtolower($tagName, 'UTF-8')
+                ]);
+
+                // Tăng count lên 1 
+                $hashtag->increment('usage_count');
+
+                // Đưa ID vô mảng
+                $tagIds[] = $hashtag->id;
+            }
+        }
+        $post->hashtags()->sync($tagIds);
+        // =========================================================
+
+        // Xử lý hình ảnh 
+        if ($request->hasFile('image')) {
             $file = $request->file('image');
             $fileName = time() . '_' . $file->getClientOriginalName();
-
             $file->move(public_path('uploads/posts'), $fileName);
 
             // xóa ảnh cũ
@@ -192,11 +214,11 @@ class PostController extends Controller
             // ====================================================================
             $post = \App\Models\Post::find($postId);
 
-            // Check coi bài viết có tồn tại không, và thằng like CÓ PHẢI LÀ CHỦ BÀI KHÔNG
+            // Check bài viết có tồn tại không
             if ($post && $post->user_id !== $userId) {
                 \App\Models\Notification::create([
-                    'user_id' => $post->user_id,      // Đứa nhận thông báo (chủ bài viết)
-                    'actor_id' => $userId,            // Đứa thả tim (chính là mình)
+                    'user_id' => $post->user_id,      // User nhận thông báo (chủ bài viết)
+                    'actor_id' => $userId,            // User thả tim (chính là mình)
                     'type' => 'like',                 // Phân loại là 'like' để mốt Frontend biết đường hiện icon cho chuẩn
                     'reference_id' => $postId,        // Lưu ID bài để mốt click vô nó đá qua đúng bài
                     'is_read' => 0,                   // Đánh dấu chưa đọc
