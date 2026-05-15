@@ -420,6 +420,7 @@ a.hashtag-link:hover {
     background: rgba(255, 255, 255, .22);
     transform: scale(1.08);
 }
+
 .post-user-link {
     color: #111 !important;
     text-decoration: none !important;
@@ -433,4 +434,12 @@ a.hashtag-link:hover {
 .post-user-link .name {
     color: #111 !important;
     text-decoration: none !important;
+}
+
+.btn-following {
+    color: #6c757d;
+}
+
+.btn-follow {
+    color: #0095f6;
 }

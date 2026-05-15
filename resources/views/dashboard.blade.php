@@ -31,33 +31,33 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
             z-index: 1000;
             overflow: visible;
         }
-    
+
         .sidebar-content {
             flex: 1;
             overflow-y: auto;
             padding: 20px 10px;
         }
-    
+
         .profile {
-            position: sticky;
+            position: absolute;
             bottom: 0;
             background: #fff;
             padding: 10px;
             border-top: 1px solid #f0f0f0;
             z-index: 10;
         }
-    
+
         .profile-btn {
             border: none;
             background: transparent;
             display: flex;
             align-items: center;
             gap: 10px;
-            width: 100%;
+            width: 190px;
             cursor: pointer;
             text-align: left;
         }
-    
+
         .profile-btn img,
         .avatar-header img {
             width: 42px;
@@ -65,28 +65,28 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
             border-radius: 50%;
             object-fit: cover;
         }
-    
+
         .avatar-dropdown {
             display: none;
             position: fixed;
-    
+
             left: 20px;
             bottom: 90px;
-    
+
             width: 270px;
-    
+
             background: white;
             border-radius: 16px;
             padding: 12px;
-    
+
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
             z-index: 99999;
         }
-    
+
         .avatar-dropdown.show {
             display: block;
         }
-    
+
         .avatar-header {
             display: flex;
             align-items: center;
@@ -95,7 +95,7 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
             padding: 12px;
             border-radius: 14px;
         }
-    
+
         .avatar-dropdown a {
             display: block;
             text-decoration: none;
@@ -104,32 +104,32 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
             border-radius: 10px;
             font-size: 14px;
         }
-    
+
         .avatar-dropdown a:hover {
             background: #f2f2f2;
         }
-    
+
         .avatar-dropdown .logout-link {
             color: crimson;
             font-weight: bold;
         }
-    
+
         .avatar-header div {
             min-width: 0;
             flex: 1;
         }
-    
+
         .avatar-header small {
             display: block;
             color: #555;
             font-size: 14px;
-    
+
             white-space: nowrap;
             overflow: visible;
             text-overflow: unset;
             max-width: none;
         }
-    
+
         .text-truncate-custom {
             display: block;
             white-space: nowrap;
@@ -137,106 +137,115 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
             text-overflow: ellipsis;
             min-width: 0;
         }
-    
+
         .profile-btn div {
             min-width: 0;
             flex: 1;
         }
     </style>
-    </head>
-    
-    <body>
-        <div class="container-flex">
-            <div class="sidebar">
-                <h2 class="logo">ESPACE</h2>
-    
-                <div class="sidebar-content">
-                    <div class="menu">
-                        <div class="menu-item">
-                            <a class="danh_muc {{ request()->is('social') ? 'active' : '' }}" href="{{ url('/social') }}">
-                                @if(request()->is('social'))
-                                    <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 640 640">
-                                        <path
-                                            d="M341.8 72.6C329.5 61.2 310.5 61.2 298.3 72.6L74.3 280.6C64.7 289.6 61.5 303.5 66.3 315.7C71.1 327.9 82.8 336 96 336L112 336L112 512C112 547.3 140.7 576 176 576L464 576C499.3 576 528 547.3 528 512L528 336L544 336C557.2 336 569 327.9 573.8 315.7C578.6 303.5 575.4 289.5 565.8 280.6L341.8 72.6zM304 384L336 384C362.5 384 384 405.5 384 432L384 528L256 528L256 432C256 405.5 277.5 384 304 384z" />
-                                    </svg>
-                                @else
-                                    <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 640 640">
-                                        <path
-                                            d="M304 70.1C313.1 61.9 326.9 61.9 336 70.1L568 278.1C577.9 286.9 578.7 302.1 569.8 312C560.9 321.9 545.8 322.7 535.9 313.8L527.9 306.6L527.9 511.9C527.9 547.2 499.2 575.9 463.9 575.9L175.9 575.9C140.6 575.9 111.9 547.2 111.9 511.9L111.9 306.6L103.9 313.8C94 322.6 78.9 321.8 70 312C61.1 302.2 62 287 71.8 278.1L304 70.1zM320 120.2L160 263.7L160 512C160 520.8 167.2 528 176 528L224 528L224 424C224 384.2 256.2 352 296 352L344 352C383.8 352 416 384.2 416 424L416 528L464 528C472.8 528 480 520.8 480 512L480 263.7L320 120.3zM272 528L368 528L368 424C368 410.7 357.3 400 344 400L296 400C282.7 400 272 410.7 272 424L272 528z" />
-                                    </svg>
-                                @endif
-                                <span>Trang chủ</span>
-                            </a>
-                        </div>
-    
-                        <div class="menu-item">
-                            <a class="danh_muc">
-                                <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 640 640">
-                                    <path fill="rgb(0, 0, 0)"
-                                        d="M128 176C119.2 176 112 183.2 112 192L112 448C112 456.8 119.2 464 128 464L512 464C520.8 464 528 456.8 528 448L528 192C528 183.2 520.8 176 512 176L128 176zM64 192C64 156.7 92.7 128 128 128L512 128C547.3 128 576 156.7 576 192L576 448C576 483.3 547.3 512 512 512L128 512C92.7 512 64 483.3 64 448L64 192zM224 384C224 401.7 209.7 416 192 416C174.3 416 160 401.7 160 384C160 366.3 174.3 352 192 352C209.7 352 224 366.3 224 384zM192 288C174.3 288 160 273.7 160 256C160 238.3 174.3 224 192 224C209.7 224 224 238.3 224 256C224 273.7 209.7 288 192 288zM296 232L456 232C469.3 232 480 242.7 480 256C480 269.3 469.3 280 456 280L296 280C282.7 280 272 269.3 272 256C272 242.7 282.7 232 296 232zM296 360L456 360C469.3 360 480 370.7 480 384C480 397.3 469.3 408 456 408L296 408C282.7 408 272 397.3 272 384C272 370.7 282.7 360 296 360z" />
-                                </svg>
-                                <span>Bảng của bạn</span>
-                            </a>
-                        </div>
-    
-                        <div class="menu-item">
-                            <a class="danh_muc" data-bs-toggle="modal" data-bs-target="#createPostModal">
-                                <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 640 640">
-                                    <path fill="rgb(0, 0, 0)"
-                                        d="M160 144C151.2 144 144 151.2 144 160L144 480C144 488.8 151.2 496 160 496L480 496C488.8 496 496 488.8 496 480L496 160C496 151.2 488.8 144 480 144L160 144zM96 160C96 124.7 124.7 96 160 96L480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160zM296 408L296 344L232 344C218.7 344 208 333.3 208 320C208 306.7 218.7 296 232 296L296 296L296 232C296 218.7 306.7 208 320 208C333.3 208 344 218.7 344 232L344 296L408 296C421.3 296 432 306.7 432 320C432 333.3 421.3 344 408 344L344 344L344 408C344 421.3 333.3 432 320 432C306.7 432 296 421.3 296 408z" />
-                                </svg>
-                                <span>Đăng bài</span>
-                            </a>
-                        </div>
-    
-                        <div class="menu-item">
-                            {{-- Đã kẹp link route qua trang danh sách thông báo --}}
-                            <a href="{{ route('notifications.index') }}" class="danh_muc d-flex align-items-center"
-                                style="text-decoration: none; color: inherit;">
-    
-                                {{-- Bọc position-relative để gắn chấm đỏ đè lên SVG --}}
-                                <div class="position-relative me-3">
-                                    <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 640 640">
-                                        <path fill="rgb(0, 0, 0)"
-                                            d="M320 64C306.7 64 296 74.7 296 88L296 97.7C214.6 109.3 152 179.4 152 264L152 278.5C152 316.2 142 353.2 123 385.8L101.1 423.2C97.8 429 96 435.5 96 442.2C96 463.1 112.9 480 133.8 480L506.2 480C527.1 480 544 463.1 544 442.2C544 435.5 542.2 428.9 538.9 423.2L517 385.7C498 353.1 488 316.1 488 278.4L488 263.9C488 179.3 425.4 109.2 344 97.6L344 87.9C344 74.6 333.3 63.9 320 63.9zM488.4 432L151.5 432L164.4 409.9C187.7 370 200 324.6 200 278.5L200 264C200 197.7 253.7 144 320 144C386.3 144 440 197.7 440 264L440 278.5C440 324.7 452.3 370 475.5 409.9L488.4 432zM252.1 528C262 556 288.7 576 320 576C351.3 576 378 556 387.9 528L252.1 528z" />
-                                    </svg>
-    
-                                    {{-- Logic đếm số lượng thông báo chưa đọc --}}
-                                    @php
-                                        $unreadCount = auth()->check() ? \App\Models\Notification::where('user_id', auth()->id())->where('is_read', 0)->count() : 0;
-                                    @endphp
-    
-                                    {{-- Nếu có thông báo mới thì móc cái chấm đỏ ra --}}
-                                    @if($unreadCount > 0)
-                                        <span
-                                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                            style="font-size: 10px;">
-                                            {{ $unreadCount > 99 ? '99+' : $unreadCount }}
-                                        </span>
-                                    @endif
-                                </div>
-    
-                                <span>Thông báo</span>
-                            </a>
-                        </div>
-    
-                        <div class="menu-item">
-    
-                            @php
-                                $isMessaging = request()->is('list_messages*') || request()->is('chat-messages*');
+</head>
 
-                                $unreadMessageCount = \App\Models\Message::where('is_read', 0)
-                                    ->where('sender_id', '!=', auth()->id())
-                                    ->whereHas('conversation.participants', function ($q) {
-                                        $q->where('user_id', auth()->id());
-                                    })
-                                    ->count();
-                            @endphp
+<body>
+    <div class="container-flex">
+        <div class="sidebar">
+            <h2 class="logo">ESPACE</h2>
+
+            <div class="sidebar-content">
+                <div class="menu">
+                    <div class="menu-item">
+                        <a class="danh_muc {{ request()->is('social') ? 'active' : '' }}" href="{{ url('/social') }}">
+                            @if(request()->is('social'))
+                            <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 640 640">
+                                <path
+                                    d="M341.8 72.6C329.5 61.2 310.5 61.2 298.3 72.6L74.3 280.6C64.7 289.6 61.5 303.5 66.3 315.7C71.1 327.9 82.8 336 96 336L112 336L112 512C112 547.3 140.7 576 176 576L464 576C499.3 576 528 547.3 528 512L528 336L544 336C557.2 336 569 327.9 573.8 315.7C578.6 303.5 575.4 289.5 565.8 280.6L341.8 72.6zM304 384L336 384C362.5 384 384 405.5 384 432L384 528L256 528L256 432C256 405.5 277.5 384 304 384z" />
+                            </svg>
+                            @else
+                            <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 640 640">
+                                <path
+                                    d="M304 70.1C313.1 61.9 326.9 61.9 336 70.1L568 278.1C577.9 286.9 578.7 302.1 569.8 312C560.9 321.9 545.8 322.7 535.9 313.8L527.9 306.6L527.9 511.9C527.9 547.2 499.2 575.9 463.9 575.9L175.9 575.9C140.6 575.9 111.9 547.2 111.9 511.9L111.9 306.6L103.9 313.8C94 322.6 78.9 321.8 70 312C61.1 302.2 62 287 71.8 278.1L304 70.1zM320 120.2L160 263.7L160 512C160 520.8 167.2 528 176 528L224 528L224 424C224 384.2 256.2 352 296 352L344 352C383.8 352 416 384.2 416 424L416 528L464 528C472.8 528 480 520.8 480 512L480 263.7L320 120.3zM272 528L368 528L368 424C368 410.7 357.3 400 344 400L296 400C282.7 400 272 410.7 272 424L272 528z" />
+                            </svg>
+                            @endif
+                            <span>Trang chủ</span>
+                        </a>
+                    </div>
+
+                    <div class="menu-item">
+                        <a class="danh_muc" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                            <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 640 640">
+                                <path fill="rgb(0, 0, 0)"
+                                    d="M160 144C151.2 144 144 151.2 144 160L144 480C144 488.8 151.2 496 160 496L480 496C488.8 496 496 488.8 496 480L496 160C496 151.2 488.8 144 480 144L160 144zM96 160C96 124.7 124.7 96 160 96L480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160zM296 408L296 344L232 344C218.7 344 208 333.3 208 320C208 306.7 218.7 296 232 296L296 296L296 232C296 218.7 306.7 208 320 208C333.3 208 344 218.7 344 232L344 296L408 296C421.3 296 432 306.7 432 320C432 333.3 421.3 344 408 344L344 344L344 408C344 421.3 333.3 432 320 432C306.7 432 296 421.3 296 408z" />
+                            </svg>
+                            <span>Đăng bài</span>
+                        </a>
+                    </div>
+
+                    <div class="menu-item">
+                        <a href="{{ route('notifications.index') }}"
+                            class="danh_muc {{ request()->is('notifications*') ? 'active' : '' }}"
+                            style="position: relative;">
+
+                            {{-- Bọc icon để gắn badge --}}
+                            <div style="position: relative; display:inline-block;">
+
+                                @if(request()->is('notifications*'))
+
+                                {{-- ICON ACTIVE --}}
+                                <svg style="width: 30px; height: 30px; xmlns=" http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                                    <path d="M320 64C302.3 64 288 78.3 288 96L288 99.2C215 114 160 178.6 160 256L160 277.7C160 325.8 143.6 372.5 113.6 410.1L103.8 422.3C98.7 428.6 96 436.4 96 444.5C96 464.1 111.9 480 131.5 480L508.4 480C528 480 543.9 464.1 543.9 444.5C543.9 436.4 541.2 428.6 536.1 422.3L526.3 410.1C496.4 372.5 480 325.8 480 277.7L480 256C480 178.6 425 114 352 99.2L352 96C352 78.3 337.7 64 320 64zM258 528C265.1 555.6 290.2 576 320 576C349.8 576 374.9 555.6 382 528L258 528z" />
+                                </svg>
+
+                                @else
+
+                                {{-- ICON NORMAL --}}
+                                <svg style="width: 30px; height: 30px;"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 640 640">
+                                    <path fill="rgb(0,0,0)"
+                                        d="M320 64C306.7 64 296 74.7 296 88L296 97.7C214.6 109.3 152 179.4 152 264L152 278.5C152 316.2 142 353.2 123 385.8L101.1 423.2C97.8 429 96 435.5 96 442.2C96 463.1 112.9 480 133.8 480L506.2 480C527.1 480 544 463.1 544 442.2C544 435.5 542.2 428.9 538.9 423.2L517 385.7C498 353.1 488 316.1 488 278.4L488 263.9C488 179.3 425.4 109.2 344 97.6L344 87.9C344 74.6 333.3 63.9 320 63.9zM488.4 432L151.5 432L164.4 409.9C187.7 370 200 324.6 200 278.5L200 264C200 197.7 253.7 144 320 144C386.3 144 440 197.7 440 264L440 278.5C440 324.7 452.3 370 475.5 409.9L488.4 432zM252.1 528C262 556 288.7 576 320 576C351.3 576 378 556 387.9 528L252.1 528z" />
+                                </svg>
+
+                                @endif
+
+                                {{-- Đếm thông báo chưa đọc --}}
+                                @php
+                                $unreadCount = auth()->check()
+                                ? \App\Models\Notification::where('user_id', auth()->id())
+                                ->where('is_read', 0)
+                                ->count()
+                                : 0;
+                                @endphp
+
+                                {{-- Badge đỏ --}}
+                                @if($unreadCount > 0)
+                                <span
+                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                    style="font-size:10px;">
+                                    {{ $unreadCount > 99 ? '99+' : $unreadCount }}
+                                </span>
+                                @endif
+
+                            </div>
+
+                            <span>Thông báo</span>
+
+                        </a>
+                    </div>
+
+                    <div class="menu-item">
+
+                        @php
+                        $isMessaging = request()->is('list_messages*') || request()->is('chat-messages*');
+
+                        $unreadMessageCount = \App\Models\Message::where('is_read', 0)
+                        ->where('sender_id', '!=', auth()->id())
+                        ->whereHas('conversation.participants', function ($q) {
+                        $q->where('user_id', auth()->id());
+                        })
+                        ->count();
+                        @endphp
 
                         <a class="danh_muc {{ $isMessaging ? 'active' : '' }}"
                             href="{{ url('/list_messages') }}"
