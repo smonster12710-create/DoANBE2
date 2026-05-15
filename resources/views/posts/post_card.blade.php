@@ -1,3 +1,4 @@
+@inject('textProcessor', 'App\Services\TextProcessorService')
 <div class="grid">
     {{-- VÒNG LẶP 1: CHỈ HIỂN THỊ DANH SÁCH BÀI VIẾT --}}
 
@@ -12,8 +13,8 @@
                     class="post-user-link">
 
                     <img class="avatar" src="{{ $post->user->avatar_url
-                ? asset($post->user->avatar_url)
-                : asset('img/user/user.jpg') }}"
+    ? asset($post->user->avatar_url)
+    : asset('img/user/user.jpg') }}"
                         style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
                 </a>
 
@@ -33,22 +34,22 @@
                 </div>
                 {{-- NÚT THEO DÕI --}}
                 @if (auth()->check() && auth()->id() !== $post->user_id)
-                <form action="{{ route('follow.toggle', $post->user_id) }}" method="POST" class="ms-5 m-0">
-                    @csrf
-                    @php
-                    // Kiểm tra xem user hiện tại có đang theo dõi chủ bài viết không
-                    $isFollowing = false;
-                    if (auth()->check()) {
-                    $isFollowing = auth()->user()->isFollowing($post->user_id);
-                    }
-                    @endphp
+                    <form action="{{ route('follow.toggle', $post->user_id) }}" method="POST" class="ms-5 m-0">
+                        @csrf
+                        @php
+                            // Kiểm tra xem user hiện tại có đang theo dõi chủ bài viết không
+                            $isFollowing = false;
+                            if (auth()->check()) {
+                                $isFollowing = auth()->user()->isFollowing($post->user_id);
+                            }
+                        @endphp
 
-                    <button type="submit"
-                        class="prevent-post-modal no-post-modal btn p-0 border-0 fw-bold {{ $isFollowing ? 'btn-following' : 'btn-follow' }}"
-                        style="font-size: 13px;">
-                        {{ $isFollowing ? 'Đang theo dõi' : 'Theo dõi' }}
-                    </button>
-                </form>
+                        <button type="submit"
+                            class="prevent-post-modal no-post-modal btn p-0 border-0 fw-bold {{ $isFollowing ? 'btn-following' : 'btn-follow' }}"
+                            style="font-size: 13px;">
+                            {{ $isFollowing ? 'Đang theo dõi' : 'Theo dõi' }}
+                        </button>
+                    </form>
                 @endif
             </div>
             @if (auth()->id() == $post->user_id)
@@ -79,7 +80,7 @@
         {{-- BODY CONTENT --}}
         <div class="card-body">
             <div class="card-text text-dark mb-2">
-                {!! $post->formatted_content ?? nl2br(e($post->content)) !!}
+            {!! $textProcessor->formatContent($post->content) !!}
             </div>
 
             @if ($post->media->count())
@@ -102,8 +103,8 @@
                     <form action="{{ route('post.like', $post->id) }}" method="POST" class="m-0 like-form">
                         @csrf
                         @php
-                        $userId = auth()->id();
-                        $checkLike = $userId ? $post->likes->contains('user_id', $userId) : false;
+                            $userId = auth()->id();
+                            $checkLike = $userId ? $post->likes->contains('user_id', $userId) : false;
                         @endphp
 
                         <button type="submit"
@@ -137,9 +138,9 @@
 
                     {{-- SAVE --}}
                     @php
-                    $isSaved = auth()->user()
-                    ->savedPosts
-                    ->contains($post->id);
+                        $isSaved = auth()->user()
+                            ->savedPosts
+                            ->contains($post->id);
                     @endphp
                     <form action="{{ route('posts.save', $post->id) }}" method="POST" class="no-post-modal">
                         @csrf
