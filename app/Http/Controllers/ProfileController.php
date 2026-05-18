@@ -15,14 +15,17 @@ class ProfileController extends Controller
      */
     public function show($username)
     {
+        /** @var \App\Models\User $user */ // Thêm dòng này để fix triệt để lỗi Intelephense P1013
         $user = User::where('username', $username)->firstOrFail();
 
+        // SỬA TẠI ĐÂY: Thay ->latest() bằng cặp đôi orderBy để đẩy bài ghim lên đầu profile
         $posts = \App\Models\Post::with(['user', 'media', 'likes', 'comments'])
             ->where('user_id', $user->id)
-            ->latest()
+            ->orderBy('is_pinned', 'desc')  // 1. Bài ghim lên đầu
+            ->orderBy('created_at', 'desc') // 2. Bài mới nhất xếp tiếp theo
             ->get();
 
-        $authId = auth()->id();
+        $authId = Auth::id();
 
         $friendsCount = DB::table('friendships')
             ->where('user_id', $user->id)
@@ -70,11 +73,11 @@ class ProfileController extends Controller
     {
         $targetUser = User::where('username', $username)->firstOrFail();
 
-        if (auth()->id() == $targetUser->id) {
+        if (Auth::id() == $targetUser->id) {
             return back();
         }
 
-        $authId = auth()->id();
+        $authId = Auth::id();
 
         $friendship = DB::table('friendships')
             ->where(function ($q) use ($authId, $targetUser) {
@@ -163,7 +166,7 @@ class ProfileController extends Controller
         return view('social.profile_list', compact('user', 'users', 'title'));
     }
 
-    
+
     /**
      * Hiển thị trang chỉnh sửa (Chỉ cho chính mình)
      */
