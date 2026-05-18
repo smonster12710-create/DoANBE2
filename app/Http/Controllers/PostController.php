@@ -42,7 +42,7 @@ class PostController extends Controller
     {
         $request->validate([
             'content' => 'required|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png,gif,jfif,webp|max:2048',
         ]);
 
         // tạo bài viết trước
@@ -73,18 +73,20 @@ class PostController extends Controller
             $post->hashtags()->sync($tagIds);
         }
         // nếu có ảnh thì lưu vào post_media
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
+        if ($request->hasFile('images')) {
 
-            $filename = time() . '_' . $file->getClientOriginalName();
+            foreach ($request->file('images') as $file) {
 
-            $file->move(public_path('uploads/posts'), $filename);
+                $filename = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
 
-            $media = new PostMedia();
-            $media->post_id = $post->id;
-            $media->media_url = 'uploads/posts/' . $filename;
-            $media->media_type = 'photo';
-            $media->save();
+                $file->move(public_path('uploads/posts'), $filename);
+
+                $media = new PostMedia();
+                $media->post_id = $post->id;
+                $media->media_url = 'uploads/posts/' . $filename;
+                $media->media_type = 'photo';
+                $media->save();
+            }
         }
 
         return back()->with('success', 'Đăng bài thành công!');
