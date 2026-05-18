@@ -276,9 +276,9 @@
         </div>
     </div>
 </div>
-<div class="modal fade" id="deleteCommentModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="deleteCommentModal" tabindex="-1" aria-hidden="true" style="z-index: 1065;">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content text-center" style="border-radius: 12px;">
+        <div class="modal-content text-center" style="border-radius: 12px; border: none; box-shadow: 0 4px 24px rgba(0,0,0,0.15);">
             <div class="modal-body p-4">
                 <h5 class="fw-bold mb-2">Xóa bình luận?</h5>
                 <p class="text-muted small mb-0">Bạn có chắc chắn muốn xóa bình luận này không? Hành động này không thể hoàn tác.</p>
