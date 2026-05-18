@@ -440,5 +440,6 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
 <script src="{{ asset('js/like.js') }}"></script>
 <script src="{{ asset('js/dashboard.js') }}"></script>
 
+@stack('modals')
 
 </html>

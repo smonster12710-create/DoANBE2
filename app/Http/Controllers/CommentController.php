@@ -17,6 +17,9 @@ class CommentController extends Controller
     {
         // 1. Kiểm tra đăng nhập ngay tại đây cho chắc
         if (!Auth::check()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Bạn phải đăng nhập để bình luận!'], 401);
+            }
             return back()->with('error', 'Bạn phải đăng nhập để bình luận!');
         }
 
@@ -68,6 +71,22 @@ class CommentController extends Controller
             }
         }
 
+        // ====================================================================
+        // SỬA ĐOẠN CUỐI NÀY: TRẢ VỀ JSON NẾU DÙNG AJAX CHẠY NGẦM
+        // ====================================================================
+        if ($request->ajax() || $request->wantsJson()) {
+            $user = Auth::user();
+            return response()->json([
+                'success' => true,
+                'user_fullname' => $user->fullname ?? 'Người dùng',
+                // Kiểm tra avatar y hệt logic trong file Blade của bạn
+                'user_avatar' => $user->avatar_url ? asset($user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $user->id,
+                'comment_id' => $comment->id,
+                'created_at' => 'Vừa xong',
+                'destroy_route' => route('comments.destroy', $comment->id) // Trả về link xóa để JS vẽ nút xóa
+            ]);
+        }
+
         return back()->with('success', 'Đã thêm bình luận!');
     }
 
@@ -78,12 +97,31 @@ class CommentController extends Controller
         // Lấy ID người dùng hiện tại
         $currentUserId = Auth::id();
 
-        // Kiểm tra quyền
+        // Kiểm tra quyền (Chủ comment hoặc Chủ bài viết)
         if ($currentUserId == $comment->user_id || $currentUserId == $comment->post->user_id) {
             $comment->delete();
+
+            // NẾU LÀ AJAX: Trả về JSON thành công để JS xóa block comment trên màn hình
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Đã xóa bình luận!'
+                ]);
+            }
+
+            // Nếu không phải AJAX (form bình thường) thì quay lại trang cũ
             return back()->with('success', 'Đã xóa bình luận!');
         }
 
+        // NẾU LÀ AJAX NHƯNG THẤT BẠI (Không có quyền xóa)
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không có quyền xóa bình luận này.'
+            ], 403); // Trả về mã lỗi 403 Forbidden
+        }
+
+        // Nếu không phải AJAX và thất bại
         return back()->with('error', 'Bạn không có quyền xóa bình luận này.');
     }
 }

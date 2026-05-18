@@ -265,9 +265,19 @@ class PostController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        $user->savedPosts()->toggle($post->id);
+        // Hàm toggle() của Laravel trả về một mảng chứa thông tin:
+        // 'attached' => các ID vừa được thêm vào (Lưu)
+        // 'detached' => các ID vừa được xóa đi (Hủy lưu)
+        $result = $user->savedPosts()->toggle($post->id);
 
-        return back();
+        // Kiểm tra xem bài viết vừa được lưu hay hủy lưu
+        $isSaved = count($result['attached']) > 0;
+
+        // Trả về JSON cho JavaScript xử lý ngầm
+        return response()->json([
+            'success' => true,
+            'is_saved' => $isSaved, // true nếu là vừa Lưu, false nếu là vừa Hủy lưu
+        ]);
     }
     public function saved()
     {
