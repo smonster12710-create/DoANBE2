@@ -4,22 +4,57 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Prunable; // 1. Import Trait Prunable
 use App\Models\PostMedia;
 
 class Post extends Model
 {
-    use HasFactory;
+    use HasFactory, Prunable; // 2. Sử dụng Trait Prunable ở đây
 
     protected $fillable = [
         'user_id',
         'content',
         'image_url',
-        'video_url'
+        'video_url',
+        'expires_at' // 3. Thêm cột này vào fillable để cho phép lưu dữ liệu
     ];
 
     protected $with = ['user'];
 
-    // --- CÁC MỐI QUAN HỆ (RELATIONS) ---
+    // --- LOGIC TỰ ĐỘNG XÓA BÀI VIẾT (PRUNABLE) ---
+
+    /**
+     * Xác định điều kiện những bài viết nào sẽ bị đưa vào danh sách xóa tự động.
+     */
+    public function prunable()
+    {
+        // Tìm các bài viết có cài ngày hết hạn và thời gian đó nhỏ hơn hoặc bằng thời gian hiện tại
+        return static::whereNotNull('expires_at')->where('expires_at', '<=', now());
+    }
+
+    /**
+     * Hành động dọn dẹp trước khi bài viết chính thức biến mất khỏi Database.
+     */
+    protected function pruning()
+    {
+        // 1. Duyệt qua danh sách media để xóa file ảnh vật lý trong thư mục public/uploads/posts
+        foreach ($this->media as $mediaItem) {
+            $filePath = public_path($mediaItem->media_url);
+            if (file_exists($filePath)) {
+                @unlink($filePath); // Xóa file cứng trên server
+            }
+            $mediaItem->delete(); // Xóa dòng dữ liệu trong bảng post_media
+        }
+
+        // 2. Dọn dẹp các bảng liên quan (Đề phòng trường hợp database không setup cascade delete)
+        $this->comments()->delete();   // Xóa bình luận của bài viết này
+        $this->likes()->delete();      // Xóa các lượt like liên quan
+        $this->hashtags()->detach();   // Gỡ liên kết trong bảng trung gian post_hashtags
+        $this->savedByUsers()->detach(); // Gỡ liên kết lưu bài viết trong bảng saved_posts
+    }
+
+
+    // --- CÁC MỐI QUAN HỆ (RELATIONS) GIỮ NGUYÊN ---
 
     /**
      * Quan hệ với người đăng bài viết
@@ -43,7 +78,6 @@ class Post extends Model
     public function likedByUsers()
     {
         return $this->belongsToMany(User::class, 'likes', 'post_id', 'user_id');
-        // ->withTimestamps();
     }
 
     /**
@@ -53,28 +87,43 @@ class Post extends Model
     {
         return $this->belongsToMany(Hashtag::class, 'post_hashtags');
     }
+
+    /**
+     * Mối quan hệ lấy các ảnh/video đính kèm bài viết
+     */
     public function media()
     {
-        // Giả sử bảng của bạn tên là post_media
         return $this->hasMany(PostMedia::class, 'post_id');
     }
+
+    /**
+     * Mối quan hệ lấy bình luận bài viết
+     */
     public function comments()
     {
         return $this->hasMany(Comment::class);
     }
 
-
+    /**
+     * Danh sách những người dùng đã lưu bài viết này
+     */
     public function savedByUsers()
     {
         return $this->belongsToMany(User::class, 'saved_posts')
             ->withTimestamps();
     }
-    // Lấy thông tin bài viết gốc (nếu bài hiện tại là bài share)
+
+    /**
+     * Lấy thông tin bài viết gốc (nếu bài hiện tại là bài share)
+     */
     public function parent()
     {
         return $this->belongsTo(Post::class, 'parent_id');
     }
-    // Trong file app/Models/Post.php
+
+    /**
+     * Tương tự hàm parent, hỗ trợ gọi theo tên sharedPost
+     */
     public function sharedPost()
     {
         return $this->belongsTo(Post::class, 'parent_id');
