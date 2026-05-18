@@ -3,7 +3,9 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-
+use Illuminate\Support\Facades\Schedule;
+// Chạy lệnh quét và xóa mỗi phút 1 lần
+Schedule::command('model:prune')->everyMinute();
 /*
 |--------------------------------------------------------------------------
 | Console Routes

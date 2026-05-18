@@ -394,6 +394,16 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
                                 style="border: none; resize: none;"></textarea>
                         </div>
                         <div class="mb-3">
+                            <label for="expires_in" class="form-label" style="font-weight: bold; color: #555;">Tự động xóa sau (tùy chọn)</label>
+                            <select name="expires_in" id="expires_in" class="form-select">
+                                <option value="">Không giới hạn</option>
+                                <option value="1">1 Phút (Để test)</option> <!-- Đổi thành 1 phút -->
+                                <option value="2">2 Phút (Để test)</option>
+                                <option value="60">1 Giờ</option>
+                                <option value="1440">1 Ngày</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label for="formFile" class="form-label" style="font-weight: bold; color: #555;">Thêm ảnh
                                 vào bài viết</label>
                             <input

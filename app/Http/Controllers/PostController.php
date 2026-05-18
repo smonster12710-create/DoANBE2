@@ -40,21 +40,33 @@ class PostController extends Controller
      */
     public function store(Request $request, TextProcessorService $hashtagService)
     {
+        // 1. Cập nhật validate, thêm nullable cho expires_in
         $request->validate([
             'content' => 'required|string',
             'images.*' => 'nullable|image|mimes:jpg,jpeg,png,gif,jfif,webp|max:2048',
+            'expires_in' => 'nullable|integer',
         ]);
 
-        // tạo bài viết trước
+        // 2. Tính toán thời gian hết hạn nếu người dùng có chọn
+        $expiresAt = null;
+        if ($request->filled('expires_in')) {
+            // Thêm (int) vào trước để ép kiểu dữ liệu chuỗi "1" thành số nguyên 1
+            $expiresAt = now()->addMinutes((int) $request->expires_in);
+        }
+
+        // 3. Tạo bài viết
         $post = new Post();
         $post->user_id = Auth::id();
         $post->content = $request->content;
         $post->privacy = 0;
+        $post->expires_at = $expiresAt; // Lưu thời gian hết hạn vào DB
         $post->save();
+
         // ===========================================================================
-        //Xử lý hashtag
+        // 4. Xử lý hashtag
         $tagNames = $hashtagService->getHashtags($post->content);
         $tagIds = [];
+
         if (!empty($tagNames)) {
             foreach ($tagNames as $tagName) {
                 $hashtag = \App\Models\Hashtag::firstOrCreate([
@@ -65,20 +77,18 @@ class PostController extends Controller
                 // Nhét cái ID (số nguyên) vô mảng
                 $tagIds[] = $hashtag->id;
             }
-            $post->hashtags()->sync($tagIds);
         }
 
-        // Đồng bộ ID hashtag vô bảng trung gian post_hashtags
+        // Đồng bộ ID hashtag vô bảng trung gian post_hashtags 
+        // (Mình đã xóa 1 đoạn code bị trùng lặp của bạn ở đây để code chạy tối ưu hơn)
         if (!empty($tagIds)) {
             $post->hashtags()->sync($tagIds);
         }
-        // nếu có ảnh thì lưu vào post_media
+
+        // 5. Nếu có ảnh thì lưu vào post_media
         if ($request->hasFile('images')) {
-
             foreach ($request->file('images') as $file) {
-
                 $filename = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
-
                 $file->move(public_path('uploads/posts'), $filename);
 
                 $media = new PostMedia();
