@@ -50,22 +50,71 @@
     <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content" style="border-radius: 4px; overflow: hidden; height: 85vh; border:none;">
             <div class="d-flex flex-row h-100">
-                <div style="flex: 1.5; background: #000; display: flex; align-items: center; justify-content: center;">
+
+                {{-- CỘT TRÁI: KHU VỰC HIỂN THỊ TRÌNH CHIẾU ẢNH (SLIDE NHIỀU ẢNH) --}}
+                <div style="flex: 1.5; background: #000; display: flex; align-items: center; justify-content: center; position: relative; height: 100%; overflow: hidden;">
                     @if ($post->media->count())
+                    @if ($post->media->count() > 1)
+                    {{-- Sử dụng Carousel của Bootstrap để slide nhiều ảnh --}}
+                    <div id="detailCarousel{{ $post->id }}" class="carousel slide h-100 w-100" data-bs-ride="false">
+
+                        {{-- Các chấm tròn chỉ số slide nhỏ tinh tế (Instagram style) --}}
+                        <div class="carousel-indicators" style="margin-bottom: 15px;">
+                            @foreach ($post->media as $index => $item)
+                            <button type="button"
+                                data-bs-target="#detailCarousel{{ $post->id }}"
+                                data-bs-slide-to="{{ $index }}"
+                                class="{{ $index == 0 ? 'active' : '' }}"
+                                aria-current="{{ $index == 0 ? 'true' : 'false' }}"
+                                aria-label="Slide {{ $index + 1 }}"
+                                style="width: 6px; height: 6px; border-radius: 50%; margin: 0 3px; background-color: #fff; border: none; opacity: 0.6;">
+                            </button>
+                            @endforeach
+                        </div>
+
+                        {{-- Danh sách các ảnh chạy slide --}}
+                        <div class="carousel-inner h-100">
+                            @foreach ($post->media as $index => $item)
+                            <div class="carousel-item h-100 {{ $index == 0 ? 'active' : '' }}">
+                                <div class="d-flex justify-content-center align-items-center h-100">
+                                    <img src="{{ asset($item->media_url) }}"
+                                        style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+
+                        {{-- Nút bấm chuyển ảnh Trước/Sau --}}
+                        <button class="carousel-control-prev" type="button" data-bs-target="#detailCarousel{{ $post->id }}" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true" style="width: 2rem; height: 2rem;"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#detailCarousel{{ $post->id }}" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true" style="width: 2rem; height: 2rem;"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+
+                    </div>
+                    @else
+                    {{-- Nếu chỉ có duy nhất 1 ảnh --}}
                     <img src="{{ asset($post->media->first()->media_url) }}"
                         style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                    @endif
                     @else
                     <div class="text-white">Không có ảnh</div>
                     @endif
                 </div>
+
+                {{-- CỘT PHẢI: THÔNG TIN USER VÀ BÌNH LUẬN --}}
                 <div style="flex: 1; background: #fff; display: flex; flex-direction: column; width: 400px;">
                     <div class="p-3 d-flex align-items-center border-bottom">
                         <img src="{{ $post->user->avatar_url
-            ? asset($post->user->avatar_url)
-            : 'https://i.pravatar.cc/40?u=' . $post->user_id }}" class="rounded-circle me-2" width="32" height="32"
+                            ? asset($post->user->avatar_url)
+                            : 'https://i.pravatar.cc/40?u=' . $post->user_id }}" class="rounded-circle me-2" width="32" height="32"
                             style="object-fit: cover;">
                         <strong>{{ $post->user->fullname ?? 'Người dùng' }}</strong>
                     </div>
+
                     <div class="flex-grow-1 p-3" style="overflow-y: auto;">
                         <div class="d-flex mb-3">
                             <div style="font-size: 14px;">
@@ -74,6 +123,7 @@
                             </div>
                         </div>
                         <hr>
+
                         @foreach ($post->comments as $comment)
                         <div class="d-flex mb-3 justify-content-between align-items-start small">
                             <div class="d-flex">
@@ -87,7 +137,7 @@
                                     </div>
                                 </div>
                             </div>
-                            {{-- Nút xóa với Icon thùng rác màu đỏ --}}
+
                             @if (auth()->id() == $comment->user_id || auth()->id() == $post->user_id)
                             <form action="{{ route('comments.destroy', $comment->id) }}" method="POST"
                                 onsubmit="return confirm('Bạn có chắc muốn xóa bình luận này?')" class="m-0">
@@ -106,6 +156,7 @@
                         </div>
                         @endforeach
                     </div>
+
                     <div class="border-top p-3">
                         <form action="{{ route('comments.store', $post->id) }}" method="POST"
                             class="d-flex align-items-center">
@@ -127,28 +178,64 @@
     aria-hidden="true">
 
     <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content bg-transparent border-0">
+        <div class="modal-content bg-black border-0">
 
-            <div class="preview-overlay">
+            {{-- nút đóng --}}
+            <button type="button"
+                class="btn-close btn-close-white position-absolute top-0 end-0 m-4 z-3"
+                data-bs-dismiss="modal">
+            </button>
 
-                {{-- nút đóng --}}
-                <button type="button"
-                    class="preview-close"
-                    data-bs-dismiss="modal">
-                    ✕
-                </button>
+            @if ($post->media->count())
 
-                {{-- ảnh --}}
-                <div class="preview-image-wrapper">
+            <div id="carousel{{ $post->id }}"
+                class="carousel slide h-100"
+                data-bs-ride="false">
 
-                    @if ($post->media->count())
-                    <img src="{{ asset($post->media->first()->media_url) }}"
-                        class="preview-image">
-                    @endif
+                {{-- images --}}
+                <div class="carousel-inner h-100">
+
+                    @foreach ($post->media as $index => $item)
+
+                    <div class="carousel-item h-100 {{ $index == 0 ? 'active' : '' }}">
+
+                        <div class="d-flex justify-content-center align-items-center h-100">
+
+                            <img src="{{ asset($item->media_url) }}"
+                                class="preview-image"
+                                alt="preview">
+
+                        </div>
+                    </div>
+
+                    @endforeach
 
                 </div>
 
+                {{-- arrows --}}
+                @if ($post->media->count() > 1)
+
+                <button class="carousel-control-prev"
+                    type="button"
+                    data-bs-target="#carousel{{ $post->id }}"
+                    data-bs-slide="prev">
+
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+
+                <button class="carousel-control-next"
+                    type="button"
+                    data-bs-target="#carousel{{ $post->id }}"
+                    data-bs-slide="next">
+
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+
+                @endif
+
             </div>
+
+            @endif
 
         </div>
     </div>

@@ -63,10 +63,11 @@ class Post extends Model
         return $this->hasMany(Comment::class);
     }
 
-   
+
     public function savedByUsers()
     {
         return $this->belongsToMany(User::class, 'saved_posts')
             ->withTimestamps();
     }
+    
 }
