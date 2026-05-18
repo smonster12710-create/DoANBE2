@@ -69,5 +69,14 @@ class Post extends Model
         return $this->belongsToMany(User::class, 'saved_posts')
             ->withTimestamps();
     }
-    
+    // Lấy thông tin bài viết gốc (nếu bài hiện tại là bài share)
+    public function parent()
+    {
+        return $this->belongsTo(Post::class, 'parent_id');
+    }
+    // Trong file app/Models/Post.php
+    public function sharedPost()
+    {
+        return $this->belongsTo(Post::class, 'parent_id');
+    }
 }

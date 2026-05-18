@@ -86,7 +86,7 @@ Route::middleware('auth')->group(function () {
             //Route::post('/profile/{username}/follow', [ProfileController::class, 'toggleFollow'])->name('profile.follow.toggle');
             Route::get('/profile/{username}/friends', [ProfileController::class, 'friends'])->name('profile.friends');
             Route::get('/profile/{username}/followers', [ProfileController::class, 'followers'])->name('profile.followers');
-            
+
             // Xem trang cá nhân bất kỳ
             Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.show');
 
@@ -111,11 +111,12 @@ Route::middleware('auth')->group(function () {
     // --- BÌNH LUẬN ---
     Route::post('/posts/{id}/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->name('comments.destroy');
-
+    Route::post('/posts/{id}/toggle-comment', [PostController::class, 'toggleComment'])->name('post.toggleComment')->middleware('auth');
     // --- THEO DÕI ---
     Route::post('/follow/{user}', [FollowController::class, 'toggle'])->name('follow.toggle')->middleware('auth');
     Route::get('/profile/{username}/following', [FollowController::class, 'following'])->name('profile.following');
-
+    // --- Chia sẻ ---
+    Route::post('/post/{id}/share', [PostController::class, 'share'])->name('post.share')->middleware('auth');
     // --- TÌM KIẾM ---
     Route::prefix('ajax')->group(function () {
         Route::get('/users', [SearchController::class, 'searchUsers']);

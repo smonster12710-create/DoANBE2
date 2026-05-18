@@ -303,4 +303,43 @@ class PostController extends Controller
             'data' => $posts
         ]);
     }
+    public function share(Request $request, $id)
+    {
+        // Xác thực bài viết gốc xem có tồn tại không
+        $originalPost = Post::findOrFail($id);
+
+        // Tạo bản ghi bài viết mới hoàn toàn
+        $sharedPost = new Post();
+        $sharedPost->user_id = Auth::id(); // Người share bài
+        $sharedPost->parent_id = $originalPost->id; // Gắn ID bài gốc vào đây!
+        $sharedPost->content = $request->input('content'); // Lời bình luận khi share
+        $sharedPost->privacy = 0; // Công khai mặc định
+        $sharedPost->save();
+
+        return redirect()->back()->with('success', 'Đã chia sẻ bài viết thành công lên Profile!');
+    }
+    public function toggleComment($id)
+    {
+        $post = Post::findOrFail($id);
+
+        if (Auth::id() !== $post->user_id) {
+            return redirect()->back();
+        }
+
+        $secretKey = ' [#LOCK_COMMENT#]';
+
+        // Nếu đang chặn (có chữ bí mật) -> Xóa chữ đó đi để MỞ lại
+        if (\Illuminate\Support\Str::contains($post->content, $secretKey)) {
+            $post->content = str_replace($secretKey, '', $post->content);
+            $message = 'Đã mở lại bình luận.';
+        } else {
+            // Nếu chưa chặn -> Cộng thêm chữ bí mật vào cuối để CHẶN
+            $post->content = $post->content . $secretKey;
+            $message = 'Đã chặn bình luận thành công.';
+        }
+
+        $post->save();
+
+        return redirect()->back()->with('success', $message);
+    }
 }
