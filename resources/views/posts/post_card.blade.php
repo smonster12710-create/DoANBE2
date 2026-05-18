@@ -26,6 +26,9 @@
                         <strong class="name d-block">
                             {{ $post->user->fullname ?? 'Người dùng' }}
                         </strong>
+                        @if($post->parent_id)
+                        <span class="text-muted small" style="font-size: 13px;">đã chia sẻ một bài viết</span>
+                        @endif
                     </a>
 
                     <span class="time text-muted small">
@@ -72,6 +75,17 @@
                             Xóa bài viết
                         </button>
                     </li>
+                    <li>
+                        <form action="{{ route('post.toggleComment', $post->id) }}" method="POST" class="m-0">
+                            @csrf
+                            @php
+                            $isLocked = Str::contains($post->content, '[#LOCK_COMMENT#]');
+                            @endphp
+                            <button type="submit" class="dropdown-item {{ $isLocked ? 'text-success' : 'text-warning' }}">
+                                {{ $isLocked ? 'Mở lại bình luận' : 'Chặn bình luận' }}
+                            </button>
+                        </form>
+                    </li>
                 </ul>
             </div>
             @endif
@@ -82,7 +96,56 @@
             <div class="card-text text-dark mb-2">
                 {!! $textProcessor->formatContent($post->content) !!}
             </div>
+            @if($post->parent_id && $post->parent)
+            <div class="original-post-block border rounded p-3 bg-light mb-3 mx-1">
+                {{-- Header của bài viết gốc --}}
+                <div class="d-flex align-items-center mb-2">
+                    <img src="{{ $post->parent->user->avatar_url ? asset($post->parent->user->avatar_url) : asset('img/user/user.jpg') }}"
+                        style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+                    <strong class="text-dark ms-2" style="font-size: 14px;">
+                        {{ $post->parent->user->fullname ?? 'Người dùng' }}
+                    </strong>
+                </div>
 
+                {{-- Nội dung chữ của bài viết gốc --}}
+                <div class="text-secondary mb-2" style="font-size: 13.5px;">
+                    {!! $textProcessor->formatContent($post->parent->content) !!}
+                </div>
+
+                {{-- Nội dung hình ảnh của bài viết gốc (Phần thêm mới) --}}
+                @if ($post->parent->media && $post->parent->media->count())
+                @php
+                $parentMedia = $post->parent->media->values();
+                $parentCount = $parentMedia->count();
+                // Sử dụng luôn hàm $getImageUrl đã định nghĩa ở phía dưới nếu scope cho phép,
+                // hoặc tái sử dụng logic asset() đơn giản ở đây:
+                @endphp
+
+                <div class="parent-fb-gallery my-2">
+                    @if ($parentCount == 1)
+                    <div class="single-image shadow-sm" style="max-height: 250px; overflow: hidden; border-radius: 6px;">
+                        <img src="{{ \Illuminate\Support\Str::startsWith($parentMedia[0]->media_url, ['http://', 'https://']) ? $parentMedia[0]->media_url : asset(ltrim($parentMedia[0]->media_url, '/')) }}"
+                            alt="parent-post-image"
+                            class="img-fluid w-100"
+                            style="object-fit: cover; max-height: 250px;">
+                    </div>
+                    @else
+                    {{-- Nếu nhiều ảnh, hiển thị dạng lưới nhỏ gọn hoặc danh sách ảnh thu nhỏ tùy bạn config CSS --}}
+                    <div class="row g-1">
+                        @foreach ($parentMedia->take(3) as $index => $item) {{-- Giới hạn hiển thị tối đa 3 ảnh cho gọn bớt --}}
+                        <div class="col-4">
+                            <img src="{{ \Illuminate\Support\Str::startsWith($item->media_url, ['http://', 'https://']) ? $item->media_url : asset(ltrim($item->media_url, '/')) }}"
+                                alt="parent-post-image"
+                                class="img-fluid rounded"
+                                style="height: 80px; width: 100%; object-fit: cover;">
+                        </div>
+                        @endforeach
+                    </div>
+                    @endif
+                </div>
+                @endif
+            </div>
+            @endif
             @if ($post->media->count())
 
             @php
@@ -276,7 +339,52 @@
                 </form>
                 @endif
             </div>
-            <div class="share-btn">🔗</div>
+            <button type="button"
+                class="btn-action border-0 bg-transparent p-0 d-flex align-items-center text-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#shareModal-{{ $post->id }}"
+                style="gap: 5px;">
+
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 640 640" width="24" height="24" opacity="0.7">
+                    <path d="M371.8 82.4C359.8 87.4 352 99 352 112L352 192L240 192C142.8 192 64 270.8 64 368C64 481.3 145.5 531.9 164.2 542.1C166.7 543.5 169.5 544 172.3 544C183.2 544 192 535.1 192 524.3C192 516.8 187.7 509.9 182.2 504.8C172.8 496 160 478.4 160 448.1C160 395.1 203 352.1 256 352.1L352 352.1L352 432.1C352 445 359.8 456.7 371.8 461.7C383.8 466.7 397.5 463.9 406.7 454.8L566.7 294.8C579.2 282.3 579.2 262 566.7 249.5L406.7 89.5C397.5 80.3 383.8 77.6 371.8 82.6z" />
+                </svg>
+            </button>
+
+            @push('modals')
+            <div class="modal fade" id="shareModal-{{ $post->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+                            <h5 class="modal-title fw-bold">Chia sẻ bài viết</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <form action="{{ route('post.share', $post->id) }}" method="POST">
+                            @csrf
+                            <div class="modal-body">
+                                <textarea name="content" class="form-control mb-3" rows="3" placeholder="Hãy viết gì đó về bài viết này..."></textarea>
+
+                                <div class="p-3 bg-light border rounded">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <strong class="text-dark">{{ $post->fullname ?? $post->user->fullname ?? $post->user->username }}</strong>
+                                    </div>
+                                    <p class="text-muted mb-0 style-content-preview">
+                                        {{ Str::limit($post->content, 120) }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary shadow-none" data-bs-dismiss="modal">Hủy</button>
+                                <button type="submit" class="btn btn-primary shadow-none">Chia sẻ ngay</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+            @endpush
         </div>
         {{-- LIKERS --}}
         @if ($post->likes->count() > 0)

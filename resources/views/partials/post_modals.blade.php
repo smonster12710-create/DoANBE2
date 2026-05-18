@@ -53,14 +53,19 @@
 
                 {{-- CỘT TRÁI: KHU VỰC HIỂN THỊ TRÌNH CHIẾU ẢNH (SLIDE NHIỀU ẢNH) --}}
                 <div style="flex: 1.5; background: #000; display: flex; align-items: center; justify-content: center; position: relative; height: 100%; overflow: hidden;">
-                    @if ($post->media->count())
-                    @if ($post->media->count() > 1)
+                    {{-- Xác định tập hợp media sẽ hiển thị: Ưu tiên media bài hiện tại, nếu không có thì lấy media của bài gốc --}}
+                    @php
+                    $displayMedia = $post->media->count() ? $post->media : ($post->sharedPost && $post->sharedPost->media->count() ? $post->sharedPost->media : collect());
+                    @endphp
+
+                    @if ($displayMedia->count())
+                    @if ($displayMedia->count() > 1)
                     {{-- Sử dụng Carousel của Bootstrap để slide nhiều ảnh --}}
                     <div id="detailCarousel{{ $post->id }}" class="carousel slide h-100 w-100" data-bs-ride="false">
 
                         {{-- Các chấm tròn chỉ số slide nhỏ tinh tế (Instagram style) --}}
                         <div class="carousel-indicators" style="margin-bottom: 15px;">
-                            @foreach ($post->media as $index => $item)
+                            @foreach ($displayMedia as $index => $item)
                             <button type="button"
                                 data-bs-target="#detailCarousel{{ $post->id }}"
                                 data-bs-slide-to="{{ $index }}"
@@ -74,7 +79,7 @@
 
                         {{-- Danh sách các ảnh chạy slide --}}
                         <div class="carousel-inner h-100">
-                            @foreach ($post->media as $index => $item)
+                            @foreach ($displayMedia as $index => $item)
                             <div class="carousel-item h-100 {{ $index == 0 ? 'active' : '' }}">
                                 <div class="d-flex justify-content-center align-items-center h-100">
                                     <img src="{{ asset($item->media_url) }}"
@@ -97,7 +102,7 @@
                     </div>
                     @else
                     {{-- Nếu chỉ có duy nhất 1 ảnh --}}
-                    <img src="{{ asset($post->media->first()->media_url) }}"
+                    <img src="{{ asset($displayMedia->first()->media_url) }}"
                         style="max-width: 100%; max-height: 100%; object-fit: contain;">
                     @endif
                     @else
@@ -109,18 +114,46 @@
                 <div style="flex: 1; background: #fff; display: flex; flex-direction: column; width: 400px;">
                     <div class="p-3 d-flex align-items-center border-bottom">
                         <img src="{{ $post->user->avatar_url
-                            ? asset($post->user->avatar_url)
-                            : 'https://i.pravatar.cc/40?u=' . $post->user_id }}" class="rounded-circle me-2" width="32" height="32"
+            ? asset($post->user->avatar_url)
+            : 'https://i.pravatar.cc/40?u=' . $post->user_id }}" class="rounded-circle me-2" width="32" height="32"
                             style="object-fit: cover;">
                         <strong>{{ $post->user->fullname ?? 'Người dùng' }}</strong>
                     </div>
 
                     <div class="flex-grow-1 p-3" style="overflow-y: auto;">
-                        <div class="d-flex mb-3">
+                        <div class="mb-3">
                             <div style="font-size: 14px;">
                                 <strong>{{ $post->user->fullname ?? 'Người dùng' }}</strong>
                                 {!! $post->formatted_content !!}
                             </div>
+
+                            {{-- HIỂN THỊ BOX BÀI VIẾT GỐC NẾU ĐÂY LÀ BÀI VIẾT CHIA SẺ --}}
+                            @if($post->sharedPost)
+                            <div class="card mt-2 p-3" style="background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6;">
+                                <div class="d-flex align-items-center mb-2">
+                                    <img src="{{ $post->sharedPost->user->avatar_url ? asset($post->sharedPost->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->sharedPost->user_id }}" class="rounded-circle me-2" width="24" height="24" style="object-fit: cover;">
+                                    <strong class="small" style="font-size: 13px;">{{ $post->sharedPost->user->fullname ?? 'Người dùng gốc' }}</strong>
+                                </div>
+
+                                {{-- Chữ của bài gốc --}}
+                                @if($post->sharedPost->content)
+                                <div class="small text-secondary mb-2" style="font-size: 13px; line-height: 1.4;">
+                                    {{ $post->sharedPost->content }}
+                                </div>
+                                @endif
+
+                                {{-- Ảnh của bài gốc (nếu có) --}}
+                                @if($post->sharedPost->media && $post->sharedPost->media->count() > 0)
+                                <div class="row g-1 mt-1">
+                                    @foreach($post->sharedPost->media as $media)
+                                    <div class="col-4">
+                                        <img src="{{ asset($media->media_url) }}" class="img-fluid rounded" style="max-height: 80px; width: 100%; object-fit: cover;">
+                                    </div>
+                                    @endforeach
+                                </div>
+                                @endif
+                            </div>
+                            @endif
                         </div>
                         <hr>
 
@@ -155,11 +188,19 @@
                     </div>
 
                     <div class="border-top p-3">
+                        @if(Str::contains($post->content, '[#LOCK_COMMENT#]'))
+                        {{-- Nếu có chữ bí mật này tức là ĐÃ BỊ CHẶN --}}
+                        <div class="text-muted text-center small py-2 w-100">
+                            🔒 Tính năng bình luận đã bị đóng cho bài viết này.
+                        </div>
+                        @else
+                        {{-- Nếu không có thì hiển thị Form bình luận bình thường --}}
                         <form action="{{ route('comments.store', $post->id) }}" method="POST" class="d-flex align-items-center ajax-form" data-id="{{ $post->id }}">
                             @csrf
                             <input type="text" name="content" class="form-control border-0 shadow-none p-0 comment-input" placeholder="Thêm bình luận..." style="font-size: 14px;" required autocomplete="off">
                             <button type="submit" class="btn text-primary fw-bold shadow-none">Đăng</button>
                         </form>
+                        @endif
                     </div>
                 </div>
             </div>

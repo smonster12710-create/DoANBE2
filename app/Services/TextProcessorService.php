@@ -44,6 +44,9 @@ class TextProcessorService
             return '';
         }
 
+        // NẰM Ở ĐÂY: Xóa chữ bí mật chặn bình luận trước khi xử lý định dạng
+        $content = str_replace(' [#LOCK_COMMENT#]', '', $content);
+
         // 1. Chống hack XSS
         $escapedContent = htmlspecialchars($content, ENT_QUOTES, 'UTF-8');
 
