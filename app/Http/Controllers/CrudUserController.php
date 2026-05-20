@@ -58,15 +58,12 @@ class CrudUserController extends Controller
             $request->session()->regenerate();
 
             // Đẩy thẳng vô trang đích
-<<<<<<< HEAD
             $accounts = session()->get('switch_accounts', []);
             $accounts[] = Auth::id();
             $accounts = array_values(array_unique(array_map('intval', $accounts)));
 
             session(['switch_accounts' => $accounts]);
-=======
             return redirect()->intended('/social')->with('success', 'Đăng nhập thành công!');
->>>>>>> origin/master
         }
 
         // Đăng nhập thất bại thì đá về trang cũ kèm thông báo, giữ lại cái email đã gõ
