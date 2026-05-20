@@ -18,6 +18,13 @@ use Illuminate\Support\Str;
 class CrudUserController extends Controller
 {
 
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication
+    |--------------------------------------------------------------------------
+    | Cac ham trong nhom nay phu trach dang nhap va trang dashboard co ban.
+    */
+
     /**
      * Login page
      */
@@ -58,11 +65,15 @@ class CrudUserController extends Controller
             $request->session()->regenerate();
 
             // Đẩy thẳng vô trang đích
-            $accounts = session()->get('switch_accounts', []);
-            $accounts[] = Auth::id();
-            $accounts = array_values(array_unique(array_map('intval', $accounts)));
+            if (Auth::user()->role !== 'admin') {
+                $accounts = session()->get('switch_accounts', []);
 
-            session(['switch_accounts' => $accounts]);
+                $accounts[] = Auth::id();
+
+                $accounts = array_values(array_unique(array_map('intval', $accounts)));
+
+                session(['switch_accounts' => $accounts]);
+            }
             return redirect()->intended('/social')->with('success', 'Đăng nhập thành công!');
         }
 
@@ -71,6 +82,13 @@ class CrudUserController extends Controller
             'email' => 'Email/Mật khẩu không đúng'
         ])->onlyInput('email');
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Registration
+    |--------------------------------------------------------------------------
+    | Tao tai khoan user thuong va chuan bi du lieu mac dinh cho profile.
+    */
+
     /**
      * Registration page
      */
@@ -199,23 +217,34 @@ class CrudUserController extends Controller
             ->route('login')
             ->with('success', 'Đăng ký thành công! Vui lòng đăng nhập.');
     }
+    /**
+     * Chuyen doi giua cac tai khoan da dang nhap tren cung trinh duyet.
+     * Admin khong tham gia luong switch account de tranh nham quyen.
+     */
     public function switchAccount(Request $request)
     {
         $request->validate([
             'user_id' => 'required|integer',
         ]);
 
+        if (Auth::user()->role === 'admin') {
+            return back()->with('error', 'Admin không được chuyển sang tài khoản người dùng!');
+        }
+
         $userId = (int) $request->user_id;
 
         $accounts = session()->get('switch_accounts', []);
-
         $accounts = array_map('intval', $accounts);
 
         if (!in_array($userId, $accounts)) {
-            abort(403, 'Tài khoản này chưa được đăng nhập trên trình duyệt này.');
+            return back()->with('error', 'Tài khoản này chưa được đăng nhập trên máy này!');
         }
 
         $user = User::findOrFail($userId);
+
+        if ($user->role === 'admin') {
+            return back()->with('error', 'Không thể chuyển sang tài khoản admin!');
+        }
 
         Auth::login($user);
 
@@ -225,6 +254,13 @@ class CrudUserController extends Controller
 
         return redirect('/social');
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Legacy User CRUD
+    |--------------------------------------------------------------------------
+    | Cac ham CRUD user cu van duoc giu lai cho nhung man hinh dang dung route cu.
+    */
+
     /**
      * View user detail page
      */
@@ -295,6 +331,13 @@ class CrudUserController extends Controller
 
         return redirect("login")->withSuccess('You are not allowed to access');
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Forgot Password
+    |--------------------------------------------------------------------------
+    | Xu ly quen mat khau bang email va ma captcha luu trong session.
+    */
+
     /**
      * Forgot PassWord
      */

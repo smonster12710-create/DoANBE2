@@ -4,10 +4,11 @@ $user = Auth::user();
 $avatar = $user && $user->avatar_url
 ? asset($user->avatar_url)
 : asset('img/user/user.jpg');
-$switchAccountIds = session('switch_accounts', [$user->id]);
+$switchAccountIds = session('switch_accounts', []);
 
-$switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->get();
-@endphp
+$switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
+->where('role', '!=', 'admin')
+->get();@endphp
 <!DOCTYPE html>
 <html>
 
@@ -80,7 +81,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->get();
             left: 20px;
             bottom: 90px;
 
-            width: 270px;
+            width: 370px;
             min-width: 270px;
             max-width: 340px;
 
@@ -346,6 +347,77 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->get();
             background: #f2f2f2;
             color: #111;
         }
+
+        .settings-submenu {
+            display: none;
+            margin-left: 42px;
+            margin-top: 6px;
+        }
+
+        .settings-submenu.show {
+            display: block;
+        }
+
+        .settings-submenu a {
+            display: block;
+            padding: 8px 0;
+            color: #e51f28;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .settings-submenu a:hover {
+            text-decoration: underline;
+        }
+
+        .settings-wrapper {
+            position: relative;
+        }
+
+        .settings-dropdown {
+            display: none;
+
+            position: fixed;
+
+            left: 90px;
+            top: 400px;
+
+            width: 230px;
+
+            background: #fff;
+
+            border-radius: 14px;
+
+            padding: 8px;
+
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.16);
+
+            z-index: 99999;
+        }
+
+        .settings-dropdown.show {
+            display: block;
+        }
+
+        .settings-dropdown a {
+            display: block;
+
+            padding: 12px 14px;
+
+            border-radius: 10px;
+
+            color: #111;
+            text-decoration: none;
+
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .settings-dropdown a:hover {
+            background: #f2f2f2;
+            color: #e51f28;
+        }
     </style>
 </head>
 
@@ -419,38 +491,38 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->get();
 
                                 {{-- Đếm thông báo chưa đọc --}}
                                 @php
-                                    $unreadCount = auth()->check()
-                                        ? \App\Models\Notification::where('user_id', auth()->id())
-                                            ->where('is_read', 0)
-                                            ->count()
-                                        : 0;
+                                $unreadCount = auth()->check()
+                                ? \App\Models\Notification::where('user_id', auth()->id())
+                                ->where('is_read', 0)
+                                ->count()
+                                : 0;
                                 @endphp
 
                                 {{-- Badge đỏ --}}
-                                    {{-- Sửa class thành ID để JS tìm cho chuẩn --}}
-                                    <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                        style="font-size:10px; display: {{ $unreadCount > 0 ? 'inline-block' : 'none' }}">
-                                        {{ $unreadCount }}
-                                    </span>
-                                    </div>
+                                {{-- Sửa class thành ID để JS tìm cho chuẩn --}}
+                                <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                    style="font-size:10px; display: {{ $unreadCount > 0 ? 'inline-block' : 'none' }}">
+                                    {{ $unreadCount }}
+                                </span>
+                            </div>
 
-                                    <span>Thông báo</span>
+                            <span>Thông báo</span>
 
-                                    </a>
-                                    </div>
+                        </a>
+                    </div>
 
-                                    <div class="menu-item">
+                    <div class="menu-item">
 
-                                        @php
-$isMessaging = request()->is('list_messages*') || request()->is('chat-messages*');
+                        @php
+                        $isMessaging = request()->is('list_messages*') || request()->is('chat-messages*');
 
-$unreadMessageCount = \App\Models\Message::where('is_read', 0)
-    ->where('sender_id', '!=', auth()->id())
-    ->whereHas('conversation.participants', function ($q) {
-        $q->where('user_id', auth()->id());
-    })
-    ->count();
-                                        @endphp
+                        $unreadMessageCount = \App\Models\Message::where('is_read', 0)
+                        ->where('sender_id', '!=', auth()->id())
+                        ->whereHas('conversation.participants', function ($q) {
+                        $q->where('user_id', auth()->id());
+                        })
+                        ->count();
+                        @endphp
 
 
                         <a class="danh_muc {{ $isMessaging ? 'active' : '' }}"
@@ -518,14 +590,25 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                         </a>
                     </div>
 
-                    <div class="menu-item">
-                        <a class="danh_muc">
+                    <div class="menu-item settings-wrapper">
+
+                        <a class="danh_muc" href="javascript:void(0)" onclick="toggleSettingsMenu(event)">
                             <svg style="width: 30px; height: 30px;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path
                                     d="M12 21a8.985 8.985 0 0 1-1.755-.173 1 1 0 0 1-.791-.813l-.273-1.606a6.933 6.933 0 0 1-1.32-.762l-1.527.566a1 1 0 0 1-1.1-.278 8.977 8.977 0 0 1-1.756-3.041 1 1 0 0 1 .31-1.092l1.254-1.04a6.979 6.979 0 0 1 0-1.524L3.787 10.2a1 1 0 0 1-.31-1.092 8.977 8.977 0 0 1 1.756-3.042 1 1 0 0 1 1.1-.278l1.527.566a6.933 6.933 0 0 1 1.32-.762l.274-1.606a1 1 0 0 1 .791-.813 8.957 8.957 0 0 1 3.51 0 1 1 0 0 1 .791.813l.273 1.606a6.933 6.933 0 0 1 1.32.762l1.527-.566a1 1 0 0 1 1.1.278 8.977 8.977 0 0 1 1.756 3.041 1 1 0 0 1-.31 1.092l-1.254 1.04a6.979 6.979 0 0 1 0 1.524l1.254 1.04a1 1 0 0 1 .31 1.092 8.977 8.977 0 0 1-1.756 3.041 1 1 0 0 1-1.1.278l-1.527-.566a6.933 6.933 0 0 1-1.32.762l-.273 1.606a1 1 0 0 1-.791.813A8.985 8.985 0 0 1 12 21zm-.7-2.035a6.913 6.913 0 0 0 1.393 0l.247-1.451a1 1 0 0 1 .664-.779 4.974 4.974 0 0 0 1.696-.975 1 1 0 0 1 1.008-.186l1.381.512a7.012 7.012 0 0 0 .7-1.206l-1.133-.939a1 1 0 0 1-.343-.964 5.018 5.018 0 0 0 0-1.953 1 1 0 0 1 .343-.964l1.124-.94a7.012 7.012 0 0 0-.7-1.206l-1.38.512a1 1 0 0 1-1-.186 4.974 4.974 0 0 0-1.688-.976 1 1 0 0 1-.664-.779l-.248-1.45a6.913 6.913 0 0 0-1.393 0l-.25 1.45a1 1 0 0 1-.664.779A4.974 4.974 0 0 0 8.7 8.24a1 1 0 0 1-1 .186l-1.385-.512a7.012 7.012 0 0 0-.7 1.206l1.133.939a1 1 0 0 1 .343.964 5.018 5.018 0 0 0 0 1.953 1 1 0 0 1-.343.964l-1.128.94a7.012 7.012 0 0 0 .7 1.206l1.38-.512a1 1 0 0 1 1 .186 4.974 4.974 0 0 0 1.688.976 1 1 0 0 1 .664.779zm.7-3.725a3.24 3.24 0 0 1 0-6.48 3.24 3.24 0 0 1 0 6.48zm0-4.48A1.24 1.24 0 1 0 13.24 12 1.244 1.244 0 0 0 12 10.76z" />
                             </svg>
+
                             <span>Cài đặt</span>
                         </a>
+
+                        @if(auth()->check() && auth()->user()->role === 'admin')
+                        <div id="settingsDropdown" class="settings-dropdown">
+                            <a href="{{ route('admin.users.index') }}">
+                                Quản trị người dùng
+                            </a>
+                        </div>
+                        @endif
+
                     </div>
                 </div>
 
@@ -563,10 +646,15 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                                 <small title="{{ $user->email }}">{{ $user->email ?? '' }}</small>
                             </div>
 
+                            @if(auth()->check() && auth()->user()->role !== 'admin')
                             <button type="button" id="switchToggleBtn" class="switch-toggle-btn" onclick="toggleSwitchAccount(event)">
                                 ⌄
                             </button>
+                            @endif
                         </div>
+
+                        @if(auth()->check() && auth()->user()->role !== 'admin')
+
                         <div id="switchAccountPanel" class="switch-account-panel">
 
                             <div class="switch-header">
@@ -603,7 +691,10 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                                 <span>＋</span>
                                 <strong>Thêm tài khoản</strong>
                             </a>
+
                         </div>
+
+                        @endif 
                         <a href="{{ route('profile') }}">Xem trang cá nhân</a>
                         <a href="#">Cài đặt và quyền riêng tư</a>
                         <a href="#">Trợ giúp và hỗ trợ</a>
@@ -649,19 +740,19 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                         <div class="mb-3">
                             <label for="formFile" class="form-label" style="font-weight: bold; color: #555;">Thêm ảnh
                                 vào bài viết</label>
-                        <input class="form-control" type="file" name="images[]" id="postImages" accept="image/*" multiple>
-                        <div id="preview-images" class="d-flex flex-wrap gap-2 mt-2"></div>
+                            <input class="form-control" type="file" name="images[]" id="postImages" accept="image/*" multiple>
+                            <div id="preview-images" class="d-flex flex-wrap gap-2 mt-2"></div>
                         </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                            <button type="submit" class="btn btn-primary" style="background-color: #007bff;">Đăng
-                                bài</button>
-                        </div>
-                        </form>
-                        </div>
-                        </div>
-                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary" style="background-color: #007bff;">Đăng
+                            bài</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
 </body>
 
@@ -670,7 +761,7 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
         document.getElementById('avatarDropdown').classList.toggle('show');
     }
 
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', function(e) {
         const menu = document.querySelector('.avatar-menu');
         const dropdown = document.getElementById('avatarDropdown');
 
@@ -708,6 +799,25 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
             !switchToggleBtn.contains(event.target)
         ) {
             switchAccountPanel.classList.remove('show');
+        }
+    });
+</script>
+<script>
+    function toggleSettingsMenu(event) {
+        event.stopPropagation();
+
+        const menu = document.getElementById('settingsDropdown');
+
+        if (menu) {
+            menu.classList.toggle('show');
+        }
+    }
+
+    document.addEventListener('click', function() {
+        const menu = document.getElementById('settingsDropdown');
+
+        if (menu) {
+            menu.classList.remove('show');
         }
     });
 </script>

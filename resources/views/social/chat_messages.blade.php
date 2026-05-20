@@ -16,6 +16,7 @@
         <button class="btn-top">Theo Dõi</button>
     </div>
 </div>
+
 <link rel="stylesheet" href="{{ asset('css/chat_messages.css') }}">
 
 <div class="main-container">

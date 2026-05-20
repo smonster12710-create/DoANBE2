@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FollowController;
+use App\Http\Controllers\AdminUserController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -48,7 +49,6 @@ Route::middleware('guest')->group(function () {
         Route::post('forgot-password/update', 'updateForgotPassword')->name('forgot.password.update');
     });
 });
-
 // ==========================================
 // KHU VỰC BẢO MẬT (BẮT BUỘC ĐĂNG NHẬP)
 // ==========================================
@@ -62,6 +62,19 @@ Route::middleware('auth')->group(function () {
         Route::post('update', 'postUpdateUser')->name('user.postUpdateUser');
         Route::get('list', 'listUser')->name('user.list');
         Route::get('signout', 'signOut')->name('signout');
+    });
+    // --- KHU VỰC QUẢN TRỊ ---
+    Route::middleware(['admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
+        Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
+        Route::get('/users/{id}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+        Route::post('/users/{id}', [AdminUserController::class, 'update'])->name('users.update');
+        Route::post('/users/{id}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
+        Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
     });
 
     // --- MẠNG XÃ HỘI & POSTS ---

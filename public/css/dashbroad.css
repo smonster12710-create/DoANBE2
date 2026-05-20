@@ -120,9 +120,14 @@ body {
 
 .btn-top {
     border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 10px 15px;
     border-radius: 20px;
     background: #eee;
+    color: inherit;
+    text-decoration: none;
     cursor: pointer;
     transition: 0.2s;
 }
@@ -160,4 +165,3 @@ body {
     text-decoration: none;
     color: black;
 }
-
