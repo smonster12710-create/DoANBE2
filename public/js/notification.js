@@ -1,77 +1,110 @@
+document.addEventListener('DOMContentLoaded', function () {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-function removeUnreadUI(element) {
-    // 1. Tước cái nền xanh lơ, trả lại màu xám khi hover
-    element.classList.remove('bg-primary', 'bg-opacity-10');
-    element.classList.add('noti-hover');
-
-    // 2. Chuyển chữ của cục thời gian từ in đậm màu xanh sang màu xám mờ
-    let timeText = element.querySelector('.text-primary.fw-bold');
-    if (timeText) {
-        timeText.classList.remove('text-primary', 'fw-bold');
-        timeText.classList.add('text-muted', 'fw-medium');
-    }
-
-    // 3. Đập bỏ cái dấu chấm xanh nhỏ xíu ở góc phải
-    let blueDot = element.querySelector('.bg-primary.rounded-circle.flex-shrink-0');
-    if (blueDot) {
-        blueDot.remove();
-    }
-
-    // 4. (Tuyệt chiêu) Trừ đi 1 số trên cái chuông thông báo đỏ đỏ ở Menu
-    let bellBadge = document.querySelector('.menu-item .bg-danger');
-    if (bellBadge) {
-        let currentCount = parseInt(bellBadge.innerText);
-        if (currentCount > 1) {
-            // Nếu còn nhiều hơn 1 thì trừ đi 1
-            bellBadge.innerText = currentCount - 1;
+    window.updateBellBadge = function (change) {
+        let bellBadge = document.getElementById('notification-badge');
+        if (!bellBadge) return;
+        let currentCount = parseInt(bellBadge.innerText.replace('99+', '99')) || 0;
+        let newCount = currentCount + change;
+        if (newCount > 0) {
+            bellBadge.innerText = newCount > 99 ? '99+' : newCount;
+            bellBadge.style.display = 'inline-block';
         } else {
-            // Nếu là thông báo cuối cùng thì gỡ luôn cái cục màu đỏ
-            bellBadge.remove();
+            bellBadge.innerText = '0';
+            bellBadge.style.display = 'none';
         }
-    }
-}
+    };
 
-function markAllAsRead() {
-    // Lấy token bảo mật của Laravel (bắt buộc phải có thẻ meta csrf-token trên thẻ <head>)
-    let token = document.querySelector('meta[name="csrf-token"]');
-    if (!token) {
-        return;
-    }
-
-    // Gọi API ngầm xuống Controller bằng phương thức POST
-    fetch('/notifications/mark-as-read', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': token.getAttribute('content')
-        }
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // 1. DỌN SẠCH CHẤM ĐỎ Ở ICON CHUÔNG MENU
-                let bellBadge = document.querySelector('.menu-item .bg-danger');
-                if (bellBadge) bellBadge.remove();
-
-                // 2. LỘT CÁI NỀN XANH LƠ CỦA TẤT CẢ THÔNG BÁO, TRẢ VỀ NỀN TRẮNG
-                let unreadItems = document.querySelectorAll('.bg-opacity-10');
-                unreadItems.forEach(item => {
-                    item.classList.remove('bg-primary', 'bg-opacity-10');
-                    item.classList.add('noti-hover'); // Gắn lại hiệu ứng hover bình thường
-
-                    // Chữ thời gian đang in đậm màu xanh -> Đổi thành màu xám mờ
-                    let timeText = item.querySelector('.text-primary.fw-bold');
-                    if (timeText) {
-                        timeText.classList.remove('text-primary', 'fw-bold');
-                        timeText.classList.add('text-muted', 'fw-medium');
-                    }
-                });
-
-                // 3. ĐẬP VỠ MẤY CÁI CHẤM XANH NHỎ XÍU GÓC PHẢI THÔNG BÁO
-                // Lọc những cái div có class này trong vùng chứa thông báo
-                let blueDots = document.querySelectorAll('.bg-primary.rounded-circle[style*="width: 12px"]');
-                blueDots.forEach(dot => dot.remove());
-            }
+    window.removeUnreadUI = function (element, event) {
+        if (event) event.preventDefault();
+        fetch(element.getAttribute('href'), {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .catch(error => console.error('Lỗi gọi API nè Pro:', error));
-}
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    element.classList.remove('bg-primary', 'bg-opacity-10');
+                    element.classList.add('noti-hover');
+                    element.querySelector('.text-primary')?.classList.replace('text-primary', 'text-muted');
+                    element.querySelector('.fw-bold')?.classList.replace('fw-bold', 'fw-medium');
+                    element.querySelector('.bg-primary.rounded-circle')?.remove();
+                    updateBellBadge(-1);
+                }
+            });
+    }
+
+    window.markAllAsRead = function () {
+        fetch('/notifications/mark-as-read', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    let bellBadge = document.getElementById('notification-badge');
+                    if (bellBadge) {
+                        bellBadge.innerText = '0';
+                        bellBadge.style.display = 'none';
+                    }
+                    document.querySelectorAll('.noti-item').forEach(item => {
+                        if (item.classList.contains('bg-opacity-10')) {
+                            item.classList.remove('bg-primary', 'bg-opacity-10');
+                            item.classList.add('noti-hover');
+                            item.querySelector('.text-primary')?.classList.replace('text-primary', 'text-muted');
+                            item.querySelector('.fw-bold')?.classList.replace('fw-bold', 'fw-medium');
+                            item.querySelector('.rounded-circle[style*="width: 12px"]')?.remove();
+
+                            let dropdownMenu = item.querySelector('.dropdown-menu');
+                            let notiId = item.dataset.notiId;
+                            if (dropdownMenu && !dropdownMenu.querySelector('[data-type="unread"]')) {
+                                let li = document.createElement('li');
+                                li.innerHTML = `<form action="/notifications/${notiId}/unread" method="POST" class="m-0 ajax-noti-form" data-type="unread"><input type="hidden" name="_token" value="${csrfToken}"><button type="submit" class="dropdown-item py-2"><i class="fas fa-circle text-primary me-2" style="font-size: 10px;"></i> Đánh dấu chưa đọc</button></form>`;
+                                dropdownMenu.prepend(li);
+                            }
+                        }
+                    });
+                }
+            });
+    }
+
+    // BẮT FORM XÓA / UNREAD MƯỢT MÀ
+    document.addEventListener('submit', function (e) {
+        const form = e.target;
+        if (!form.classList.contains('ajax-noti-form')) return;
+
+        e.preventDefault();
+
+        const notiItem = form.closest('.noti-item');
+        const type = form.dataset.type;
+
+        if (type === 'delete' && !confirm('Pro chắc muốn xóa hông?')) return;
+
+        fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (type === 'delete') {
+                        notiItem.remove();
+                        updateBellBadge(-1);
+                    } else if (type === 'unread') {
+                        notiItem.classList.add('bg-primary', 'bg-opacity-10');
+                        notiItem.classList.remove('noti-hover');
+                        if (!notiItem.querySelector('.rounded-circle[style*="width: 12px"]')) {
+                            let dot = document.createElement('div');
+                            dot.className = 'bg-primary rounded-circle flex-shrink-0';
+                            dot.style.cssText = "width: 12px; height: 12px; margin-right: 10px;";
+                            notiItem.querySelector('.dropdown').before(dot);
+                        }
+                        form.remove();
+                        updateBellBadge(1);
+                    }
+                }
+            })
+            .catch(err => console.error("Lỗi:", err));
+    });
+});

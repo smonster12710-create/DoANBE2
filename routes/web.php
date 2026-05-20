@@ -161,9 +161,25 @@ Route::middleware('auth')->group(function () {
         Route::post('/messages/{conversation}/mark-read', 'markAsRead');
     });
     // ============================== THÔNG BÁO ================================
-    Route::controller(NotificationController::class)->group(function () {
-        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-        Route::get('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'readSingle'])->name('notifications.read');
-        Route::post('/notifications/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAllRead');
-    });
+    Route::prefix('notifications')
+        ->name('notifications.')
+        ->controller(NotificationController::class)
+        ->group(function () {
+
+            // Gọi ra /notifications (name: notifications.index)
+            Route::get('/', 'index')->name('index');
+
+            // Gọi ra /notifications/{id}/read (name: notifications.read)
+            Route::get('/{id}/read', 'readSingle')->name('read');
+
+            // Gọi ra /notifications/mark-as-read (name: notifications.markAllRead)
+            Route::post('/mark-as-read', 'markAsRead')->name('markAllRead');
+
+            // Gọi ra /notifications/{id}/unread (name: notifications.unread)
+            Route::post('/{id}/unread', 'markAsUnread')->name('unread');
+
+            // Gọi ra /notifications/{id} (name: notifications.destroy)
+            Route::delete('/{id}', 'destroySingle')->name('destroy');
+
+        });
 });
