@@ -14,7 +14,7 @@ class NotificationController extends Controller
             ->get();
 
         // Trỏ tới một file view mới tên là notifications.blade.php
-        return view('partials.notifications', compact('notifications'));
+        return view('social.notifications', compact('notifications'));
     }
     public function getMyNotifications()
     {
@@ -27,7 +27,7 @@ class NotificationController extends Controller
         $undereadCount = \App\Models\Notification::where('user_id', $userId)
             ->where('is_read', 0)
             ->count();
-        return view('partials.notifications', compact('notifications,undereadCount'));
+        return view('social.notifications', compact('notifications,undereadCount'));
     }
     // Trong NotificationController
     public function markAsRead()
@@ -51,5 +51,37 @@ class NotificationController extends Controller
         // 3. Chuyển hướng người dùng tới bài viết (reference_id) 
         // Ví dụ route của Pro là /posts/123 thì viết vầy:
         return redirect()->route('posts.show', $notification->reference_id);
+    }
+
+    public function markAsUnread($id)
+    {
+        $notification = \App\Models\Notification::find($id);
+
+        if (!$notification) {
+            return response()->json(['success' => false, 'message' => 'Thông báo không tồn tại!']);
+        }
+
+        if ($notification->user_id == auth()->id()) {
+            $notification->update(['is_read' => 0]);
+            return response()->json(['success' => true, 'message' => 'Đã đánh dấu chưa đọc!']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Lỗi quyền truy cập!']);
+    }
+
+    public function destroySingle($id)
+    {
+        $notification = \App\Models\Notification::find($id);
+
+        if (!$notification) {
+            return response()->json(['success' => false, 'message' => 'Thông báo này không tồn tại!']);
+        }
+
+        if ($notification->user_id == auth()->id()) {
+            $notification->delete();
+            return response()->json(['success' => true, 'message' => 'Xóa thông báo thành công!']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Lỗi quyền truy cập!']);
     }
 }
