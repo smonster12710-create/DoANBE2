@@ -215,170 +215,159 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
 
                                 {{-- Đếm thông báo chưa đọc --}}
                                 @php
-                                $unreadCount = auth()->check()
-                                ? \App\Models\Notification::where('user_id', auth()->id())
-                                ->where('is_read', 0)
-                                ->count()
-                                : 0;
+                                    $unreadCount = auth()->check()
+                                        ? \App\Models\Notification::where('user_id', auth()->id())
+                                            ->where('is_read', 0)
+                                            ->count()
+                                        : 0;
                                 @endphp
 
                                 {{-- Badge đỏ --}}
-                                @if($unreadCount > 0)
-                                <span
-                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                    style="font-size:10px;">
-                                    {{ $unreadCount > 99 ? '99+' : $unreadCount }}
-                                </span>
-                                @endif
+                                    {{-- Sửa class thành ID để JS tìm cho chuẩn --}}
+                                    <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                        style="font-size:10px; display: {{ $unreadCount > 0 ? 'inline-block' : 'none' }}">
+                                        {{ $unreadCount }}
+                                    </span>
+                                    </div>
+                                    
+                                    <span>Thông báo</span>
+                                    
+                                    </a>
+                                    </div>
+                                    
+                                    <div class="menu-item">
+                                    
+                                        @php
+$isMessaging = request()->is('list_messages*') || request()->is('chat-messages*');
 
-                            </div>
+$unreadMessageCount = \App\Models\Message::where('is_read', 0)
+    ->where('sender_id', '!=', auth()->id())
+    ->whereHas('conversation.participants', function ($q) {
+        $q->where('user_id', auth()->id());
+    })
+    ->count();
+                                        @endphp
+                                    
+                                        <a class="danh_muc {{ $isMessaging ? 'active' : '' }}" href="{{ url('/list_messages') }}" style="position: relative;">
 
-                            <span>Thông báo</span>
+    {{-- Bọc icon để gắn badge --}}
+    <div style="position: relative; display:inline-block;">
+    
+        @if($isMessaging)
 
-                        </a>
-                    </div>
+            {{-- Icon Bold --}}
+            <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                <path
+                    d="M320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304C64 358.3 83.2 408.3 115.6 448.5L66.8 540.8C62 549.8 63.5 560.8 70.4 568.3C77.3 575.8 88.2 578.1 97.5 574.1L215.9 523.4C247.7 536.6 282.9 544 320 544zM192 272C209.7 272 224 286.3 224 304C224 321.7 209.7 336 192 336C174.3 336 160 321.7 160 304C160 286.3 174.3 272 192 272zM320 272C337.7 272 352 286.3 352 304C352 321.7 337.7 336 320 336C302.3 336 288 321.7 288 304C288 286.3 302.3 272 320 272zM416 304C416 286.3 430.3 272 448 272C465.7 272 480 286.3 480 304C480 321.7 465.7 336 448 336C430.3 336 416 321.7 416 304z" />
+            </svg>
 
-                    <div class="menu-item">
+        @else
 
-                        @php
-                        $isMessaging = request()->is('list_messages*') || request()->is('chat-messages*');
+            {{-- Icon Outline --}}
+            <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                <path
+                    d="M64 304C64 358.4 83.3 408.6 115.9 448.9L67.1 538.3C65.1 542 64 546.2 64 550.5C64 564.6 75.4 576 89.5 576C93.5 576 97.3 575.4 101 573.9L217.4 524C248.8 536.9 283.5 544 320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304zM158 471.9C167.3 454.8 165.4 433.8 153.2 418.7C127.1 386.4 112 346.8 112 304C112 200.8 202.2 112 320 112C437.8 112 528 200.8 528 304C528 407.2 437.8 496 320 496C289.8 496 261.3 490.1 235.7 479.6C223.8 474.7 210.4 474.8 198.6 479.9L140 504.9L158 471.9zM208 336C225.7 336 240 321.7 240 304C240 286.3 225.7 272 208 272C190.3 272 176 286.3 176 304C176 321.7 190.3 336 208 336zM352 304C352 286.3 337.7 272 320 272C302.3 272 288 286.3 288 304C288 321.7 302.3 336 320 336C337.7 336 352 321.7 352 304zM432 336C449.7 336 464 321.7 464 304C464 286.3 449.7 272 432 272C414.3 272 400 286.3 400 304C400 321.7 414.3 336 432 336z" />
+            </svg>
 
-                        $unreadMessageCount = \App\Models\Message::where('is_read', 0)
-                        ->where('sender_id', '!=', auth()->id())
-                        ->whereHas('conversation.participants', function ($q) {
-                        $q->where('user_id', auth()->id());
-                        })
-                        ->count();
-                        @endphp
-
-                        <a class="danh_muc {{ $isMessaging ? 'active' : '' }}"
-                            href="{{ url('/list_messages') }}"
-                            style="position: relative;">
-
-                            {{-- Bọc icon để gắn badge --}}
-                            <div style="position: relative; display:inline-block;">
-
-                                @if($isMessaging)
-
-                                {{-- Icon Bold --}}
-                                <svg style="width: 30px; height: 30px;"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 640 640">
-                                    <path d="M320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304C64 358.3 83.2 408.3 115.6 448.5L66.8 540.8C62 549.8 63.5 560.8 70.4 568.3C77.3 575.8 88.2 578.1 97.5 574.1L215.9 523.4C247.7 536.6 282.9 544 320 544zM192 272C209.7 272 224 286.3 224 304C224 321.7 209.7 336 192 336C174.3 336 160 321.7 160 304C160 286.3 174.3 272 192 272zM320 272C337.7 272 352 286.3 352 304C352 321.7 337.7 336 320 336C302.3 336 288 321.7 288 304C288 286.3 302.3 272 320 272zM416 304C416 286.3 430.3 272 448 272C465.7 272 480 286.3 480 304C480 321.7 465.7 336 448 336C430.3 336 416 321.7 416 304z" />
-                                </svg>
-
-                                @else
-
-                                {{-- Icon Outline --}}
-                                <svg style="width: 30px; height: 30px;"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 640 640">
-                                    <path d="M64 304C64 358.4 83.3 408.6 115.9 448.9L67.1 538.3C65.1 542 64 546.2 64 550.5C64 564.6 75.4 576 89.5 576C93.5 576 97.3 575.4 101 573.9L217.4 524C248.8 536.9 283.5 544 320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304zM158 471.9C167.3 454.8 165.4 433.8 153.2 418.7C127.1 386.4 112 346.8 112 304C112 200.8 202.2 112 320 112C437.8 112 528 200.8 528 304C528 407.2 437.8 496 320 496C289.8 496 261.3 490.1 235.7 479.6C223.8 474.7 210.4 474.8 198.6 479.9L140 504.9L158 471.9zM208 336C225.7 336 240 321.7 240 304C240 286.3 225.7 272 208 272C190.3 272 176 286.3 176 304C176 321.7 190.3 336 208 336zM352 304C352 286.3 337.7 272 320 272C302.3 272 288 286.3 288 304C288 321.7 302.3 336 320 336C337.7 336 352 321.7 352 304zM432 336C449.7 336 464 321.7 464 304C464 286.3 449.7 272 432 272C414.3 272 400 286.3 400 304C400 321.7 414.3 336 432 336z" />
-                                </svg>
-
-                                @endif
-
-                                {{-- Badge đỏ --}}
-                                <span
-                                    id="message-badge"
-                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                    style="font-size:10px; @if($unreadMessageCount <= 0) display: none; @endif">
-                                    @if($unreadMessageCount > 99)
-                                    99+
-                                    @elseif($unreadMessageCount > 0)
-                                    {{ $unreadMessageCount }}
-                                    @endif
-                                </span>
-
-                            </div>
-
-                            <span>Tin nhắn</span>
-
-                        </a>
-                    </div>
-
-                    <div class="menu-item">
-                        <a class="danh_muc {{ request()->is('saved') ? 'active' : '' }}"
-                            href="{{ route('posts.saved') }}">
-                            @if(request()->is('saved'))
-                            {{-- ACTIVE ICON --}}
-                            <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-5-7 5V4a1 1 0 0 1 1-1z" />
-                            </svg>
-                            @else
-                            {{-- NORMAL ICON --}}
-                            <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-5-7 5V4a1 1 0 0 1 1-1z" />
-                            </svg>
-                            @endif
-                            <span>Đã lưu</span>
-                        </a>
-                    </div>
-
-                    <div class="menu-item">
-                        <a class="danh_muc">
-                            <svg style="width: 30px; height: 30px;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M12 21a8.985 8.985 0 0 1-1.755-.173 1 1 0 0 1-.791-.813l-.273-1.606a6.933 6.933 0 0 1-1.32-.762l-1.527.566a1 1 0 0 1-1.1-.278 8.977 8.977 0 0 1-1.756-3.041 1 1 0 0 1 .31-1.092l1.254-1.04a6.979 6.979 0 0 1 0-1.524L3.787 10.2a1 1 0 0 1-.31-1.092 8.977 8.977 0 0 1 1.756-3.042 1 1 0 0 1 1.1-.278l1.527.566a6.933 6.933 0 0 1 1.32-.762l.274-1.606a1 1 0 0 1 .791-.813 8.957 8.957 0 0 1 3.51 0 1 1 0 0 1 .791.813l.273 1.606a6.933 6.933 0 0 1 1.32.762l1.527-.566a1 1 0 0 1 1.1.278 8.977 8.977 0 0 1 1.756 3.041 1 1 0 0 1-.31 1.092l-1.254 1.04a6.979 6.979 0 0 1 0 1.524l1.254 1.04a1 1 0 0 1 .31 1.092 8.977 8.977 0 0 1-1.756 3.041 1 1 0 0 1-1.1.278l-1.527-.566a6.933 6.933 0 0 1-1.32.762l-.273 1.606a1 1 0 0 1-.791.813A8.985 8.985 0 0 1 12 21zm-.7-2.035a6.913 6.913 0 0 0 1.393 0l.247-1.451a1 1 0 0 1 .664-.779 4.974 4.974 0 0 0 1.696-.975 1 1 0 0 1 1.008-.186l1.381.512a7.012 7.012 0 0 0 .7-1.206l-1.133-.939a1 1 0 0 1-.343-.964 5.018 5.018 0 0 0 0-1.953 1 1 0 0 1 .343-.964l1.124-.94a7.012 7.012 0 0 0-.7-1.206l-1.38.512a1 1 0 0 1-1-.186 4.974 4.974 0 0 0-1.688-.976 1 1 0 0 1-.664-.779l-.248-1.45a6.913 6.913 0 0 0-1.393 0l-.25 1.45a1 1 0 0 1-.664.779A4.974 4.974 0 0 0 8.7 8.24a1 1 0 0 1-1 .186l-1.385-.512a7.012 7.012 0 0 0-.7 1.206l1.133.939a1 1 0 0 1 .343.964 5.018 5.018 0 0 0 0 1.953 1 1 0 0 1-.343.964l-1.128.94a7.012 7.012 0 0 0 .7 1.206l1.38-.512a1 1 0 0 1 1 .186 4.974 4.974 0 0 0 1.688.976 1 1 0 0 1 .664.779zm.7-3.725a3.24 3.24 0 0 1 0-6.48 3.24 3.24 0 0 1 0 6.48zm0-4.48A1.24 1.24 0 1 0 13.24 12 1.244 1.244 0 0 0 12 10.76z" />
-                            </svg>
-                            <span>Cài đặt</span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="trending">
-                    <h4>Xu hướng</h4>
-                    <div class="trend">
-                        <span>#Food</span> <span>19k</span>
-                    </div>
-                    <div class="trend">
-                        <span>#Du_Lich</span> <span>12.5k</span>
-                    </div>
-                    <div class="trend">
-                        <span>#Sach</span> <span>9.7k</span>
-                    </div>
-                    <div class="trend">
-                        <span>#Chill</span> <span>8.6k</span>
-                    </div>
-                </div>
-
-                <div class="profile avatar-menu">
-                    <button type="button" class="profile-btn" onclick="toggleAvatarMenu()">
-                        <img src="{{ $avatar }}" alt="avatar">
-                        <div>
-                            <strong class="text-truncate-custom">{{ $user->fullname ?? 'Người dùng' }}</strong>
-                            <small class="text-truncate-custom">{{ '@' . ($user->username ?? 'user') }}</small>
-                        </div>
-                    </button>
-
-                    <div id="avatarDropdown" class="avatar-dropdown sidebar-dropdown">
-                        <div class="avatar-header">
-                            <img src="{{ $avatar }}" alt="avatar">
-                            <div>
-                                <strong class="text-truncate-custom">{{ $user->fullname ?? 'Người dùng' }}</strong>
-                                <small class="text-truncate-custom" title="{{ $user->email }}">{{ $user->email ?? '' }}</small>
-                            </div>
-                        </div>
-
-                        <a href="{{ route('profile') }}">Xem trang cá nhân</a>
-                        <a href="#">Cài đặt và quyền riêng tư</a>
-                        <a href="#">Trợ giúp và hỗ trợ</a>
-                        <a href="#">Màn hình và trợ năng</a>
-                        <a href="#">Đóng góp ý kiến</a>
-                        <a href="{{ route('signout') }}" class="logout-link">Đăng Xuất</a>
-                    </div>
-                </div>
+        @endif
+        
+        {{-- Badge đỏ --}}
+        <span id="message-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+            style="font-size:10px; @if($unreadMessageCount <= 0) display: none; @endif">
+            @if($unreadMessageCount > 99)
+                99+
+            @elseif($unreadMessageCount > 0)
+                {{ $unreadMessageCount }}
+            @endif
+        </span>
+        
+        </div>
+        
+        <span>Tin nhắn</span>
+        
+        </a>
+        </div>
+        
+        <div class="menu-item">
+        <a class="danh_muc {{ request()->is('saved') ? 'active' : '' }}" href="{{ route('posts.saved') }}">
+            @if(request()->is('saved'))
+                {{-- ACTIVE ICON --}}
+                <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-5-7 5V4a1 1 0 0 1 1-1z" />
+                </svg>
+            @else
+                {{-- NORMAL ICON --}}
+                <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-5-7 5V4a1 1 0 0 1 1-1z" />
+                </svg>
+            @endif
+            <span>Đã lưu</span>
+        </a>
+        </div>
+        
+        <div class="menu-item">
+            <a class="danh_muc">
+                <svg style="width: 30px; height: 30px;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M12 21a8.985 8.985 0 0 1-1.755-.173 1 1 0 0 1-.791-.813l-.273-1.606a6.933 6.933 0 0 1-1.32-.762l-1.527.566a1 1 0 0 1-1.1-.278 8.977 8.977 0 0 1-1.756-3.041 1 1 0 0 1 .31-1.092l1.254-1.04a6.979 6.979 0 0 1 0-1.524L3.787 10.2a1 1 0 0 1-.31-1.092 8.977 8.977 0 0 1 1.756-3.042 1 1 0 0 1 1.1-.278l1.527.566a6.933 6.933 0 0 1 1.32-.762l.274-1.606a1 1 0 0 1 .791-.813 8.957 8.957 0 0 1 3.51 0 1 1 0 0 1 .791.813l.273 1.606a6.933 6.933 0 0 1 1.32.762l1.527-.566a1 1 0 0 1 1.1.278 8.977 8.977 0 0 1 1.756 3.041 1 1 0 0 1-.31 1.092l-1.254 1.04a6.979 6.979 0 0 1 0 1.524l1.254 1.04a1 1 0 0 1 .31 1.092 8.977 8.977 0 0 1-1.756 3.041 1 1 0 0 1-1.1.278l-1.527-.566a6.933 6.933 0 0 1-1.32.762l-.273 1.606a1 1 0 0 1-.791.813A8.985 8.985 0 0 1 12 21zm-.7-2.035a6.913 6.913 0 0 0 1.393 0l.247-1.451a1 1 0 0 1 .664-.779 4.974 4.974 0 0 0 1.696-.975 1 1 0 0 1 1.008-.186l1.381.512a7.012 7.012 0 0 0 .7-1.206l-1.133-.939a1 1 0 0 1-.343-.964 5.018 5.018 0 0 0 0-1.953 1 1 0 0 1 .343-.964l1.124-.94a7.012 7.012 0 0 0-.7-1.206l-1.38.512a1 1 0 0 1-1-.186 4.974 4.974 0 0 0-1.688-.976 1 1 0 0 1-.664-.779l-.248-1.45a6.913 6.913 0 0 0-1.393 0l-.25 1.45a1 1 0 0 1-.664.779A4.974 4.974 0 0 0 8.7 8.24a1 1 0 0 1-1 .186l-1.385-.512a7.012 7.012 0 0 0-.7 1.206l1.133.939a1 1 0 0 1 .343.964 5.018 5.018 0 0 0 0 1.953 1 1 0 0 1-.343.964l-1.128.94a7.012 7.012 0 0 0 .7 1.206l1.38-.512a1 1 0 0 1 1 .186 4.974 4.974 0 0 0 1.688.976 1 1 0 0 1 .664.779zm.7-3.725a3.24 3.24 0 0 1 0-6.48 3.24 3.24 0 0 1 0 6.48zm0-4.48A1.24 1.24 0 1 0 13.24 12 1.244 1.244 0 0 0 12 10.76z" />
+                </svg>
+                <span>Cài đặt</span>
+            </a>
+        </div>
+        </div>
+        
+        <div class="trending">
+            <h4>Xu hướng</h4>
+            <div class="trend">
+                <span>#Food</span> <span>19k</span>
             </div>
+            <div class="trend">
+                <span>#Du_Lich</span> <span>12.5k</span>
+            </div>
+            <div class="trend">
+                <span>#Sach</span> <span>9.7k</span>
+            </div>
+            <div class="trend">
+                <span>#Chill</span> <span>8.6k</span>
+            </div>
+        </div>
+        
+        <div class="profile avatar-menu">
+            <button type="button" class="profile-btn" onclick="toggleAvatarMenu()">
+                <img src="{{ $avatar }}" alt="avatar">
+                <div>
+                    <strong class="text-truncate-custom">{{ $user->fullname ?? 'Người dùng' }}</strong>
+                    <small class="text-truncate-custom">{{ '@' . ($user->username ?? 'user') }}</small>
+                </div>
+            </button>
+        
+            <div id="avatarDropdown" class="avatar-dropdown sidebar-dropdown">
+                <div class="avatar-header">
+                    <img src="{{ $avatar }}" alt="avatar">
+                    <div>
+                        <strong class="text-truncate-custom">{{ $user->fullname ?? 'Người dùng' }}</strong>
+                        <small class="text-truncate-custom" title="{{ $user->email }}">{{ $user->email ?? '' }}</small>
+                    </div>
+                </div>
+        
+                <a href="{{ route('profile') }}">Xem trang cá nhân</a>
+                <a href="#">Cài đặt và quyền riêng tư</a>
+                <a href="#">Trợ giúp và hỗ trợ</a>
+                <a href="#">Màn hình và trợ năng</a>
+                <a href="#">Đóng góp ý kiến</a>
+                <a href="{{ route('signout') }}" class="logout-link">Đăng Xuất</a>
+            </div>
+        </div>
+        </div>
         </div>
         <div class="main">
             <div class="content">
                 @yield('content')
             </div>
         </div>
-
     </div>
-
+    
     <div class="modal fade" id="createPostModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -394,7 +383,8 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
                                 style="border: none; resize: none;"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="expires_in" class="form-label" style="font-weight: bold; color: #555;">Tự động xóa sau (tùy chọn)</label>
+                            <label for="expires_in" class="form-label" style="font-weight: bold; color: #555;">Tự động xóa
+                                sau (tùy chọn)</label>
                             <select name="expires_in" id="expires_in" class="form-select">
                                 <option value="">Không giới hạn</option>
                                 <option value="1">1 Phút (Để test)</option> <!-- Đổi thành 1 phút -->
@@ -406,25 +396,19 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
                         <div class="mb-3">
                             <label for="formFile" class="form-label" style="font-weight: bold; color: #555;">Thêm ảnh
                                 vào bài viết</label>
-                            <input
-                                class="form-control"
-                                type="file"
-                                name="images[]"
-                                id="postImages"
-                                accept="image/*"
-                                multiple>
-                            <div id="preview-images" class="d-flex flex-wrap gap-2 mt-2"></div>
+                        <input class="form-control" type="file" name="images[]" id="postImages" accept="image/*" multiple>
+                        <div id="preview-images" class="d-flex flex-wrap gap-2 mt-2"></div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-primary" style="background-color: #007bff;">Đăng
-                            bài</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-primary" style="background-color: #007bff;">Đăng
+                                bài</button>
+                        </div>
+                        </form>
+                        </div>
+                        </div>
+                        </div>
 
 </body>
 
@@ -433,7 +417,7 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
         document.getElementById('avatarDropdown').classList.toggle('show');
     }
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const menu = document.querySelector('.avatar-menu');
         const dropdown = document.getElementById('avatarDropdown');
 
@@ -442,10 +426,11 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
         }
     });
 </script>
+{{-- Tìm dòng này và sửa lại như vầy: --}}
+<script src="{{ asset('js/notification.js') }}?v={{ time() }}"></script>
 <script src="{{ asset('js/search.js') }}"></script>
 <script src="{{ asset('js/search_post.js') }}"></script>
 <script src="{{ asset('js/index.js') }}"></script>
-<script src="{{ asset('js/notification.js') }}"></script>
 <script src="{{ asset('js/chat_dashboard.js') }}"></script>
 <script src="{{ asset('js/like.js') }}"></script>
 <script src="{{ asset('js/dashboard.js') }}"></script>

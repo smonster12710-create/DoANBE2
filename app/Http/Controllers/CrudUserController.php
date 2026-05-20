@@ -58,12 +58,12 @@ class CrudUserController extends Controller
             $request->session()->regenerate();
 
             // Đẩy thẳng vô trang đích
-            return redirect()->intended('/social')->with('success', 'Đăng nhập thành công, vô việc thôi Pro!');
+            return redirect()->intended('/social')->with('success', 'Đăng nhập thành công!');
         }
 
         // Đăng nhập thất bại thì đá về trang cũ kèm thông báo, giữ lại cái email đã gõ
         return back()->withErrors([
-            'email' => 'Email/Mật khẩu không đúng, hoặc tài khoản đang bị khóa nghen.'
+            'email' => 'Email/Mật khẩu không đúng'
         ])->onlyInput('email');
     }
     /**
