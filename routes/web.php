@@ -90,6 +90,9 @@ Route::middleware('auth')->group(function () {
             // Xem trang cá nhân bất kỳ
             Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.show');
 
+            // chuyển tài khoản
+            Route::post('/switch-account', [CrudUserController::class, 'switchAccount'])->name('account.switch');
+
 
 
 

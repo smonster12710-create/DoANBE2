@@ -1,6 +1,12 @@
 @php
 $user = Auth::user();
-$avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/user/user.jpg');
+
+$avatar = $user && $user->avatar_url
+? asset($user->avatar_url)
+: asset('img/user/user.jpg');
+$switchAccountIds = session('switch_accounts', [$user->id]);
+
+$switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->get();
 @endphp
 <!DOCTYPE html>
 <html>
@@ -73,13 +79,14 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
             left: 20px;
             bottom: 90px;
 
-            width: 270px;
+            width: max-content;
+            min-width: 340px;
+            max-width: 520px;
 
             background: white;
-            border-radius: 16px;
+            border-radius: 18px;
             padding: 12px;
-
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.18);
             z-index: 99999;
         }
 
@@ -142,6 +149,202 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
             min-width: 0;
             flex: 1;
         }
+
+        .account-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            background: #f5f5f5;
+            border-radius: 14px;
+
+            padding: 12px;
+            padding-right: 50px;
+
+            position: relative;
+
+            width: max-content;
+            min-width: 310px;
+            max-width: 490px;
+        }
+
+        .account-header img {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .account-header div {
+            min-width: 0;
+        }
+
+        .account-header strong,
+        .account-header small {
+            display: block;
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: unset;
+        }
+
+        .switch-toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+
+            width: 50px;
+            height: 50px;
+
+            border: none;
+            border-radius: 50%;
+
+            background: #e4e6eb;
+            color: #111;
+
+            font-size: 18px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .switch-toggle-btn:hover {
+            background: #d8dadf;
+        }
+
+        .switch-account-panel {
+            display: none;
+            position: fixed;
+            left: 20px;
+            bottom: 90px;
+            width: 360px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.18);
+            z-index: 100000;
+        }
+
+        .switch-account-panel.show {
+            display: block;
+        }
+
+        .switch-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .switch-header button {
+            border: none;
+            background: transparent;
+            font-size: 26px;
+            cursor: pointer;
+        }
+
+        .switch-header h3 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            color: #111;
+        }
+
+        .switch-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .switch-list form {
+            margin: 0;
+        }
+
+        .switch-account-item {
+            width: 100%;
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .switch-account-item:hover {
+            background: #f2f2f2;
+        }
+
+        .switch-account-item img {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .switch-account-item div {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .switch-account-item strong {
+            display: block;
+            font-size: 16px;
+            color: #111;
+        }
+
+        .switch-account-item small {
+            display: block;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .active-check {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1877f2;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .create-page-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 10px;
+            margin-top: 10px;
+            border-top: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .create-page-row span {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #e4e6eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+        }
+
+        .create-page-row {
+            text-decoration: none;
+            color: #111;
+        }
+
+        .create-page-row:hover {
+            background: #f2f2f2;
+            color: #111;
+        }s
     </style>
 </head>
 
@@ -353,14 +556,55 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
                     </button>
 
                     <div id="avatarDropdown" class="avatar-dropdown sidebar-dropdown">
-                        <div class="avatar-header">
+                        <div class="avatar-header account-header">
                             <img src="{{ $avatar }}" alt="avatar">
-                            <div>
-                                <strong class="text-truncate-custom">{{ $user->fullname ?? 'Người dùng' }}</strong>
-                                <small class="text-truncate-custom" title="{{ $user->email }}">{{ $user->email ?? '' }}</small>
-                            </div>
-                        </div>
 
+                            <div>
+                                <strong>{{ $user->fullname ?? 'Người dùng' }}</strong>
+                                <small title="{{ $user->email }}">{{ $user->email ?? '' }}</small>
+                            </div>
+
+                            <button type="button" id="switchToggleBtn" class="switch-toggle-btn" onclick="toggleSwitchAccount(event)">
+                                ⌄
+                            </button>
+                        </div>
+                        <div id="switchAccountPanel" class="switch-account-panel">
+
+                            <div class="switch-header">
+                                <button type="button" onclick="closeSwitchPanel(event)">←</button>
+                                <h3>Chọn trang cá nhân</h3>
+                            </div>
+
+                            <div class="switch-list">
+                                @foreach($switchAccounts as $account)
+                                <form method="POST" action="{{ route('account.switch') }}">
+                                    @csrf
+
+                                    <input type="hidden" name="user_id" value="{{ $account->id }}">
+
+                                    <button type="submit" class="switch-account-item">
+                                        <img
+                                            src="{{ $account->avatar_url ? asset($account->avatar_url) : asset('img/user/user.jpg') }}"
+                                            alt="avatar">
+
+                                        <div>
+                                            <strong>{{ $account->fullname ?? $account->name ?? 'Người dùng' }}</strong>
+                                            <small>{{ '@' . ($account->username ?? 'user') }}</small>
+                                        </div>
+
+                                        @if($account->id == auth()->id())
+                                        <span class="active-check">✓</span>
+                                        @endif
+                                    </button>
+                                </form>
+                                @endforeach
+                            </div>
+
+                            <a href="{{ route('signout') }}" class="create-page-row">
+                                <span>＋</span>
+                                <strong>Thêm tài khoản</strong>
+                            </a>
+                        </div>
                         <a href="{{ route('profile') }}">Xem trang cá nhân</a>
                         <a href="#">Cài đặt và quyền riêng tư</a>
                         <a href="#">Trợ giúp và hỗ trợ</a>
@@ -439,6 +683,38 @@ $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/use
 
         if (menu && !menu.contains(e.target)) {
             dropdown.classList.remove('show');
+        }
+    });
+</script>
+<script>
+    const switchToggleBtn = document.getElementById('switchToggleBtn');
+    const switchAccountPanel = document.getElementById('switchAccountPanel');
+    const avatarDropdown = document.getElementById('avatarDropdown');
+
+    function toggleSwitchAccount(event) {
+        event.stopPropagation();
+
+        if (switchAccountPanel) {
+            switchAccountPanel.classList.toggle('show');
+        }
+    }
+
+    function closeSwitchPanel(event) {
+        event.stopPropagation();
+
+        if (switchAccountPanel) {
+            switchAccountPanel.classList.remove('show');
+        }
+    }
+
+    document.addEventListener('click', function(event) {
+        if (
+            switchAccountPanel &&
+            switchToggleBtn &&
+            !switchAccountPanel.contains(event.target) &&
+            !switchToggleBtn.contains(event.target)
+        ) {
+            switchAccountPanel.classList.remove('show');
         }
     });
 </script>

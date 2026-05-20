@@ -58,6 +58,12 @@ class CrudUserController extends Controller
             $request->session()->regenerate();
 
             // Đẩy thẳng vô trang đích
+            $accounts = session()->get('switch_accounts', []);
+            $accounts[] = Auth::id();
+            $accounts = array_values(array_unique(array_map('intval', $accounts)));
+
+            session(['switch_accounts' => $accounts]);
+
             return redirect()->intended('/social')->with('success', 'Đăng nhập thành công, vô việc thôi Pro!');
         }
 
@@ -194,6 +200,32 @@ class CrudUserController extends Controller
             ->route('login')
             ->with('success', 'Đăng ký thành công! Vui lòng đăng nhập.');
     }
+    public function switchAccount(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+        ]);
+
+        $userId = (int) $request->user_id;
+
+        $accounts = session()->get('switch_accounts', []);
+
+        $accounts = array_map('intval', $accounts);
+
+        if (!in_array($userId, $accounts)) {
+            abort(403, 'Tài khoản này chưa được đăng nhập trên trình duyệt này.');
+        }
+
+        $user = User::findOrFail($userId);
+
+        Auth::login($user);
+
+        $request->session()->regenerate();
+
+        session(['switch_accounts' => $accounts]);
+
+        return redirect('/social');
+    }
     /**
      * View user detail page
      */
@@ -329,7 +361,6 @@ class CrudUserController extends Controller
      */
     public function signOut()
     {
-        Session::flush();
         Auth::logout();
 
         return Redirect('/');
