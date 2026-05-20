@@ -3,6 +3,8 @@
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/profile.css') }}">
 
+@include('partials.social_topbar')
+
 <div class="profile-page">
     <div class="profile-container">
 

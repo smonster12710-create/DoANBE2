@@ -62,6 +62,7 @@
         <button class="btn-top">Theo Dõi</button>
     </div>
 </div>
+
 <link rel="stylesheet" href="{{ asset('css/list_messages.css') }}">
 
 <div class="main-container">

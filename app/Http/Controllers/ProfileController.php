@@ -10,6 +10,13 @@ use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Profile Display
+    |--------------------------------------------------------------------------
+    | Cac ham hien thi profile, thong ke ban be, follow va danh sach lien quan.
+    */
+
     /**
      * Hiển thị trang cá nhân (Cho cả mình và người khác)
      */
@@ -69,6 +76,9 @@ class ProfileController extends Controller
             'isFollowing'
         ));
     }
+    /**
+     * Them hoac huy ket ban voi user duoc xem profile.
+     */
     public function toggleFriend($username)
     {
         $targetUser = User::where('username', $username)->firstOrFail();
@@ -132,6 +142,9 @@ class ProfileController extends Controller
 
     //     return back();
     // }
+    /**
+     * Hien thi danh sach ban be cua user theo username.
+     */
     public function friends($username)
     {
         $user = User::where('username', $username)->firstOrFail();
@@ -152,6 +165,9 @@ class ProfileController extends Controller
         return view('social.profile_list', compact('user', 'users', 'title'));
     }
 
+    /**
+     * Hien thi danh sach nguoi dang theo doi user.
+     */
     public function followers($username)
     {
         $user = User::where('username', $username)->firstOrFail();
@@ -166,6 +182,12 @@ class ProfileController extends Controller
         return view('social.profile_list', compact('user', 'users', 'title'));
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Profile Edit
+    |--------------------------------------------------------------------------
+    | Cac ham sua thong tin ca nhan va upload anh dai dien/anh bia.
+    */
 
     /**
      * Hiển thị trang chỉnh sửa (Chỉ cho chính mình)
