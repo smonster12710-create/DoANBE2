@@ -107,16 +107,41 @@ class MessageController extends Controller
     public function send(Request $request)
     {
         $request->validate([
-            'content' => 'required|string|min:1', // content không được null, phải là chuỗi, ít nhất 1 ký tự
+            'content' => 'nullable|string',
+            'image' => 'nullable|image|max:2048',
             'conversation_id' => 'required|exists:conversations,id'
         ]);
+
+        // Không cho gửi rỗng hoàn toàn
+        if (
+            empty(trim($request->content ?? ''))
+            && !$request->hasFile('image')
+        ) {
+            return response()->json([
+                'error' => 'Tin nhắn trống'
+            ], 422);
+        }
+
+        $imagePath = null;
+
+        // Upload ảnh nếu có
+        if ($request->hasFile('image')) {
+
+            $imagePath = $request
+                ->file('image')
+                ->store('chat_images', 'public');
+        }
+
         Message::create([
             'conversation_id' => $request->conversation_id,
             'sender_id' => Auth::id(),
-            'content' => $request->content
+            'content' => $request->content,
+            'image_url' => $imagePath
         ]);
 
-        return response()->json(['status' => 'ok']);
+        return response()->json([
+            'status' => 'ok'
+        ]);
     }
     public function fetch($conversationId)
     {
@@ -133,8 +158,14 @@ class MessageController extends Controller
                     ->where('user_id', $myId);
             })
 
-            ->whereNotNull('content')
-            ->where('content', '!=', '')
+            ->where(function ($query) {
+                $query->where(function ($q) {
+                    $q->whereNotNull('content')
+                        ->where('content', '!=', '');
+                })
+                    ->orWhereNotNull('image_url');
+            })
+
             ->orderBy('id')
             ->get();
 
