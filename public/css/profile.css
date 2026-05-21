@@ -518,3 +518,38 @@
     justify-content: center;
     align-items: center;
 }
+
+/* Fix nút từ chối và chấp nhận khi kết bạn */
+.profile-action-buttons {
+    position: absolute;
+    right: 35px;
+    top: 70px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* Loại bỏ giới hạn dòng để các form không tự ý xuống hàng */
+    flex-wrap: nowrap; 
+}
+
+/* Ép các thẻ form bọc ngoài nút bấm hoạt động như block ngang, triệt tiêu margin thừa */
+.profile-action-buttons form {
+    margin: 0 !important;
+    display: inline-flex;
+}
+
+/* 🌟 BỔ SUNG MỚI: Khung chứa riêng cho cặp đôi Chấp nhận & Từ chối */
+.requested-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Khoảng cách nhỏ giữa 2 nút đứng cạnh nhau */
+}
+
+/* 🌟 BỔ SUNG MỚI: Định hình riêng cho nút bấm khi nằm trong cụm Chấp nhận/Từ chối */
+.requested-actions .profile-action-btn {
+    min-width: 105px;       /* Ép 2 nút có độ rộng bằng chằn chặn nhau */
+    padding: 11px 14px;     /* Thu nhỏ padding ngang một chút để không chiếm quá nhiều diện tích */
+    text-align: center;
+    justify-content: center;
+    white-space: nowrap;    /* Tuyệt đối không cho chữ tự xuống dòng */
+}

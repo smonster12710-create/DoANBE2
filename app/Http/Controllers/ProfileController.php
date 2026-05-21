@@ -22,21 +22,23 @@ class ProfileController extends Controller
      */
     public function show($username)
     {
-        /** @var \App\Models\User $user */ // Thêm dòng này để fix triệt để lỗi Intelephense P1013
+        /** @var \App\Models\User $user */
         $user = User::where('username', $username)->firstOrFail();
 
-        // SỬA TẠI ĐÂY: Thay ->latest() bằng cặp đôi orderBy để đẩy bài ghim lên đầu profile
         $posts = \App\Models\Post::with(['user', 'media', 'likes', 'comments'])
             ->where('user_id', $user->id)
-            ->orderBy('is_pinned', 'desc')  // 1. Bài ghim lên đầu
-            ->orderBy('created_at', 'desc') // 2. Bài mới nhất xếp tiếp theo
+            ->orderBy('is_pinned', 'desc')  
+            ->orderBy('created_at', 'desc') 
             ->get();
 
         $authId = Auth::id();
 
+        // 🌟 FIX LOGIC: Chỉ đếm số lượng bạn bè THỰC SỰ (đã accepted)
         $friendsCount = DB::table('friendships')
-            ->where('user_id', $user->id)
-            ->orWhere('friend_id', $user->id)
+            ->where(function($q) use ($user) {
+                $q->where('user_id', $user->id)->orWhere('friend_id', $user->id);
+            })
+            ->where('status', 'accepted')
             ->count();
 
         $postsCount = $posts->count();
@@ -49,14 +51,15 @@ class ProfileController extends Controller
             ->where('follower_id', $user->id)
             ->count();
 
+        // 🌟 FIX LOGIC: Biến $isFriend chỉ true khi trạng thái là 'accepted'
         $isFriend = DB::table('friendships')
+            ->where('status', 'accepted')
             ->where(function ($q) use ($authId, $user) {
-                $q->where('user_id', $authId)
-                    ->where('friend_id', $user->id);
-            })
-            ->orWhere(function ($q) use ($authId, $user) {
-                $q->where('user_id', $user->id)
-                    ->where('friend_id', $authId);
+                $q->where(function ($inner) use ($authId, $user) {
+                    $inner->where('user_id', $authId)->where('friend_id', $user->id);
+                })->orWhere(function ($inner) use ($authId, $user) {
+                    $inner->where('user_id', $user->id)->where('friend_id', $authId);
+                });
             })
             ->exists();
 
@@ -79,40 +82,40 @@ class ProfileController extends Controller
     /**
      * Them hoac huy ket ban voi user duoc xem profile.
      */
-    public function toggleFriend($username)
-    {
-        $targetUser = User::where('username', $username)->firstOrFail();
+    // public function toggleFriend($username)
+    // {
+    //     $targetUser = User::where('username', $username)->firstOrFail();
 
-        if (Auth::id() == $targetUser->id) {
-            return back();
-        }
+    //     if (Auth::id() == $targetUser->id) {
+    //         return back();
+    //     }
 
-        $authId = Auth::id();
+    //     $authId = Auth::id();
 
-        $friendship = DB::table('friendships')
-            ->where(function ($q) use ($authId, $targetUser) {
-                $q->where('user_id', $authId)
-                    ->where('friend_id', $targetUser->id);
-            })
-            ->orWhere(function ($q) use ($authId, $targetUser) {
-                $q->where('user_id', $targetUser->id)
-                    ->where('friend_id', $authId);
-            })
-            ->first();
+    //     $friendship = DB::table('friendships')
+    //         ->where(function ($q) use ($authId, $targetUser) {
+    //             $q->where('user_id', $authId)
+    //                 ->where('friend_id', $targetUser->id);
+    //         })
+    //         ->orWhere(function ($q) use ($authId, $targetUser) {
+    //             $q->where('user_id', $targetUser->id)
+    //                 ->where('friend_id', $authId);
+    //         })
+    //         ->first();
 
-        if ($friendship) {
-            DB::table('friendships')->where('id', $friendship->id)->delete();
-        } else {
-            DB::table('friendships')->insert([
-                'user_id' => $authId,
-                'friend_id' => $targetUser->id,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
+    //     if ($friendship) {
+    //         DB::table('friendships')->where('id', $friendship->id)->delete();
+    //     } else {
+    //         DB::table('friendships')->insert([
+    //             'user_id' => $authId,
+    //             'friend_id' => $targetUser->id,
+    //             'created_at' => now(),
+    //             'updated_at' => now(),
+    //         ]);
+    //     }
 
-        return back();
-    }
+    //     return back();
+    // }
 
     // public function toggleFollow($username)
     // {
@@ -145,25 +148,25 @@ class ProfileController extends Controller
     /**
      * Hien thi danh sach ban be cua user theo username.
      */
-    public function friends($username)
-    {
-        $user = User::where('username', $username)->firstOrFail();
+    // public function friends($username)
+    // {
+    //     $user = User::where('username', $username)->firstOrFail();
 
-        $friendIds = DB::table('friendships')
-            ->where('user_id', $user->id)
-            ->pluck('friend_id')
-            ->merge(
-                DB::table('friendships')
-                    ->where('friend_id', $user->id)
-                    ->pluck('user_id')
-            );
+    //     $friendIds = DB::table('friendships')
+    //         ->where('user_id', $user->id)
+    //         ->pluck('friend_id')
+    //         ->merge(
+    //             DB::table('friendships')
+    //                 ->where('friend_id', $user->id)
+    //                 ->pluck('user_id')
+    //         );
 
-        $users = User::whereIn('id', $friendIds)->get();
+    //     $users = User::whereIn('id', $friendIds)->get();
 
-        $title = 'Bạn bè của bạn';
+    //     $title = 'Bạn bè của bạn';
 
-        return view('social.profile_list', compact('user', 'users', 'title'));
-    }
+    //     return view('social.profile_list', compact('user', 'users', 'title'));
+    // }
 
     /**
      * Hien thi danh sach nguoi dang theo doi user.

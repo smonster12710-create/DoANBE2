@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Post;
+
 class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
@@ -62,5 +63,42 @@ class User extends Authenticatable
     public function isFollowing($userId)
     {
         return $this->followings()->where('following_id', (int)$userId)->exists();
+    }
+
+    public function sentFriendRequests()
+    {
+        return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id')
+                    ->withPivot('status')->withTimestamps();
+    }
+
+    /**
+     * Lời mời kết bạn nhận về (đang chờ đồng ý)
+     */
+    public function receivedFriendRequests()
+    {
+        return $this->belongsToMany(User::class, 'friendships', 'friend_id', 'user_id')
+                    ->withPivot('status')->withTimestamps();
+    }
+
+    /**
+     * LẤY TRẠNG THÁI MỐI QUAN HỆ GIỮA MÌNH VÀ NGƯỜI KHÁC
+     * (Hàm này trực tiếp sửa lỗi sập trang BadMethodCallException bạn đang gặp)
+     */
+    public function getFriendshipStatus($userId)
+    {
+        // Kiểm tra xem mình có gửi lời mời cho họ chưa
+        $sent = $this->sentFriendRequests()->where('friend_id', $userId)->first();
+        if ($sent) {
+            return $sent->pivot->status; // Trả về 'pending' hoặc 'accepted'
+        }
+
+        // Kiểm tra xem họ có gửi lời mời cho mình chưa
+        $received = $this->receivedFriendRequests()->where('user_id', $userId)->first();
+        if ($received) {
+            return $received->pivot->status === 'pending' ? 'requested' : 'accepted'; 
+            // 'requested' nghĩa là đối phương đang chờ mình đồng ý
+        }
+
+        return 'none'; // Chưa có quan hệ gì cả
     }
 }

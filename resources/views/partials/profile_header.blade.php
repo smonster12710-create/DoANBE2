@@ -44,26 +44,59 @@
         @else
             <div class="profile-action-buttons">
 
-                <form method="POST" action="{{ route('profile.friend.toggle', $user->username) }}">
-                    @csrf
+                {{-- NÚT KẾT BẠN/HỦY KẾT BẠN/CHẤP NHẬN/TỪ CHỐI --}}
+                @if (auth()->check() && auth()->id() !== $user->id)
+                    @php
+                        $friendStatus = auth()->user()->getFriendshipStatus($user->id);
+                    @endphp
 
-                    <button type="submit" class="profile-action-btn {{ $isFriend ? 'secondary' : 'primary' }}">
-                        {{ $isFriend ? 'Bạn bè' : 'Thêm bạn bè' }}
-                    </button>
-                </form>
+                    @if ($friendStatus === 'accepted')
+                        <form method="POST" action="{{ route('friend.remove', $user->username) }}"
+                            class="friend-action-form">
+                            @csrf
+                            <button type="submit" class="profile-action-btn secondary">Hủy kết bạn</button>
+                        </form>
+                    @elseif ($friendStatus === 'pending')
+                        <form method="POST" action="{{ route('friend.remove', $user->username) }}"
+                            class="friend-action-form">
+                            @csrf
+                            <button type="submit" class="profile-action-btn secondary">Đang chờ đồng ý</button>
+                        </form>
+                    @elseif ($friendStatus === 'requested')
+                        {{-- Gộp 2 form vào trong một cặp thẻ div để quản lý flex riêng --}}
+                        <div class="requested-actions">
+                            <form method="POST" action="{{ route('friend.accept', $user->username) }}"
+                                class="friend-action-form">
+                                @csrf
+                                <button type="submit" class="profile-action-btn primary">Chấp nhận</button>
+                            </form>
+                            <form method="POST" action="{{ route('friend.remove', $user->username) }}"
+                                class="friend-action-form">
+                                @csrf
+                                <button type="submit" class="profile-action-btn secondary">Từ chối</button>
+                            </form>
+                        </div>
+                    @else
+                        <form method="POST" action="{{ route('friend.send', $user->username) }}"
+                            class="friend-action-form">
+                            @csrf
+                            <button type="submit" class="profile-action-btn primary">Thêm bạn bè</button>
+                        </form>
+                    @endif
+                @endif
 
+                {{-- NÚT NHẮN TIN --}}
                 <a href="#" class="profile-action-btn primary">
                     Nhắn tin
                 </a>
 
-                {{-- NÚT THEO DÕI (Đã chỉnh lại style) --}}
+                {{-- NÚT THEO DÕI --}}
                 @if (auth()->check() && auth()->id() !== $user->id)
-                    <form action="{{ route('follow.toggle', $user->id) }}" method="POST" class="m-0">
+                    <form action="{{ route('follow.toggle', $user->id) }}" method="POST" class="friend-action-form">
                         @csrf
                         @php
                             $isFollowing = auth()->user()->isFollowing($user->id);
                         @endphp
-
                         <button type="submit" class="profile-action-btn {{ $isFollowing ? 'secondary' : 'primary' }}">
                             {{ $isFollowing ? 'Đang theo dõi' : 'Theo dõi' }}
                         </button>
