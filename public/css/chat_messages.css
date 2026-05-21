@@ -152,6 +152,7 @@ body {
 /* Message bubbles */
 .message-wrapper {
     display: flex;
+    
     margin-bottom: 10px;
 }
 
@@ -334,6 +335,48 @@ body {
     color: #ffffff;
 }
 
+.chat-image{
+    max-width: 220px;
+    border-radius: 12px;
+    display: block;
+  
+    margin-bottom: 3px;
+    padding: 0;
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+.message-bubble:has(.chat-image):not(:has(.message-content)){
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+#image-preview-container{
+    padding: 0 12px 8px;
+}
+
+.preview-wrapper{
+    position: relative;
+    display: inline-block;
+}
+
+.preview-image{
+    width: 120px;
+    border-radius: 14px;
+    object-fit: cover;
+}
+
+.remove-preview{
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
 .message-wrapper.them .message-recalled {
     background: #e4e6eb;
     color: #65676b;
@@ -474,6 +517,140 @@ body {
     margin-top: 2px;
     /* Khoảng cách nhỏ với bubble */
     padding: 0 5px;
+}
+
+.message-status {
+    font-size: 11px;
+    color: #888;
+}
+/* --- 1. KHUNG WRAPPER CHÍNH (Đóng vai trò xếp dòng dọc) --- */
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 14px;
+    width: 100%;
+}
+
+.message-wrapper.me {
+    align-items: flex-end; /* Căn toàn bộ cụm tin nhắn của mình sang phải */
+}
+
+.message-wrapper.them {
+    align-items: flex-start; /* Căn toàn bộ cụm tin nhắn người ta sang trái */
+}
+
+
+/* --- 2. KHỐI CONTAINER (Trọng tâm xử lý absolute cho nút dots) --- */
+.message-container {
+    position: relative; /* Tạo điểm neo gốc tọa độ cho .message-actions */
+    max-width: 70%;     /* Giới hạn độ rộng tối đa của vùng nội dung tin nhắn */
+    display: flex;
+    flex-direction: column;
+}
+
+.message-wrapper.me .message-container {
+    align-items: flex-end;
+}
+
+.message-wrapper.them .message-container {
+    align-items: flex-start;
+}
+
+
+/* --- 3. BONG BÓNG CHAT VÀ ẢNH --- */
+.message-bubble {
+    padding: 10px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    overflow: visible; /* Để menu dropdown không bị cắt cụm */
+}
+
+.message-wrapper.me .message-bubble {
+    background-color: #0084ff;
+    color: white;
+}
+
+.message-wrapper.them .message-bubble {
+    background-color: #e4e6eb;
+    color: black;
+}
+
+.chat-image {
+    max-width: 100%; /* Cho ảnh tự co giãn theo max-width của container */
+    width: 220px;
+    border-radius: 12px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+
+/* --- 4. ĐỊNH VỊ NÚT 3 CHẤM (BÁM SÁT 2 BÊN) --- */
+.message-actions {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%); /* Căn giữa hoàn hảo theo chiều dọc của container */
+    
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease, visibility 0.15s ease;
+    z-index: 10;
+}
+
+/* Khi rê chuột vào vùng nội dung tin nhắn, hiện nút 3 chấm */
+.message-container:hover .message-actions {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Tin nhắn của mình: Nút nằm bên TRÁI container */
+.message-wrapper.me .message-actions {
+    left: -42px;
+    right: auto;
+}
+
+/* Tin nhắn của họ: Nút nằm bên PHẢI container */
+.message-wrapper.them .message-actions {
+    right: -42px;
+    left: auto;
+}
+
+
+/* --- 5. HỘP THOẠI MENU (DROPDOWN) --- */
+.message-menu {
+    position: absolute;
+    bottom: 36px; /* Đẩy menu hiển thị phía trên nút 3 chấm một chút */
+    min-width: 160px;
+    background: white;
+    border-radius: 12px;
+    padding: 5px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+    display: none; /* Bật/Tắt bằng class .show trong JS */
+    z-index: 999;
+}
+
+.message-menu.show {
+    display: block;
+}
+
+/* Căn lề hộp thoại ẩn/hiện để không bị tràn viền màn hình */
+.message-wrapper.me .message-menu {
+    right: 0;
+    left: auto;
+}
+
+.message-wrapper.them .message-menu {
+    left: 0;
+    right: auto;
+}
+
+
+/* --- 6. DÒNG TRẠNG THÁI KHÔNG ĐỔI --- */
+.message-status-row {
+    margin-top: 3px;
+    padding: 0 6px;
 }
 
 .message-status {

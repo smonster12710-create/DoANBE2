@@ -216,8 +216,23 @@ document.querySelector('.chat-input')
 
             .then(() => {
 
+                // reset text
                 input.value = '';
 
+                // reset ảnh
+                document.getElementById(
+                    'image-input'
+                ).value = '';
+                // xoá preview ảnh
+                const previewContainer =
+                    document.getElementById(
+                        'image-preview-container'
+                    );
+
+                if (previewContainer) {
+                    previewContainer.innerHTML =
+                        '';
+                }
                 loadMessages();
 
                 updateSidebar();
@@ -253,15 +268,11 @@ document.querySelector('.chat-input')
 // RENDER HELPERS
 // ========================
 function createMessageHTML(msg) {
-
     let isMe = msg.sender_id == currentUserId;
-
     let wrapperClass = isMe ? 'me' : 'them';
 
-
-    // tin thu hồi
+    // 1. Trường hợp tin nhắn đã bị thu hồi
     if (msg.is_deleted == 1) {
-
         return `
             <div class="message-wrapper ${wrapperClass}" data-id="${msg.id}">
                 <div class="message-recalled">
@@ -271,55 +282,55 @@ function createMessageHTML(msg) {
         `;
     }
 
+    // 2. Trường hợp tin nhắn hiển thị bình thường (Có bọc message-container)
     return `
         <div class="message-wrapper ${wrapperClass}" data-id="${msg.id}">
-
-            <div class="message-bubble">
-
-                <div class="message-content">
-                    ${msg.content}
-                </div>
-
-                <div class="message-actions">
-
-                    <button
-                        type="button"
-                        class="dots-btn">
-                        ⋯
-                    </button>
-
-                    <div class="message-menu">
-
-                        ${isMe ? `
-                            <button
-                                type="button"
-                                class="recall-btn"
-                                data-id="${msg.id}">
-                                Thu hồi
-                            </button>
-                        ` : ''}
-
-                        <button
-                            type="button"
-                            class="delete-btn"
-                            data-id="${msg.id}">
-                            Xoá ở phía bạn
-                        </button>
-
+            
+            <div class="message-container">
+                
+                ${msg.image_url ? `
+                    <div class="message-media">
+                        <img src="/storage/${msg.image_url}" class="chat-image">
                     </div>
+                ` : ''}
 
-                </div>
-          
-            </div>
-  ${isMe ? `
-                <div class="message-status">
-                    ${msg.is_read ? 'Đã xem' : 'Đã gửi'}
+                ${msg.content && String(msg.content).trim() !== '' ? `
+                    <div class="message-bubble">
+                        <div class="message-content">
+                            ${msg.content}
+                        </div>
+                    </div>
+                ` : ''}
+
+                ${msg.image_url || (msg.content && String(msg.content).trim() !== '') ? `
+                    <div class="message-actions">
+                        <button type="button" class="dots-btn">⋯</button>
+                        <div class="message-menu">
+                            ${isMe ? `
+                                <button type="button" class="recall-btn" data-id="${msg.id}">
+                                    Thu hồi
+                                </button>
+                            ` : ''}
+                            <button type="button" class="delete-btn" data-id="${msg.id}">
+                                Xoá ở phía bạn
+                            </button>
+                        </div>
+                    </div>
+                ` : ''}
+
+            </div> <!-- Hết message-container -->
+
+            ${isMe ? `
+                <div class="message-status-row">
+                    <small class="message-status" data-id="${msg.id}">
+                        ${msg.is_read ? 'Đã xem' : 'Đã gửi'}
+                    </small>
                 </div>
             ` : ''}
+
         </div>
     `;
 }
-
 // ========================
 // Xoá tin nhắn 1 chiều
 // ========================
@@ -398,55 +409,28 @@ function prependMessage(msg) {
 // TOGGLE MENU
 // ========================
 document.addEventListener('click', function (e) {
-
-    // mở menu
-    if (
-        e.target.classList.contains(
-            'dots-btn'
-        )
-    ) {
-
+    // mở menu hành động (đổ xúc xắc ⋯)
+    if (e.target.classList.contains('dots-btn')) {
         e.stopPropagation();
+        let menu = e.target.nextElementSibling;
 
-        let menu =
-            e.target.nextElementSibling;
-
-        // đóng menu khác
-        document.querySelectorAll(
-            '.message-menu'
-        ).forEach(m => {
-
+        // đóng tất cả menu khác
+        document.querySelectorAll('.message-menu').forEach(m => {
             if (m !== menu) {
-                m.classList.remove(
-                    'show'
-                );
+                m.classList.remove('show');
             }
-
         });
 
-        menu.classList.toggle('show');
-
-        return;
+        // Bật/tắt menu hiện tại
+        if (menu) {
+            menu.classList.toggle('show');
+        }
+    } else {
+        // Click ra ngoài thì đóng toàn bộ menu đang mở
+        document.querySelectorAll('.message-menu').forEach(m => {
+            m.classList.remove('show');
+        });
     }
-
-    // click trong menu
-    if (
-        e.target.closest(
-            '.message-menu'
-        )
-    ) {
-        return;
-    }
-
-    // click ngoài
-    document.querySelectorAll(
-        '.message-menu'
-    ).forEach(m => {
-
-        m.classList.remove('show');
-
-    });
-
 });
 
 // ========================
@@ -666,18 +650,26 @@ function stopPolling() {
 // ========================
 // INIT
 // ========================
-document.addEventListener(
-    'DOMContentLoaded',
-    function () {
+// ========================
+// INIT (Code Mới)
+// ========================
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Đánh dấu đã xem
+    markAsRead();
 
+    // 2. Ép cuộn xuống đáy sau khi DOM đã ổn định
+    setTimeout(() => {
         forceScrollBottom();
+    }, 100);
 
-        markAsRead();
+    // 3. Nếu trong chat có nhiều ảnh, đợi ảnh tải xong rồi cuộn lại phát nữa cho chắc
+    window.addEventListener('load', () => {
+        forceScrollBottom();
+    });
 
-        startPolling();
-
-    }
-);
+    // 4. Bắt đầu gọi vòng lặp lấy tin nhắn mới
+    startPolling();
+});
 function syncReadStatus() {
 
     fetch(`/messages/${conversationId}/read-status`)
@@ -727,3 +719,125 @@ function markAsRead() {
     });
 
 }
+document.addEventListener(
+    'DOMContentLoaded',
+    function () {
+
+        const imageBtn =
+            document.getElementById(
+                'image-btn'
+            );
+
+        const imageInput =
+            document.getElementById(
+                'image-input'
+            );
+
+        const previewContainer =
+            document.getElementById(
+                'image-preview-container'
+            );
+
+        // mở file explorer
+        if (
+            imageBtn &&
+            imageInput
+        ) {
+
+            imageBtn.addEventListener(
+                'click',
+                function () {
+
+                    imageInput.click();
+
+                }
+            );
+
+        }
+
+        // preview ảnh
+        if (
+            imageInput &&
+            previewContainer
+        ) {
+
+            imageInput.addEventListener(
+                'change',
+                function () {
+
+                    previewContainer.innerHTML =
+                        '';
+
+                    const file =
+                        this.files[0];
+
+                    if (!file) return;
+
+                    const wrapper =
+                        document.createElement(
+                            'div'
+                        );
+
+                    wrapper.className =
+                        'preview-wrapper';
+
+                    const img =
+                        document.createElement(
+                            'img'
+                        );
+
+                    img.src =
+                        URL.createObjectURL(
+                            file
+                        );
+
+                    img.className =
+                        'preview-image';
+
+                    // nút xoá
+                    const removeBtn =
+                        document.createElement(
+                            'button'
+                        );
+
+                    removeBtn.type =
+                        'button';
+
+                    removeBtn.innerHTML =
+                        '✕';
+
+                    removeBtn.className =
+                        'remove-preview';
+
+                    removeBtn.addEventListener(
+                        'click',
+                        function () {
+
+                            imageInput.value =
+                                '';
+
+                            previewContainer.innerHTML =
+                                '';
+
+                        }
+                    );
+
+                    wrapper.appendChild(
+                        img
+                    );
+
+                    wrapper.appendChild(
+                        removeBtn
+                    );
+
+                    previewContainer.appendChild(
+                        wrapper
+                    );
+
+                }
+            );
+
+        }
+
+    }
+);
