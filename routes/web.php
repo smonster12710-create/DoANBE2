@@ -11,6 +11,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\FriendController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -97,7 +98,13 @@ Route::middleware('auth')->group(function () {
             // tương tác thêm bạn bè theo dõi giữa các người dùng
             Route::post('/profile/{username}/friend', [ProfileController::class, 'toggleFriend'])->name('profile.friend.toggle');
             //Route::post('/profile/{username}/follow', [ProfileController::class, 'toggleFollow'])->name('profile.follow.toggle');
-            Route::get('/profile/{username}/friends', [ProfileController::class, 'friends'])->name('profile.friends');
+
+            // BẠN BÈ
+            Route::post('/profile/{username}/friend/send', [FriendController::class, 'sendFriendRequest'])->name('friend.send');
+            Route::post('/profile/{username}/friend/accept', [FriendController::class, 'acceptFriendRequest'])->name('friend.accept');
+            Route::post('/profile/{username}/friend/remove', [FriendController::class, 'removeFriend'])->name('friend.remove');
+
+            Route::get('/profile/{username}/friends', [FriendController::class, 'friends'])->name('profile.friends');
             Route::get('/profile/{username}/followers', [ProfileController::class, 'followers'])->name('profile.followers');
 
             // Xem trang cá nhân bất kỳ
