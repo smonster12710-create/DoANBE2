@@ -15,7 +15,7 @@ class CommentController extends Controller
 {
     public function store(Request $request, $postId, TextProcessorService $textProcessorService)
     {
-        // 1. Kiểm tra đăng nhập ngay tại đây cho chắc
+        // 1. Kiểm tra đăng nhập
         if (!Auth::check()) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Bạn phải đăng nhập để bình luận!'], 401);
@@ -29,7 +29,7 @@ class CommentController extends Controller
 
         $comment = new Comment();
         $comment->post_id = $postId;
-        $comment->user_id = Auth::id(); // Lúc này Auth::id() chắc chắn có giá trị
+        $comment->user_id = Auth::id();
         $comment->content = $request->content;
         $comment->save();
 
@@ -37,7 +37,7 @@ class CommentController extends Controller
         //  BẮN THÔNG BÁO 
         // ====================================================================
         $post = Post::find($postId);
-        // Luật giang hồ: Không tự báo cho mình nếu tự comment bài mình
+        //Không tự báo cho mình nếu tự comment bài mình
         if ($post && $post->user_id !== Auth::id()) {
             Notification::create([
                 'user_id' => $post->user_id,      // Người nhận là chủ bài viết
@@ -58,7 +58,7 @@ class CommentController extends Controller
 
             //  thông báo cho từng người bị tag
             foreach ($mentionedUsers as $user) {
-                // Không tự bắn thông báo cho chính mình (lỡ tay gõ @ten_minh)
+                // Không tự bắn thông báo cho chính mình
                 if ($user->id !== Auth::id()) {
                     Notification::create([
                         'user_id' => $user->id,
@@ -70,10 +70,7 @@ class CommentController extends Controller
                 }
             }
         }
-
-        // ====================================================================
-        // SỬA ĐOẠN CUỐI NÀY: TRẢ VỀ JSON NẾU DÙNG AJAX CHẠY NGẦM
-        // ====================================================================
+        
         if ($request->ajax() || $request->wantsJson()) {
             $user = Auth::user();
             return response()->json([
