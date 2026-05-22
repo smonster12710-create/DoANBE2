@@ -54,4 +54,14 @@ class Conversation extends Model
             ->where('user_id', $userId)
             ->exists();
     }
+    // Lấy tin nhắn cuối cùng mà user này có thể thấy (chưa xoá)
+    public function lastVisibleMessage($userId)
+    {
+        return $this->messages()
+            ->whereDoesntHave('deletedMessages', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->latest()
+            ->first();
+    }
 }
