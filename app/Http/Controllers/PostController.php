@@ -210,20 +210,17 @@ class PostController extends Controller
         $likeQuery = \App\Models\Like::where('post_id', $postId)->where('user_id', $userId);
 
         if ($likeQuery->exists()) {
-            // Trường hợp BỎ LIKE: Xóa like cũ
+            // Trường hợp BỎ LIKE
             $likeQuery->delete();
             $isLiked = false;
         } else {
-            // Trường hợp LIKE MỚI: Tạo record
+            // Trường hợp LIKE MỚI
             \App\Models\Like::create([
                 'post_id' => $postId,
                 'user_id' => $userId
             ]);
             $isLiked = true;
 
-            // ====================================================================
-            // LOGIC BẮN THÔNG BÁO
-            // ====================================================================
             $post = \App\Models\Post::find($postId);
 
             // Check bài viết có tồn tại không
@@ -276,8 +273,6 @@ class PostController extends Controller
         $user = Auth::user();
 
         // Hàm toggle() của Laravel trả về một mảng chứa thông tin:
-        // 'attached' => các ID vừa được thêm vào (Lưu)
-        // 'detached' => các ID vừa được xóa đi (Hủy lưu)
         $result = $user->savedPosts()->toggle($post->id);
 
         // Kiểm tra xem bài viết vừa được lưu hay hủy lưu
