@@ -18,15 +18,18 @@ class MessageController extends Controller
         $conversations = Conversation::whereHas('participants', function ($query) use ($myId) {
             $query->where('user_id', $myId);
         })
-            ->with(['lastMessage', 'participants.user'])
+            ->with(['participants.user'])
             ->withCount([
                 'messages as unread_count' => function ($query) use ($myId) {
                     $query->where('sender_id', '!=', $myId)
                         ->where('is_read', 0);
                 }
             ])
-            ->get();
-
+            ->get()
+            ->map(function ($chat) use ($myId) {
+                $chat->last_visible_message = $chat->lastVisibleMessage($myId);
+                return $chat;
+            });
         $posts = Post::with([
             'user',
             'media',
@@ -220,7 +223,7 @@ class MessageController extends Controller
         $conversations = Conversation::whereHas('participants', function ($query) use ($myId) {
             $query->where('user_id', $myId);
         })
-            ->with(['lastMessage', 'participants.user'])
+            ->with(['participants.user'])
             ->withCount([
                 'messages as unread_count' => function ($query) use ($myId) {
                     $query->where('sender_id', '!=', $myId)
@@ -228,6 +231,11 @@ class MessageController extends Controller
                 }
             ])
             ->get()
+            ->map(function ($chat) use ($myId) {
+                $chat->last_visible_message = $chat->lastVisibleMessage($myId);
+                return $chat;
+            })
+
             ->sortByDesc(function ($chat) {
                 return $chat->lastMessage->created_at ?? $chat->created_at;
             });

@@ -30,4 +30,9 @@ class Message extends Model
     {
         return $this->belongsTo(Conversation::class);
     }
+    
+    public function deletedMessages()
+    {
+        return $this->hasMany(DeletedMessage::class);
+    }
 }

@@ -5,6 +5,7 @@ $partner = null;
 if ($chat->type === 'private') {
 $partner = $chat->participants->where('user_id', '!=', Auth::id())->first()?->user;
 }
+
 @endphp
 
 <a href="{{ route('chat_messages', $chat->id) }}"
@@ -37,12 +38,16 @@ $partner = $chat->participants->where('user_id', '!=', Auth::id())->first()?->us
                 @endif
             </div>
 
+            @php
+            $last = $chat->last_visible_message;
+            @endphp
+
             <p class="last-message">
-                @if($chat->lastMessage)
-                @if($chat->lastMessage->is_deleted)
+                @if($last)
+                @if($last->is_deleted)
                 <i class="text-muted">Tin nhắn đã được thu hồi</i>
                 @else
-                {{ Str::limit($chat->lastMessage->content, 30) }}
+                {{ Str::limit($last->content ?? '', 30) }}
                 @endif
                 @else
                 <span class="text-primary">Bắt đầu trò chuyện ngay</span>
