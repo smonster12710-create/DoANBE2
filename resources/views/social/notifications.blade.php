@@ -53,9 +53,9 @@
             <div class="noti-item d-flex align-items-center p-2 rounded-3 mb-1 transition-fast {{ $bgClass }}"
                 data-noti-id="{{ $noti->id }}">
 
-                {{-- SỬA CHỖ NÀY: Xóa chữ 'event' trong onclick đi nha Pro --}}
-                <a onclick="removeUnreadUI(this)" href="{{ route('notifications.read', $noti->id) }}"
-                    class="d-flex align-items-center flex-grow-1 text-decoration-none text-dark" style="min-width: 0;">
+                <a onclick="removeUnreadUI(this)" data-href="{{ route('notifications.read', $noti->id) }}"
+                    href="javascript:void(0);" class="d-flex align-items-center flex-grow-1 text-decoration-none text-dark"
+                    style="min-width: 0;">
 
                     {{-- Cục Avatar + Badge Icon --}}
                     <div class="position-relative me-3 flex-shrink-0">
@@ -86,8 +86,8 @@
 
                     {{-- MENU 3 CHẤM (Tùy chọn) --}}
                     <div class="dropdown">
-                        <button class="btn btn-sm btn-link text-muted text-decoration-none border-0 p-1 shadow-none"
-                            type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button class="btn btn-sm btn-link text-muted text-decoration-none border-0 p-1 shadow-none" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-ellipsis-h"></i>
                         </button>
 
