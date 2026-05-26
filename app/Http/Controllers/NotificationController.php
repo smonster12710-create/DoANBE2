@@ -1,35 +1,40 @@
 <?php
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
-
     public function index()
     {
-        // Lấy toàn bộ thông báo của người này
         $notifications = \App\Models\Notification::with('actor')
             ->where('user_id', auth()->id())
             ->latest()
             ->get();
 
-        // Trỏ tới một file view mới tên là notifications.blade.php
         return view('social.notifications', compact('notifications'));
     }
+
     public function getMyNotifications()
     {
         $userId = auth()->id();
+
         $notifications = \App\Models\Notification::with('actor')
-            ->with('user_id', $userId) // Lấy thông tin người thực hiện hành động
+            ->where('user_id', $userId) // Sửa with thành where
             ->latest()
             ->take(5)
             ->get();
-        $undereadCount = \App\Models\Notification::where('user_id', $userId)
+
+        // Tui sửa lại tên biến cho đúng chuẩn unreadCount (không có chữ e) cho đẹp
+        $unreadCount = \App\Models\Notification::where('user_id', $userId)
             ->where('is_read', 0)
             ->count();
-        return view('social.notifications', compact('notifications,undereadCount'));
+
+        // Sửa lại cú pháp compact
+        return view('social.notifications', compact('notifications', 'unreadCount'));
     }
-    // Trong NotificationController
+
     public function markAsRead()
     {
         \App\Models\Notification::where('user_id', auth()->id())
@@ -38,19 +43,42 @@ class NotificationController extends Controller
 
         return response()->json(['status' => 'success']);
     }
+
     public function readSingle($id)
     {
-        // 1. Tìm cái thông báo đó ra
-        $notification = \App\Models\Notification::findOrFail($id);
+        $notification = \App\Models\Notification::find($id);
 
-        // 2. Chỉ cho phép đúng chủ nhân của thông báo mới được đổi trạng thái
-        if ($notification->user_id == auth()->id()) {
-            $notification->update(['is_read' => 1]); // Chuyển thành Đã đọc
+        if (!$notification) {
+            return response()->json(['success' => false, 'message' => 'Thông báo không tồn tại!']);
         }
 
-        // 3. Chuyển hướng người dùng tới bài viết (reference_id) 
-        // Ví dụ route của Pro là /posts/123 thì viết vầy:
-        return redirect()->route('posts.show', $notification->reference_id);
+        // 1. KIỂM TRA BÀI POST (Chỉ check nếu thông báo này thuộc về bài viết)
+        if (in_array($notification->type, ['like_post', 'comment', 'mention'])) {
+            $post = \App\Models\Post::find($notification->reference_id);
+
+            // Nếu bài viết hổng còn tồn tại
+            if (!$post) {
+                // Dọn rác: Xóa luôn thông báo khỏi Database
+                $notification->delete();
+
+                // Báo về cho Frontend biết để bung Toast
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bài viết này không tồn tại hoặc đã bị xóa!'
+                ]);
+            }
+        }
+
+        // 2.  Đánh dấu đã đọc
+        if ($notification->user_id == auth()->id() && $notification->is_read == 0) {
+            $notification->update(['is_read' => 1]);
+        }
+
+        // 3. Trả về link chuyển trang
+        return response()->json([
+            'success' => true,
+            'redirect_url' => route('posts.show', $notification->reference_id)
+        ]);
     }
 
     public function markAsUnread($id)
