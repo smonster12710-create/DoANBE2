@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+    /*
+     * Hiển thị trang danh sách thông báo
+     */
     public function index()
     {
         $notifications = \App\Models\Notification::with('actor')
@@ -16,17 +19,19 @@ class NotificationController extends Controller
         return view('social.notifications', compact('notifications'));
     }
 
+    /**
+     * Lấy 5 thông báo mới nhất và đếm số lượng thông báo chưa đọc
+     */
     public function getMyNotifications()
     {
         $userId = auth()->id();
 
         $notifications = \App\Models\Notification::with('actor')
-            ->where('user_id', $userId) // Sửa with thành where
+            ->where('user_id', $userId)
             ->latest()
             ->take(5)
             ->get();
 
-        // Tui sửa lại tên biến cho đúng chuẩn unreadCount (không có chữ e) cho đẹp
         $unreadCount = \App\Models\Notification::where('user_id', $userId)
             ->where('is_read', 0)
             ->count();
@@ -34,6 +39,10 @@ class NotificationController extends Controller
         // Sửa lại cú pháp compact
         return view('social.notifications', compact('notifications', 'unreadCount'));
     }
+
+    /**
+     * Đánh dấu tất cả thông báo đã đọc
+     */
 
     public function markAsRead()
     {
@@ -44,6 +53,11 @@ class NotificationController extends Controller
         return response()->json(['status' => 'success']);
     }
 
+    /**
+     * Xử lý khi người dùng click vào một thông báo cụ thể
+     * - Kiểm tra nếu thông báo liên quan đến một bài viết đã bị xóa thì xóa luôn thông báo đó và trả về lỗi
+     * - Nếu không thì đánh dấu đã đọc và trả về URL để frontend chuyển hướng
+     */
     public function readSingle($id)
     {
         $notification = \App\Models\Notification::find($id);
@@ -52,35 +66,56 @@ class NotificationController extends Controller
             return response()->json(['success' => false, 'message' => 'Thông báo không tồn tại!']);
         }
 
-        // 1. KIỂM TRA BÀI POST (Chỉ check nếu thông báo này thuộc về bài viết)
-        if (in_array($notification->type, ['like_post', 'comment', 'mention'])) {
-            $post = \App\Models\Post::find($notification->reference_id);
-
-            // Nếu bài viết hổng còn tồn tại
-            if (!$post) {
-                // Dọn rác: Xóa luôn thông báo khỏi Database
-                $notification->delete();
-
-                // Báo về cho Frontend biết để bung Toast
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Bài viết này không tồn tại hoặc đã bị xóa!'
-                ]);
-            }
-        }
-
-        // 2.  Đánh dấu đã đọc
+        // Đánh dấu đã đọc
         if ($notification->user_id == auth()->id() && $notification->is_read == 0) {
             $notification->update(['is_read' => 1]);
         }
 
-        // 3. Trả về link chuyển trang
+        $redirectUrl = '';
+        $type = strtolower(trim($notification->type));
+
+        switch ($type) {
+            // ==========================================
+            // NHÓM BÀI VIẾT: Nhảy tới trang chi tiết bài viết
+            // ==========================================
+            case 'like_post':
+            case 'comment':
+            case 'mention':
+                $redirectUrl = route('posts.show', $notification->reference_id); // reference_id là ID bài viết
+                break;
+
+            // ==========================================
+            // NHÓM MỐI QUAN HỆ: Nhảy tới trang cá nhân (Profile)
+            // ==========================================
+            case 'follow':
+            case 'friend_request':
+                // reference_id lúc này đang lưu ID của thằng đi follow/gửi kết bạn
+                $actorUser = \App\Models\User::find($notification->reference_id);
+
+                if ($actorUser) {
+                    // Bẻ lái qua route cá nhân. 
+                    // Pro nhớ check xem cái tên route hiển thị profile bên Pro tên là gì nha (ví dụ: 'profile.show')
+                    // Vì hệ thống của Pro tìm user bằng username nên mình truyền $actorUser->username vô nghen!
+                    $redirectUrl = url('/profile/' . $actorUser->username);
+                } else {
+                    $redirectUrl = url('/'); // Nếu user đó xóa acc thì cho về trang chủ
+                }
+                break;
+
+            default:
+                $redirectUrl = url('/');
+        }
+
+        // Trả link về cho Frontend nó bẻ lái tự động
         return response()->json([
             'success' => true,
-            'redirect_url' => route('posts.show', $notification->reference_id)
+            'redirect_url' => $redirectUrl
         ]);
     }
 
+    /*
+    Đánh dấu chưa đọc cho thông báo
+    */
     public function markAsUnread($id)
     {
         $notification = \App\Models\Notification::find($id);
@@ -97,6 +132,9 @@ class NotificationController extends Controller
         return response()->json(['success' => false, 'message' => 'Lỗi quyền truy cập!']);
     }
 
+    /*
+    Xóa một thông báo cụ thể
+    */
     public function destroySingle($id)
     {
         $notification = \App\Models\Notification::find($id);

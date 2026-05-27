@@ -15,6 +15,8 @@ class CommentController extends Controller
 {
     public function store(Request $request, $postId, TextProcessorService $textProcessorService)
     {
+        // Tìm bài viết để lấy thông tin (nhất là ID chủ bài viết)
+        $post = Post::find($postId);
         // 1. Kiểm tra đăng nhập
         if (!Auth::check()) {
             if ($request->ajax() || $request->wantsJson()) {
@@ -33,43 +35,16 @@ class CommentController extends Controller
         $comment->content = $request->content;
         $comment->save();
 
-        // ====================================================================
-        //  BẮN THÔNG BÁO 
-        // ====================================================================
-        $post = Post::find($postId);
-        //Không tự báo cho mình nếu tự comment bài mình
-        if ($post && $post->user_id !== Auth::id()) {
-            Notification::create([
-                'user_id' => $post->user_id,      // Người nhận là chủ bài viết
-                'actor_id' => Auth::id(),         // Người comment (chính là mình)
-                'type' => 'comment',              // Loại thông báo: comment
-                'reference_id' => $postId,        // Gắn ID bài viết để mốt click vô nhảy cho lẹ
-                'is_read' => 0,                   // Chưa đọc
-            ]);
-        }
-        // ====================================================================
 
+        // ====================================================================
+        event(new \App\Events\PostComment(Auth::user(), $post, $comment));
+        // ====================================================================
         // LOGIC XỬ LÝ MENTION 
         $mentionedUsernames = $textProcessorService->getMentions($comment->content);
-
         if (!empty($mentionedUsernames)) {
-            // vào db lấy user có tên trong mảng này lên
-            $mentionedUsers = User::whereIn('username', $mentionedUsernames)->get();
-
-            //  thông báo cho từng người bị tag
-            foreach ($mentionedUsers as $user) {
-                // Không tự bắn thông báo cho chính mình
-                if ($user->id !== Auth::id()) {
-                    Notification::create([
-                        'user_id' => $user->id,
-                        'actor_id' => Auth::id(),
-                        'type' => 'mention',
-                        'reference_id' => $comment->post_id,
-                        'is_read' => 0,
-                    ]);
-                }
-            }
+            event(new \App\Events\PostMention(Auth::user(), $post, $mentionedUsernames));
         }
+        // ====================================================================
         
         if ($request->ajax() || $request->wantsJson()) {
             $user = Auth::user();
