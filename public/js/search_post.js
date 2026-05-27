@@ -66,8 +66,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
             posts.forEach(post => {
 
-                const preview = post.content
-                    ? post.content.substring(0, 45)
+                const cleanContent = post.content
+                    ? post.content.replace('[#LOCK_COMMENT#]', '')
+                    : '';
+
+                const preview = cleanContent
+                    ? cleanContent.substring(0, 45)
                     : 'Không có nội dung';
 
                 const avatar =

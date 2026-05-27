@@ -19,7 +19,7 @@ class PostController extends Controller
     {
         // Lấy bài viết kèm theo user, media và cả likes (để hiển thị số lượt like)
         $posts = Post::with(['user', 'media', 'likes'])
-            ->orderByDesc('is_pinned') // 🔥 ghim lên trước
+            // ->orderByDesc('is_pinned') // 🔥 XÓA HOẶC COMMENT DÒNG NÀY ĐI
             ->latest()
             ->get();
 
