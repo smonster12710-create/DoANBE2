@@ -86,5 +86,7 @@
 
     @foreach ($posts as $post)
     @include('partials.post_modals', ['post' => $post])
+
     @endforeach
+    <script src="/js/chat.js?v={{ time() }}"></script>
     @endsection

@@ -9,6 +9,7 @@ $partner = $chat->participants->where('user_id', '!=', Auth::id())->first()?->us
 @endphp
 
 <a href="{{ route('chat_messages', $chat->id) }}"
+    data-conversation-id="{{ $chat->id }}"
     class="message-item-link {{ (isset($conversation) && $conversation->id == $chat->id) || (request()->route('id') == $chat->id) ? 'active-chat' : '' }}">
     <div class="message-item">
 

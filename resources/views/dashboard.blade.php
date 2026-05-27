@@ -1,13 +1,13 @@
 @php
-    $user = Auth::user();
+$user = Auth::user();
 
-    $avatar = $user && $user->avatar_url
-        ? asset($user->avatar_url)
-        : asset('img/user/user.jpg');
-    $switchAccountIds = session('switch_accounts', []);
+$avatar = $user && $user->avatar_url
+? asset($user->avatar_url)
+: asset('img/user/user.jpg');
+$switchAccountIds = session('switch_accounts', []);
 
-    $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
-        ->where('role', '!=', 'admin')
+$switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
+->where('role', '!=', 'admin')
 ->get();@endphp
 <!DOCTYPE html>
 <html>
@@ -15,6 +15,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <script>
+        window.currentUserId = "{{ auth()->id() }}";
+        console.log("Blade đã ép ID vào window thành công:", window.currentUserId);
+    </script>
     <title>ESPACE</title>
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/dashbroad.css') }}" rel="stylesheet">
@@ -24,6 +29,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
         integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     @yield('styles')
     <style>
         .sidebar {
@@ -491,11 +497,11 @@
 
                                 {{-- Đếm thông báo chưa đọc --}}
                                 @php
-                                    $unreadCount = auth()->check()
-                                        ? \App\Models\Notification::where('user_id', auth()->id())
-                                            ->where('is_read', 0)
-                                            ->count()
-                                        : 0;
+                                $unreadCount = auth()->check()
+                                ? \App\Models\Notification::where('user_id', auth()->id())
+                                ->where('is_read', 0)
+                                ->count()
+                                : 0;
                                 @endphp
 
                                 {{-- Badge đỏ --}}
@@ -514,14 +520,14 @@
                     <div class="menu-item">
 
                         @php
-                            $isMessaging = request()->is('list_messages*') || request()->is('chat-messages*');
+                        $isMessaging = request()->is('list_messages*') || request()->is('chat-messages*');
 
-                            $unreadMessageCount = \App\Models\Message::where('is_read', 0)
-                                ->where('sender_id', '!=', auth()->id())
-                                ->whereHas('conversation.participants', function ($q) {
-                                    $q->where('user_id', auth()->id());
-                                })
-                                ->count();
+                        $unreadMessageCount = \App\Models\Message::where('is_read', 0)
+                        ->where('sender_id', '!=', auth()->id())
+                        ->whereHas('conversation.participants', function ($q) {
+                        $q->where('user_id', auth()->id());
+                        })
+                        ->count();
                         @endphp
 
 
@@ -694,7 +700,7 @@
 
                         </div>
 
-                        @endif 
+                        @endif
                         <a href="{{ route('profile') }}">Xem trang cá nhân</a>
                         <a href="#">Cài đặt và quyền riêng tư</a>
                         <a href="#">Trợ giúp và hỗ trợ</a>
@@ -756,7 +762,7 @@
 
 </body>
 @include('partials.toast')
-
+@vite(['resources/js/echo.js'])
 <script>
     function toggleAvatarMenu() {
         document.getElementById('avatarDropdown').classList.toggle('show');

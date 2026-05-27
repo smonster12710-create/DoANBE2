@@ -66,17 +66,17 @@ Route::middleware('auth')->group(function () {
     });
     // --- KHU VỰC QUẢN TRỊ ---
     Route::middleware(['admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
-        Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
-        Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
-        Route::get('/users/{id}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
-        Route::post('/users/{id}', [AdminUserController::class, 'update'])->name('users.update');
-        Route::post('/users/{id}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
-        Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
-    });
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+            Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
+            Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
+            Route::get('/users/{id}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+            Route::post('/users/{id}', [AdminUserController::class, 'update'])->name('users.update');
+            Route::post('/users/{id}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
+            Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+        });
 
     // --- MẠNG XÃ HỘI & POSTS ---
     Route::controller(PostController::class)->group(function () {
@@ -178,7 +178,10 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/messages/delete-for-me/{id}', 'deleteForMe');
 
-        Route::post('/messages/{conversation}/mark-read', 'markAsRead');
+        Route::post(
+            '/messages/{conversationId}/mark-read',
+            'markAsRead'
+        );
     });
     // ============================== THÔNG BÁO ================================
     Route::prefix('notifications')
@@ -200,6 +203,5 @@ Route::middleware('auth')->group(function () {
 
             // Gọi ra /notifications/{id} (name: notifications.destroy)
             Route::delete('/{id}', 'destroySingle')->name('destroy');
-
         });
 });
