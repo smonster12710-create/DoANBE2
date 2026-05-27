@@ -14,9 +14,10 @@
         @endforeach
     </div>
     @else
-    <div class="saved-empty">
-        Chưa có bài viết nào được lưu.
+    <div class="saved-empty-container">
+        <p class="saved-empty-text">Chưa có bài viết nào được lưu.</p>
     </div>
     @endif
 </div>
+@include('partials.post_modals', ['post' => $post])
 @endsection

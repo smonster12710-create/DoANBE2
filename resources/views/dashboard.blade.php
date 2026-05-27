@@ -1,13 +1,13 @@
 @php
-    $user = Auth::user();
+$user = Auth::user();
 
-    $avatar = $user && $user->avatar_url
-        ? asset($user->avatar_url)
-        : asset('img/user/user.jpg');
-    $switchAccountIds = session('switch_accounts', []);
+$avatar = $user && $user->avatar_url
+? asset($user->avatar_url)
+: asset('img/user/user.jpg');
+$switchAccountIds = session('switch_accounts', []);
 
-    $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
-        ->where('role', '!=', 'admin')
+$switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
+->where('role', '!=', 'admin')
 ->get();@endphp
 <!DOCTYPE html>
 <html>
@@ -491,17 +491,17 @@
 
                                 {{-- Đếm thông báo chưa đọc --}}
                                 @php
-                                    $unreadCount = auth()->check()
-                                        ? \App\Models\Notification::where('user_id', auth()->id())
-                                            ->where('is_read', 0)
-                                            ->count()
-                                        : 0;
+                                $unreadCount = auth()->check()
+                                ? \App\Models\Notification::where('user_id', auth()->id())
+                                ->where('is_read', 0)
+                                ->count()
+                                : 0;
                                 @endphp
 
                                 {{-- Badge đỏ --}}
                                 {{-- Sửa class thành ID để JS tìm cho chuẩn --}}
-                                <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                    style="font-size:10px; display: {{ $unreadCount > 0 ? 'inline-block' : 'none' }}">
+                                <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ $unreadCount > 0 ? 'd-inline-block' : 'd-none' }}"
+                                    style="font-size: 10px;">
                                     {{ $unreadCount }}
                                 </span>
                             </div>
@@ -514,14 +514,14 @@
                     <div class="menu-item">
 
                         @php
-                            $isMessaging = request()->is('list_messages*') || request()->is('chat-messages*');
+                        $isMessaging = request()->is('list_messages*') || request()->is('chat-messages*');
 
-                            $unreadMessageCount = \App\Models\Message::where('is_read', 0)
-                                ->where('sender_id', '!=', auth()->id())
-                                ->whereHas('conversation.participants', function ($q) {
-                                    $q->where('user_id', auth()->id());
-                                })
-                                ->count();
+                        $unreadMessageCount = \App\Models\Message::where('is_read', 0)
+                        ->where('sender_id', '!=', auth()->id())
+                        ->whereHas('conversation.participants', function ($q) {
+                        $q->where('user_id', auth()->id());
+                        })
+                        ->count();
                         @endphp
 
 
@@ -694,7 +694,7 @@
 
                         </div>
 
-                        @endif 
+                        @endif
                         <a href="{{ route('profile') }}">Xem trang cá nhân</a>
                         <a href="#">Cài đặt và quyền riêng tư</a>
                         <a href="#">Trợ giúp và hỗ trợ</a>

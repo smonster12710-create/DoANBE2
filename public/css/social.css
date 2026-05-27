@@ -3,123 +3,71 @@ body {
     font-family: Arial, sans-serif;
 }
 
-/* ===== PINTEREST LAYOUT ===== */
+/* ===== HỆ THỐNG LƯỚI CARD TỰ CO GIÃN ===== */
 .grid {
-    column-count: 4;
-    column-gap: 16px;
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: wrap;
+    /* Cho phép xuống hàng khi hết chỗ */
+    gap: 24px;
+    /* Khoảng cách giữa các bài viết */
     padding: 20px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-
-    align-items: start;
-    /* 🔥 FIX */
-}
-
-/* 🔥 FIX CHÍNH */
-.card {
-
-    display: inline-block;
-    /* bắt buộc */
-
     width: 100%;
-    break-inside: avoid;
-    margin-bottom: 16px;
-
-    background: #fff;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* hover nhẹ */
-.card:hover {
-    transform: translateY(-4px);
-    transition: 0.2s;
-}
-
-/* ===== HEADER ===== */
-.card-header {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-}
-
-.avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-.info {
-    flex: 1;
-}
-
-.name {
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.time {
-    font-size: 12px;
-    color: gray;
-    display: block;
-}
-
-.more {
-    font-size: 20px;
-    cursor: pointer;
-}
-
-/* ===== TEXT ===== */
-.card-text {
-    padding: 0 10px 10px;
-    font-size: 14px;
-}
-
-/* ===== IMAGE ===== */
-.card-img {
-    width: 100%;
-    height: auto;
-    display: block;
-}
-
-/* ===== ACTIONS ===== */
-.card-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    font-size: 14px;
-    flex-wrap: nowrap;
-}
-
-.card-actions span {
-    cursor: pointer;
-}
-
-.share {
-    margin-left: auto;
-}
-
-/* Layout lưới */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    padding: 20px;
+    box-sizing: border-box;
+    justify-content: center;
+    /* Căn toàn bộ hàng ra giữa màn hình */
 }
 
 /* Card bài viết */
-.card {
+.card.post-clickable {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    /* 🔥 Tự nở rộng ra để lấp đầy khoảng trống bên phải */
+
+    /* Mặc định tính toán kích thước chia 2 hoặc 3 cột tùy độ rộng màn hình */
+    width: calc(33.333% - 24px) !important;
+    min-width: 400px;
+    /* 🔥 Tăng chiều ngang tối thiểu lên hẳn 400px cho to rộng */
+    max-width: 550px;
+    /* 🔥 Khống chế độ rộng tối đa để 1 card đơn lẻ không bị dãn quá dài */
+
     background: white;
-    border-radius: 12px;
-    border: 1px solid #ddd;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
     overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
+/* Responsive mượt mà cho thiết bị di động */
+@media (max-width: 768px) {
+    .grid {
+        padding: 10px;
+        gap: 16px;
+    }
+
+    .card.post-clickable {
+        width: 100% !important;
+        min-width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* Đảm bảo text và các link bên trong co giãn theo card mới */
+.card-body,
+.card-text {
+    width: 100%;
+    word-break: break-word;
+}
+
+/* Hover mượt mà cho card */
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== HEADER ===== */
 .card-header {
     display: flex;
     align-items: center;
@@ -137,6 +85,7 @@ body {
     margin-left: 10px;
     display: flex;
     flex-direction: column;
+    flex: 1;
 }
 
 .name {
@@ -149,28 +98,146 @@ body {
     color: #777;
 }
 
-.more {
-    margin-left: auto;
-    color: #999;
+.more-btn {
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    font-size: 24px;
     cursor: pointer;
+    padding: 0;
+    color: #999;
+    margin-left: auto;
 }
 
-/* Nội dung & Hình ảnh */
+/* ===== NỘI DUNG VÀ TEXT ===== */
 .card-text {
     padding: 0 15px 12px;
     font-size: 15px;
     line-height: 1.5;
-
 }
 
-.card-img {
+.card-text a {
+    color: #000000;
+    text-decoration: none;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+a.hashtag-link {
+    color: #1877f2 !important;
+    font-weight: 600 !important;
+    text-decoration: none;
+}
+
+a.hashtag-link:hover {
+    text-decoration: underline;
+    color: #166fe5 !important;
+}
+
+/* Cấu trúc phủ click lên toàn bộ card */
+.card-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.actions-container,
+.card-header .dropdown,
+.btn-action,
+.parent-fb-gallery,
+.fb-gallery,
+form {
+    position: relative;
+    z-index: 2;
+    /* Đảm bảo các nút và form tương tác nằm trên card-link */
+}
+
+/* ===== HỆ THỐNG GALLERY HÌNH ẢNH (Tự co giãn theo chiều dọc giống Pinterest) ===== */
+.fb-gallery,
+.parent-fb-gallery {
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    margin-bottom: 12px;
+}
+
+.fb-gallery img,
+.parent-fb-gallery img {
     width: 100%;
     display: block;
+}
+
+/* 1 ảnh: Để chiều cao auto tự co giãn tự nhiên theo tỉ lệ ảnh gốc */
+.single-image img {
+    height: auto;
     max-height: 500px;
     object-fit: cover;
 }
 
-/* Actions */
+/* 2 ảnh */
+.two-images {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    height: 300px;
+    /* Hạ bớt chiều cao cố định để cân đối trong cột dọc */
+}
+
+.two-images img {
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 3 ảnh */
+.three-images {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2px;
+    height: 300px;
+}
+
+.three-images img {
+    height: 100%;
+    object-fit: cover;
+}
+
+.three-images .right {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 2px;
+}
+
+/* 4+ ảnh */
+.four-images {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 140px 140px;
+    gap: 2px;
+}
+
+.four-images img {
+    height: 100%;
+    object-fit: cover;
+}
+
+.img-box {
+    position: relative;
+}
+
+.overlay-more {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ===== ACTIONS TƯƠNG TÁC ===== */
 .actions-container {
     border-top: 1px solid #eee;
     padding: 10px 15px;
@@ -184,7 +251,7 @@ body {
 
 .left-actions {
     display: flex;
-    gap: 20px;
+    gap: 15px;
     align-items: center;
 }
 
@@ -204,18 +271,12 @@ body {
 }
 
 .icon-svg {
-    height: 24px;
-    width: 24px;
+    height: 22px;
+    width: 22px;
     color: #333;
 }
 
-.icon-share {
-    height: 20px;
-    width: 20px;
-    fill: #333;
-}
-
-/* Trạng thái đã LIKE */
+/* Các trạng thái Like, Pin, Save */
 .is-liked .icon-svg {
     fill: red;
     color: red !important;
@@ -229,6 +290,34 @@ body {
 .count-text {
     margin-left: 6px;
     font-weight: bold;
+    font-size: 13px;
+}
+
+.pin-btn {
+    color: #555;
+    transition: 0.2s;
+}
+
+.pin-btn.is-pinned {
+    color: #fbbf24;
+}
+
+.pin-btn:hover {
+    transform: scale(1.1);
+}
+
+.save-btn.saved {
+    color: #fc5421;
+}
+
+.btn-following {
+    color: #6c757d;
+    font-size: 13px;
+}
+
+.btn-follow {
+    color: #0095f6;
+    font-size: 13px;
 }
 
 /* Dòng người thích */
@@ -250,7 +339,7 @@ body {
     text-decoration: underline;
 }
 
-/* Loại bỏ hiệu ứng mặc định của nút dropdown */
+/* ===== BOOTSTRAP DROPDOWN & MODAL OPTIMIZATION ===== */
 .dropdown-toggle::after {
     display: none;
 }
@@ -270,100 +359,15 @@ body {
     min-width: 200px;
 }
 
-/* Xóa bỏ các hiệu ứng thừa của button trong dropdown/modal */
 .btn-close:focus {
     box-shadow: none !important;
 }
 
-.post-edit-image-container {
-    transition: all 0.3s ease;
-    border: 1px solid #e0e0e0 !important;
-}
-
-.post-edit-image-container:hover {
-    background-color: #f0f2f5;
-}
-
-/* Đảm bảo textarea mượt mà */
 textarea.form-control:focus {
     background-color: transparent;
 }
 
-.more-btn {
-    background: transparent;
-    border: none;
-    outline: none;
-    box-shadow: none;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 0;
-}
-
-.card-text a {
-    color: #000000;
-    /* xanh Facebook */
-    text-decoration: none;
-    /* bỏ gạch chân */
-    font-weight: 500;
-    word-break: break-word;
-    /* tránh tràn */
-}
-
-.card {
-    position: relative;
-}
-
-.card-link {
-    position: absolute;
-    inset: 0;
-    /* phủ toàn bộ card */
-    z-index: 1;
-}
-
-.actions-container,
-.card-header .dropdown,
-.btn-action,
-form {
-    position: relative;
-    z-index: 2;
-    /* cao hơn overlay */
-}
-
-/* PIN mặc định */
-.pin-btn {
-    color: #555;
-    transition: 0.2s;
-}
-
-/* Khi đã ghim */
-.pin-btn.is-pinned {
-    color: #fbbf24;
-    /* vàng */
-}
-
-/* Hover cho đẹp */
-.pin-btn:hover {
-    transform: scale(1.1);
-}
-
-/*  */
-a.hashtag-link {
-    color: #1877f2 !important;
-    font-weight: 600 !important;
-    text-decoration: none;
-}
-
-a.hashtag-link:hover {
-    text-decoration: underline;
-    color: #166fe5 !important;
-}
-
-.save-btn.saved {
-    color: #fc5421;
-}
-
 /* ===== IMAGE PREVIEW MODAL ===== */
-
 .image-preview-modal {
     background: rgba(0, 0, 0, 0.88);
     backdrop-filter: blur(3px);
@@ -373,7 +377,6 @@ a.hashtag-link:hover {
     position: relative;
     width: 100%;
     height: 100vh;
-
     display: flex;
     align-items: center;
     justify-content: center;
@@ -382,10 +385,8 @@ a.hashtag-link:hover {
 .preview-image-wrapper {
     max-width: 85%;
     max-height: 90vh;
-
     border-radius: 22px;
     overflow: hidden;
-
     box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
 }
 
@@ -396,22 +397,17 @@ a.hashtag-link:hover {
     display: block;
 }
 
-/* nút close */
 .preview-close {
     position: fixed;
     top: 20px;
     left: 20px;
-
     width: 52px;
     height: 52px;
-
     border: none;
     border-radius: 50%;
-
     background: rgba(255, 255, 255, .12);
     color: white;
     font-size: 28px;
-
     z-index: 9999;
     transition: .2s;
 }
@@ -426,84 +422,53 @@ a.hashtag-link:hover {
     text-decoration: none !important;
 }
 
-.post-user-link:hover {
-    color: #111 !important;
-    text-decoration: none !important;
+/* ===== RESPONSIVE TỰ ĐỘNG BUNG RỘNG ===== */
+@media (max-width: 1400px) {
+    .card {
+        /* Khi màn hình vừa, tự động đổi sang chia đôi (2 cột) để giữ chiều ngang to */
+        width: calc(50% - 12px) !important;
+    }
 }
 
-.post-user-link .name {
-    color: #111 !important;
-    text-decoration: none !important;
+@media (max-width: 992px) {
+    .card {
+        width: calc(50% - 12px) !important;
+    }
 }
 
-.btn-following {
-    color: #6c757d;
+@media (max-width: 768px) {
+    .grid {
+        padding: 12px;
+        gap: 16px;
+    }
+
+    .card {
+        /* Màn hình nhỏ: Bung toàn bộ 100% chiều ngang */
+        width: 100% !important;
+        min-width: 100%;
+    }
 }
 
-.btn-follow {
-    color: #0095f6;
+/* Đảm bảo khối dropdown-menu luôn nằm trên cùng tất cả các phần tử khác */
+.card-header .dropdown-menu {
+    z-index: 1050 !important;
+    position: absolute !important;
+    inset: auto 0px 0px auto !important;
+    transform: translate(0px, 65px) !important;
 }
 
-.fb-gallery {
-    border-radius: 12px;
-    overflow: hidden;
-    cursor: pointer;
-}
-
-.fb-gallery img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* 1 ảnh */
-.single-image img {
-    max-height: 500px;
-    width: 100%;
-}
-
-/* 2 ảnh */
-.two-images {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2px;
-    height: 400px;
-}
-
-/* 3 ảnh */
-.three-images {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2px;
-    height: 400px;
-}
-
-.three-images .right {
-    display: grid;
-    grid-template-rows: 1fr 1fr;
-    gap: 2px;
-}
-
-/* 4+ ảnh */
-.four-images {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 200px 200px;
-    gap: 2px;
-}
-
-.img-box {
-    position: relative;
-}
-
-.overlay-more {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    color: white;
-    font-size: 32px;
-    font-weight: bold;
+/* Giữ cho nút ba chấm có không gian click tốt và không bị méo */
+.more-btn {
+    width: 32px;
+    height: 32px;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.more-btn:hover {
+    background-color: #f0f0f0;
+    color: #333;
 }

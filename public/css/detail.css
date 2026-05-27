@@ -1,183 +1,178 @@
-/* ===== PAGE ===== */
 body {
-    background: #f0f2f5;
+    background: #e9e9e9;
     font-family: Arial, sans-serif;
 }
 
-/* ===== CONTAINER ===== */
-.detail-container {
-    max-width: 650px;
-    margin: 40px auto;
-    padding: 0 15px;
+/* ===== HỆ THỐNG LƯỚI CARD TỰ CO GIÃN ===== */
+.grid {
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: wrap;
+    /* Cho phép xuống hàng khi hết chỗ */
+    gap: 24px;
+    /* Khoảng cách giữa các bài viết */
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+    /* Căn toàn bộ hàng ra giữa màn hình */
 }
 
-/* ===== CARD ===== */
-.detail-card {
-    background: #fff;
-    border-radius: 18px;
+/* Card bài viết */
+.card.post-clickable {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    /* 🔥 Tự nở rộng ra để lấp đầy khoảng trống bên phải */
+
+    /* Mặc định tính toán kích thước chia 2 hoặc 3 cột tùy độ rộng màn hình */
+    width: calc(33.333% - 24px) !important;
+    min-width: 400px;
+    /* 🔥 Tăng chiều ngang tối thiểu lên hẳn 400px cho to rộng */
+    max-width: 550px;
+    /* 🔥 Khống chế độ rộng tối đa để 1 card đơn lẻ không bị dãn quá dài */
+
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
     overflow: hidden;
-    border: none;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Responsive mượt mà cho thiết bị di động */
+@media (max-width: 768px) {
+    .grid {
+        padding: 10px;
+        gap: 16px;
+    }
+
+    .card.post-clickable {
+        width: 100% !important;
+        min-width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* Đảm bảo text và các link bên trong co giãn theo card mới */
+.card-body,
+.card-text {
+    width: 100%;
+    word-break: break-word;
+}
+
+/* Hover mượt mà cho card */
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* ===== HEADER ===== */
-.detail-header {
+.card-header {
     display: flex;
     align-items: center;
-    padding: 16px;
+    padding: 12px 15px;
 }
 
-.detail-avatar {
-    width: 44px;
-    height: 44px;
+.avatar {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    margin-right: 12px;
-}
-
-.detail-name {
-    font-weight: 600;
-    font-size: 15px;
-}
-
-.detail-time {
-    font-size: 13px;
-    color: #888;
-}
-
-/* ===== TEXT ===== */
-.detail-text {
-    padding: 0 16px 14px;
-    font-size: 15px;
-    line-height: 1.6;
-}
-
-/* ===== IMAGE ===== */
-.detail-img {
-    width: 100%;
-    max-height: 550px;
     object-fit: cover;
-    transition: 0.3s;
 }
 
-.detail-img:hover {
-    filter: brightness(0.96);
+.info {
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
-/* ===== ACTION BAR ===== */
-.detail-actions {
-    padding: 10px 16px;
-    border-top: 1px solid #eee;
+.name {
+    font-weight: bold;
+    font-size: 14px;
 }
 
-/* Sử dụng chung logic nút với social.php */
-.btn-action {
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 8px;
-    border-radius: 8px;
-    transition: 0.2s;
-    color: #333;
+.time {
+    font-size: 12px;
+    color: #777;
 }
 
-.btn-action:hover {
-    background: #f2f2f2;
-}
-
-/* LIKE trạng thái đỏ */
-.text-danger,
-.detail-liked {
-    color: #e0245e !important;
-}
-
-/* NÚT LƯU (SAVE) */
-.save-btn.saved {
-    color: #fc5421;
-    /* Màu cam đỏ khi đã lưu */
-}
-
-/* NÚT GHIM (PIN) */
-.pin-btn {
-    color: #555;
-    transition: 0.2s;
-}
-
-.pin-btn.is-pinned {
-    color: #fbbf24;
-    /* Màu vàng khi đã ghim */
-}
-
-.pin-btn:hover {
-    transform: scale(1.1);
-}
-
-/* ===== DROPDOWN (Sửa/Xóa) ===== */
 .more-btn {
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
     font-size: 24px;
-    line-height: 1;
-    color: #888;
-    padding: 0 8px;
+    cursor: pointer;
+    padding: 0;
+    color: #999;
+    margin-left: auto;
 }
 
-.dropdown-menu {
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    border: 1px solid #eee;
+/* ===== NỘI DUNG VÀ TEXT ===== */
+.card-text {
+    padding: 0 15px 12px;
+    font-size: 15px;
+    line-height: 1.5;
 }
 
-.dropdown-item {
-    font-size: 14px;
-    padding: 8px 16px;
-}
-
-/* ===== LIKES ROW ===== */
-.detail-likers {
-    padding: 10px 16px 14px;
-    font-size: 14px;
-}
-
-.detail-likers a {
+.card-text a {
+    color: #000000;
     text-decoration: none;
     font-weight: 500;
-    color: #666;
+    word-break: break-word;
 }
 
-.detail-likers a:hover {
-    color: #1877f2;
+a.hashtag-link {
+    color: #1877f2 !important;
+    font-weight: 600 !important;
+    text-decoration: none;
+}
+
+a.hashtag-link:hover {
     text-decoration: underline;
+    color: #166fe5 !important;
 }
 
-/* ===== SVG ICONS ===== */
-.icon-svg {
-    width: 22px;
-    height: 22px;
+/* Cấu trúc phủ click lên toàn bộ card */
+.card-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
 }
 
-/* Hiệu ứng fill màu cho icon khi được active */
-button[type="submit"].text-danger svg,
-.detail-liked svg {
-    fill: currentColor;
+.actions-container,
+.card-header .dropdown,
+.btn-action,
+.parent-fb-gallery,
+.fb-gallery,
+form {
+    position: relative;
+    z-index: 2;
+    /* Đảm bảo các nút và form tương tác nằm trên card-link */
 }
 
-.fb-gallery {
-    overflow: hidden;
+/* ===== HỆ THỐNG GALLERY HÌNH ẢNH (Tự co giãn theo chiều dọc giống Pinterest) ===== */
+.fb-gallery,
+.parent-fb-gallery {
     border-radius: 12px;
+    overflow: hidden;
     cursor: pointer;
+    margin-bottom: 12px;
 }
 
-.fb-gallery img {
+.fb-gallery img,
+.parent-fb-gallery img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
     display: block;
 }
 
-/* 1 ảnh */
+/* 1 ảnh: Để chiều cao auto tự co giãn tự nhiên theo tỉ lệ ảnh gốc */
 .single-image img {
-    width: 100%;
+    height: auto;
     max-height: 500px;
+    object-fit: cover;
 }
 
 /* 2 ảnh */
@@ -185,7 +180,13 @@ button[type="submit"].text-danger svg,
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2px;
-    height: 420px;
+    height: 300px;
+    /* Hạ bớt chiều cao cố định để cân đối trong cột dọc */
+}
+
+.two-images img {
+    height: 100%;
+    object-fit: cover;
 }
 
 /* 3 ảnh */
@@ -193,7 +194,12 @@ button[type="submit"].text-danger svg,
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 2px;
-    height: 420px;
+    height: 300px;
+}
+
+.three-images img {
+    height: 100%;
+    object-fit: cover;
 }
 
 .three-images .right {
@@ -206,8 +212,13 @@ button[type="submit"].text-danger svg,
 .four-images {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 210px 210px;
+    grid-template-rows: 140px 140px;
     gap: 2px;
+}
+
+.four-images img {
+    height: 100%;
+    object-fit: cover;
 }
 
 .img-box {
@@ -217,18 +228,223 @@ button[type="submit"].text-danger svg,
 .overlay-more {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.55);
     color: white;
-    font-size: 34px;
+    font-size: 24px;
     font-weight: bold;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* modal image */
+/* ===== ACTIONS TƯƠNG TÁC ===== */
+.actions-container {
+    border-top: 1px solid #eee;
+    padding: 10px 15px;
+}
+
+.card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.left-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.btn-action {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    padding: 5px;
+    border-radius: 5px;
+    transition: background 0.2s;
+}
+
+.btn-action:hover {
+    background: #f0f0f0;
+}
+
+.icon-svg {
+    height: 22px;
+    width: 22px;
+    color: #333;
+}
+
+/* Các trạng thái Like, Pin, Save */
+.is-liked .icon-svg {
+    fill: red;
+    color: red !important;
+}
+
+.is-liked .like-count {
+    color: red;
+}
+
+.like-count,
+.count-text {
+    margin-left: 6px;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.pin-btn {
+    color: #555;
+    transition: 0.2s;
+}
+
+.pin-btn.is-pinned {
+    color: #fbbf24;
+}
+
+.pin-btn:hover {
+    transform: scale(1.1);
+}
+
+.save-btn.saved {
+    color: #fc5421;
+}
+
+.btn-following {
+    color: #6c757d;
+    font-size: 13px;
+}
+
+.btn-follow {
+    color: #0095f6;
+    font-size: 13px;
+}
+
+/* Dòng người thích */
+.likers-row {
+    margin-top: 8px;
+    border-top: 1px solid #f9f9f9;
+    padding-top: 5px;
+}
+
+.likers-link {
+    text-decoration: none;
+    color: #666;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.likers-link:hover {
+    color: #000;
+    text-decoration: underline;
+}
+
+/* ===== BOOTSTRAP DROPDOWN & MODAL OPTIMIZATION ===== */
+.dropdown-toggle::after {
+    display: none;
+}
+
+.dropdown-item {
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdown-menu {
+    border-radius: 10px;
+    min-width: 200px;
+}
+
+.btn-close:focus {
+    box-shadow: none !important;
+}
+
+textarea.form-control:focus {
+    background-color: transparent;
+}
+
+/* ===== IMAGE PREVIEW MODAL ===== */
+.image-preview-modal {
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(3px);
+}
+
+.preview-overlay {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-image-wrapper {
+    max-width: 85%;
+    max-height: 90vh;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+}
+
 .preview-image {
-    max-width: 95%;
-    max-height: 95vh;
+    width: 100%;
+    max-height: 90vh;
     object-fit: contain;
+    display: block;
+}
+
+.preview-close {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 52px;
+    height: 52px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .12);
+    color: white;
+    font-size: 28px;
+    z-index: 9999;
+    transition: .2s;
+}
+
+.preview-close:hover {
+    background: rgba(255, 255, 255, .22);
+    transform: scale(1.08);
+}
+
+.post-user-link {
+    color: #111 !important;
+    text-decoration: none !important;
+}
+
+/* ===== RESPONSIVE TỰ ĐỘNG BUNG RỘNG ===== */
+@media (max-width: 1400px) {
+    .card {
+        /* Khi màn hình vừa, tự động đổi sang chia đôi (2 cột) để giữ chiều ngang to */
+        width: calc(50% - 12px) !important;
+    }
+}
+
+@media (max-width: 992px) {
+    .card {
+        width: calc(50% - 12px) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .grid {
+        padding: 12px;
+        gap: 16px;
+    }
+
+    .card {
+        /* Màn hình nhỏ: Bung toàn bộ 100% chiều ngang */
+        width: 100% !important;
+        min-width: 100%;
+    }
 }
