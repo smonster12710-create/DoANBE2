@@ -23,6 +23,8 @@ class FriendController extends Controller
         // Nếu chưa có mối quan hệ gì thì mới cho gửi
         if ($me->getFriendshipStatus($target->id) === 'none') {
             $me->sentFriendRequests()->attach($target->id, ['status' => 'pending']);
+            // Giả sử $me là người gửi, $targetUser là người nhận lời mời
+            event(new \App\Events\FriendRequestSent($me, $target));
             return back()->with('success', 'Đã gửi lời mời kết bạn đến ' . $target->fullname);
         }
 

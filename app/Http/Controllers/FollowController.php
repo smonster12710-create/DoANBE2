@@ -24,10 +24,12 @@ class FollowController extends Controller
     if ($isFollowing) {
         // Nếu đang follow rồi thì XÓA (Bỏ theo dõi)
         $me->followings()->detach($userId);
+            event(new \App\Events\UserFollowed($me, $targetUser, false));
         return back()->with('success', 'Đã bỏ theo dõi ' . $targetUser->fullname);
     } else {
         // Nếu chưa follow thì THÊM (Theo dõi)
         $me->followings()->attach($userId);
+            event(new \App\Events\UserFollowed($me, $targetUser, true));
         return back()->with('success', 'Đã theo dõi thành công ' . $targetUser->fullname);
     }
 }
