@@ -15,6 +15,11 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
 <head>
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <script>
+        window.currentUserId = "{{ auth()->id() }}";
+        console.log("Blade đã ép ID vào window thành công:", window.currentUserId);
+    </script>
     <title>ESPACE</title>
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/dashbroad.css') }}" rel="stylesheet">
@@ -24,6 +29,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
         integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     @yield('styles')
     <style>
         .sidebar {
@@ -756,7 +762,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
 
 </body>
 @include('partials.toast')
-
+@vite(['resources/js/echo.js'])
 <script>
     function toggleAvatarMenu() {
         document.getElementById('avatarDropdown').classList.toggle('show');
