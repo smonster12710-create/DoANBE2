@@ -284,14 +284,30 @@ document.addEventListener('click', function (e) {
             if (m !== menu) m.classList.remove('show');
         });
 
-        if (menu) menu.classList.toggle('show');
+        if (menu) {
+            menu.classList.toggle('show');
+
+            if (menu.classList.contains('show')) {
+                // Lấy tọa độ của nút 3 chấm
+                let rect = e.target.getBoundingClientRect();
+                
+                // Nếu nút nằm ở nửa dưới màn hình -> Ép menu bay lên trên
+                // Nếu nút nằm ở nửa trên màn hình -> Ép menu đổ xuống dưới
+                if (rect.top > (window.innerHeight / 2)) {
+                    menu.style.top = 'auto';
+                    menu.style.bottom = '36px'; // Bay lên
+                } else {
+                    menu.style.bottom = 'auto';
+                    menu.style.top = '36px';    // Đổ xuống
+                }
+            }
+        }
     } else {
         document.querySelectorAll('.message-menu').forEach(m => {
             m.classList.remove('show');
         });
     }
 });
-
 // =========================================================================
 // 8. THU HỒI TIN NHẮN
 // =========================================================================

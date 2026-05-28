@@ -288,7 +288,7 @@ body {
     position: absolute;
 
     right: 0;
-    bottom: 42px;
+
 
     min-width: 180px;
 
@@ -632,7 +632,7 @@ body {
 /* --- 5. HỘP THOẠI MENU (DROPDOWN) --- */
 .message-menu {
     position: absolute;
-    bottom: 36px;
+  
     /* Đẩy menu hiển thị phía trên nút 3 chấm một chút */
     min-width: 160px;
     background: white;
@@ -736,4 +736,469 @@ label[for="image-input"]:hover svg {
 label[for="image-input"]:active {
     transform: scale(0.95);
     /* Thu nhỏ nhẹ lại tạo cảm giác như nút bấm thật */
+}
+
+
+/* Khối bọc dùng để căn chỉnh 2 bên */
+.sidebar-header-actions {
+    display: flex;
+    align-items: center;
+    /* BẮT BUỘC: Giúp ô tìm kiếm và nút luôn thẳng hàng ở giữa */
+    justify-content: space-between;
+    gap: 12px;
+    /* Khoảng cách giữa ô tìm kiếm và nút */
+    padding: 15px 20px 10px 20px;
+    /* Căn chỉnh khoảng cách lề cho đẹp */
+}
+
+/* Đảm bảo ô tìm kiếm giãn hết cỡ */
+.sidebar-header-actions .search-box {
+    flex: 1;
+}
+
+/* Style lại nút tạo nhóm cho khớp chiều cao */
+.btn-create-group {
+    width: 40px;
+    height: 40px;
+    /* Tăng lên 40px hoặc chỉnh lại cho bằng chiều cao ô input của cậu */
+    display: flex;
+    align-items: center;
+    /* Căn giữa icon theo chiều dọc */
+    justify-content: center;
+    /* Căn giữa icon theo chiều ngang */
+    background-color: #f0f2f5;
+    color: #050505;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+
+    /* Xóa bỏ mọi margin mặc định nếu có */
+    margin: 0;
+}
+
+.btn-create-group:hover {
+    background-color: #e4e6eb;
+    color: #0084ff;
+}
+
+/* ========================================================
+   FIX LỆCH CHO THANH TÌM KIẾM VÀ NÚT TẠO NHÓM CHAT
+=========================================================== */
+
+/* Khối bọc dùng để căn chỉnh 2 bên */
+.sidebar-header-actions {
+    display: flex;
+    align-items: center;
+    /* Căn giữa chuẩn xác theo chiều dọc */
+    justify-content: space-between;
+    gap: 12px;
+    /* Khoảng cách giữa ô tìm kiếm và nút */
+    padding: 10px 0px;
+    /* Chỉnh lại padding trên dưới, trái phải cho cân đối */
+}
+
+/* KHỬ LỖI: Loại bỏ margin-bottom của .search-box khi nó nằm trong khối bọc này */
+.sidebar-header-actions .search-box {
+    flex: 1;
+    margin-bottom: 0 !important;
+    /* Triệt tiêu khoảng trống 20px gây lệch */
+}
+
+/* Style lại nút tạo nhóm cho khớp chiều cao */
+.btn-create-group {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f2f5;
+    color: #050505;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    margin: 0;
+}
+
+.btn-create-group:hover {
+    background-color: #e4e6eb;
+    color: #0084ff;
+}
+
+
+
+/* ==========================================
+   CSS ẨN MODAL MẶC ĐỊNH & HIỆU ỨNG HIỂN THỊ
+============================================= */
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Nền mờ tối */
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* ĐOẠN QUAN TRỌNG: Mặc định ẩn hoàn toàn */
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+/* 1. Div lớn bọc toàn bộ nội dung Modal */
+.custom-modal-content {
+    background: #fff;
+    width: 100%;
+    max-width: 450px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+
+    /* 🔥 THẦN CHÚ KHÓA CHẶT: Cấm tuyệt đối div lớn mọc thanh cuộn */
+    overflow: hidden !important;
+}
+
+/* 2. Phần thân chứa Step 1 và Step 2 bên trong */
+.custom-modal-body {
+    padding: 20px;
+
+    /* 🔥 THẦN CHÚ ẨN THANH CUỘN CHO CÁC TRÌNH DUYỆT CŨ/MỚI (CHROME, SAFARI, EDGE) */
+    overflow: hidden !important;
+    /* Không cho tràn */
+}
+
+/* 3. Khung chứa danh sách chọn thành viên (Nơi dễ gây tràn nhất ở bước 1) */
+.friends-select-list {
+    max-height: 240px;
+    /* Giới hạn độ cao vừa vặn */
+    overflow-y: auto;
+    /* Vẫn cho phép vuốt/cuộn bằng chuột hoặc tay trên điện thoại... */
+
+    /* 🔥 PHẦN QUAN TRỌNG: Giấu nhẹm thanh cuộn đi (Ẩn thị giác nhưng vẫn cuộn được) */
+    scrollbar-width: none;
+    /* Cho Firefox */
+    -ms-overflow-style: none;
+    /* Cho IE và Edge cũ */
+}
+
+/* Giấu thanh cuộn trên Chrome, Safari và các trình duyệt nền Chromium */
+.friends-select-list::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* Khi JavaScript thêm class .show vào thì mới hiện lên */
+.custom-modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Hiệu ứng trượt nhẹ hộp nội dung */
+.custom-modal-content {
+    background: #ffffff;
+    width: 450px;
+    max-width: 90%;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.custom-modal-overlay.show .custom-modal-content {
+    transform: translateY(0);
+}
+
+
+/* Nền đen mờ bao phủ toàn màn hình */
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Tạo lớp mờ */
+    z-index: 99999;
+    /* Đảm bảo nổi lên trên cùng tất cả mọi thứ */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Mặc định ẩn đi */
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+/* Kích hoạt hiển thị modal khi có class .show */
+.custom-modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Cấu trúc hộp thoại trắng nhỏ gọn */
+.custom-modal-content {
+    background: #ffffff;
+    width: 450px;
+    max-width: 90%;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    transform: translateY(-30px);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.custom-modal-overlay.show .custom-modal-content {
+    transform: translateY(0);
+}
+
+/* Header modal */
+.custom-modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.custom-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+}
+
+.btn-close-modal:hover {
+    color: #333;
+}
+
+
+
+
+/* Nội dung chứa form */
+.custom-modal-body {
+    padding: 20px;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.form-group-chat {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.form-group-chat label {
+    display: block;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #444;
+}
+
+.form-group-chat input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    outline: none;
+    box-sizing: border-box;
+    background: #f0f2f5;
+}
+
+/* Khống chế kích thước ảnh và hàng thành viên */
+
+/* ==========================================================================
+   KHU VỰC THÀNH VIÊN: DỌN DẸP SẠCH LỖI TRÙNG LẶP & ÉP CHECKBOX RA GÓC PHẢI
+   ========================================================================== */
+
+/* Khung viền xám bọc ngoài danh sách - Ép chiều rộng và ẩn cuộn ngang */
+.friends-select-list {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    max-height: 220px;
+    overflow-y: auto;
+    /* Hiện cuộn dọc khi đông thành viên */
+    overflow-x: hidden;
+    /* CẤM TUYỆT ĐỐI cuộn ngang */
+    background: #fff;
+    padding: 5px 0;
+    width: 100%;
+    /* 🔥 BẮT BUỘC: Nở rộng hết cỡ bằng form nhập tên nhóm */
+    box-sizing: border-box;
+}
+
+/* Từng hàng thành viên: Sử dụng position: relative để làm điểm tựa tuyệt đối */
+.friend-select-item {
+    display: flex !important;
+    align-items: center !important;
+    padding: 12px 15px !important;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    /* 🔥 GIM ĐỊNH VỊ CHO CHECKBOX */
+}
+
+.friend-select-item:hover {
+    background: #f9f9f9;
+}
+
+/* Avatar cố định bên trái */
+.friend-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    margin-right: 12px !important;
+    object-fit: cover !important;
+    flex-shrink: 0 !important;
+}
+
+/* Tên hiển thị tự nhiên bên cạnh avatar */
+.friend-name {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #333 !important;
+    text-align: left !important;
+    padding-right: 50px !important;
+    /* Tránh trường hợp tên quá dài đè lên checkbox */
+}
+
+/* 🔥 ÉP Ô CHECKBOX CHUI TỢT VÀO GÓC BÊN PHẢI TUYỆT ĐỐI */
+.friend-checkbox {
+    position: absolute !important;
+    right: 20px !important;
+    /* Cách lề phải khung xám đúng 20px */
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    /* Căn giữa chuẩn theo chiều dọc */
+    width: 18px !important;
+    height: 18px !important;
+    cursor: pointer !important;
+    margin: 0 !important;
+    /* Xóa bỏ hoàn toàn margin thừa */
+    flex-shrink: 0 !important;
+}
+
+/* Khung bọc từng dòng thành viên */
+.friend-select-item {
+    display: flex;
+    align-items: center;
+    /* 🔥 Thần chú đẩy các phần tử giãn cách tối đa ra 2 đầu */
+    justify-content: space-between;
+    padding: 10px 15px;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.friend-select-item:hover {
+    background: #f9f9f9;
+}
+
+/* Avatar cố định bên trái */
+.friend-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    margin-right: 12px !important;
+    object-fit: cover !important;
+    flex-shrink: 0;
+}
+
+/* Tên hiển thị tự nhiên */
+.friend-name {
+    flex: 1;
+    font-size: 14px;
+    color: #333;
+    text-align: left;
+}
+
+/* 🔥 Checkbox bị ép dạt hẳn sang bên phải */
+.friend-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin-left: auto;
+    /* Tự động tạo khoảng trống tối đa bên trái để đẩy mình sang phải */
+    flex-shrink: 0;
+}
+
+/* FIX LỖI ẢNH TO ĐÙNG: Ép ảnh về kích thước avatar chuẩn */
+.friend-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    margin-right: 12px !important;
+    object-fit: cover !important;
+}
+
+.friend-name {
+    flex: 1;
+    font-size: 14px;
+    color: #333;
+    text-align: left;
+}
+
+.friend-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    right: 0%;
+}
+
+/* Footer chứa nút bấm */
+.custom-modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: #fafafa;
+}
+
+.btn-chat-secondary {
+    padding: 8px 16px;
+    background: #e4e6eb;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #4b4b4b;
+}
+
+.btn-chat-primary {
+    padding: 8px 16px;
+    background: #0084ff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-chat-primary:hover {
+    background: #006bde;
 }
