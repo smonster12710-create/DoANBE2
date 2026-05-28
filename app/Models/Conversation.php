@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Auth;
 
 class Conversation extends Model
@@ -16,9 +17,10 @@ class Conversation extends Model
     ];
 
     // Danh sách thành viên
-    public function participants(): HasMany
+    public function participants(): BelongsToMany
     {
-        return $this->hasMany(ConversationParticipant::class, 'conversation_id');
+        return $this->belongsToMany(User::class, 'conversation_participants', 'conversation_id', 'user_id')
+            ->withPivot('role', 'joined_at');
     }
 
     // Tin nhắn
@@ -34,25 +36,29 @@ class Conversation extends Model
             ->latestOfMany();
     }
 
-    // Người chat cùng
+    // Người chat cùng (Ép kiểu dữ liệu để lọc chính xác tuyệt đối)
     public function getPartnerAttribute()
     {
-        $myId = Auth::id();
+        $myId = (int) Auth::id(); // Ép ID của mình về kiểu Số nguyên
 
-        $participant = $this->participants()
-            ->where('user_id', '!=', $myId)
-            ->with('user')
+        // Dùng filter để ép kiểu ID của từng member về Số nguyên trước khi so sánh
+        return $this->participants
+            ->filter(function ($user) use ($myId) {
+                return (int) $user->id !== $myId;
+            })
             ->first();
-
-        return $participant?->user;
     }
 
     // Kiểm tra user thuộc conversation
     public function hasParticipant($userId): bool
     {
-        return $this->participants()
-            ->where('user_id', $userId)
-            ->exists();
+        $targetId = (int) $userId; // Ép ID cần kiểm tra về kiểu Số nguyên
+
+        return $this->participants
+            ->filter(function ($user) use ($targetId) {
+                return (int) $user->id === $targetId;
+            })
+            ->isNotEmpty();
     }
     // Lấy tin nhắn cuối cùng mà user này có thể thấy (chưa xoá)
     public function lastVisibleMessage($userId)

@@ -10,6 +10,9 @@ use App\Models\Message;
 use App\Models\DeletedMessage;
 use App\Events\MessageSent; // Import sự kiện (Event) để kích hoạt trạm phát real-time
 use App\Events\ChatReadStatusUpdated;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+
 
 class MessageController extends Controller
 {
@@ -24,7 +27,7 @@ class MessageController extends Controller
         $conversations = Conversation::whereHas('participants', function ($query) use ($myId) {
             $query->where('user_id', $myId);
         })
-            ->with(['participants.user']) // Tải trước thông tin thành viên tránh lỗi N+1
+            ->with(['participants']) // ĐÃ SỬA: Bỏ `.user` vì bản thân participants đã chứa thông tin User
             ->withCount([
                 // Đếm số lượng tin nhắn chưa đọc từ người khác gửi tới (Đã loại trừ tin nhắn đã xóa 1 chiều)
                 'messages as unread_count' => function ($query) use ($myId) {
@@ -70,7 +73,7 @@ class MessageController extends Controller
         $conversations = Conversation::whereHas('participants', function ($q) use ($myId) {
             $q->where('user_id', $myId);
         })
-            ->with(['participants.user'])
+            ->with(['participants']) // ĐÃ SỬA: Bỏ `.user`
             ->withCount([
                 'messages as unread_count' => function ($query) use ($myId) {
                     $query->where('sender_id', '!=', $myId)
@@ -96,7 +99,7 @@ class MessageController extends Controller
         $currentChat = Conversation::whereHas('participants', function ($q) use ($myId) {
             $q->where('user_id', $myId);
         })
-            ->with(['participants.user'])
+            ->with(['participants']) // ĐÃ SỬA: Bỏ `.user`
             ->where('id', $id)
             ->first();
 
@@ -123,8 +126,8 @@ class MessageController extends Controller
         // Nếu phòng chat mới tinh chưa ai nhắn gì, lấy đại diện thành viên khác trong phòng
         if (empty($senderIds)) {
             $senderIds = $currentChat->participants
-                ->where('user_id', '!=', $myId)
-                ->pluck('user_id')
+                ->where('id', '!=', $myId) // ĐÃ SỬA: participants giờ là tập hợp User nên check trực tiếp cột 'id'
+                ->pluck('id')
                 ->toArray();
         }
 
@@ -147,8 +150,7 @@ class MessageController extends Controller
         // 5. Xác định đối phương chat cùng (chỉ áp dụng nếu là chat cá nhân 1-1)
         $activePartner = null;
         if ($currentChat->type === 'private') {
-            $activeParticipant = $currentChat->participants->where('user_id', '!=', $myId)->first();
-            $activePartner = $activeParticipant?->user;
+            $activePartner = $currentChat->partner; // ĐÃ SỬA: Gọi trực tiếp qua thuộc tính Partner hữu ích cậu viết ở Model
         }
 
         // Trả dữ liệu ra màn hình chat chính thức
@@ -205,9 +207,9 @@ class MessageController extends Controller
         // lấy người nhận
         $receiverIds = $conversation
             ->participants
-            ->where('user_id', '!=', Auth::id())
+            ->where('id', '!=', Auth::id()) // ĐÃ SỬA: Đối chiếu cột id trực tiếp của User
             ->values() // reset lại key sau khi lọc để đảm bảo không bị lỗi khi pluck
-            ->pluck('user_id')
+            ->pluck('id')
             ->toArray();
         $broadcastIds = array_merge($receiverIds, [Auth::id()]);
         broadcast(new MessageSent($message, $broadcastIds))->toOthers();
@@ -290,7 +292,7 @@ class MessageController extends Controller
         $message->is_deleted = 1;
         $message->save();
         $conversation = Conversation::with('participants')->find($message->conversation_id);
-        $broadcastIds = $conversation->participants->pluck('user_id')->toArray();
+        $broadcastIds = $conversation->participants->pluck('id')->toArray(); // ĐÃ SỬA: pluck('id') thay vì user_id
         broadcast(new MessageSent($message, $broadcastIds))->toOthers();
 
         return response()->json([
@@ -308,7 +310,7 @@ class MessageController extends Controller
         $conversations = Conversation::whereHas('participants', function ($query) use ($myId) {
             $query->where('user_id', $myId);
         })
-            ->with(['participants.user']) // Đã loại bỏ logic lấy bừa tin nhắn thô chưa lọc cũ
+            ->with(['participants']) // ĐÃ SỬA: Bỏ `.user`
             ->withCount([
                 'messages as unread_count' => function ($query) use ($myId) {
                     $query->where('sender_id', '!=', $myId)
@@ -340,12 +342,6 @@ class MessageController extends Controller
     /**
      * Xoá tin nhắn ở phía một mình tôi (Chèn ID vào bảng trung gian `deleted_messages`)
      */
-    /**
-     * Xoá tin nhắn ở phía một mình tôi (Chèn ID vào bảng trung gian `deleted_messages`)
-     */
-    /**
-     * Xoá tin nhắn ở phía một mình tôi (Chèn ID vào bảng trung gian `deleted_messages`)
-     */
     public function deleteForMe($id)
     {
         $myId = Auth::id();
@@ -359,7 +355,7 @@ class MessageController extends Controller
         if ($message) {
             $conversationId = $message->conversation_id;
 
-         
+
             $conversation = Conversation::find($conversationId);
 
             // Bốc ngay tin nhắn cuối cùng thực sự còn hiển thị sau khi đã xóa tin hiện tại
@@ -384,6 +380,7 @@ class MessageController extends Controller
             'success' => true
         ]);
     }
+
     /**
      * Định nghĩa mối quan hệ HasMany
      */
@@ -432,8 +429,8 @@ class MessageController extends Controller
             $conversation = Conversation::with('participants')->find($conversationId);
             if ($conversation) {
                 $senderIds = $conversation->participants
-                    ->where('user_id', '!=', $myId)
-                    ->pluck('user_id')
+                    ->where('id', '!=', $myId) // ĐÃ SỬA: lọc theo cột id trực tiếp
+                    ->pluck('id')
                     ->toArray();
             }
         }
@@ -467,5 +464,51 @@ class MessageController extends Controller
         return response()->json([
             'count' => (int)$count
         ]);
+    }
+
+    /**
+     * Tạo hoặc tìm kiếm cuộc trò chuyện khi click nút "Nhắn tin" từ Profile
+     */
+    public function startChat($username)
+    {
+        $receiver = User::where('username', $username)->firstOrFail();
+        $senderId = auth()->id();
+
+        // Khóa trường hợp tự nhắn tin cho chính mình
+        if ($receiver->id === $senderId) {
+            return redirect()->back()->with('error', 'Bạn không thể tự nhắn tin cho bản thân.');
+        }
+
+        // Tìm cuộc hội thoại 'private' mà CẢ HAI người cùng tham gia
+        $conversation = Conversation::where('type', 'private')
+            ->whereHas('participants', function ($query) use ($senderId) {
+                $query->where('user_id', $senderId);
+            })
+            ->whereHas('participants', function ($query) use ($receiver) {
+                $query->where('user_id', $receiver->id);
+            })
+            ->first();
+
+        // Nếu chưa từng chat (chưa có cuộc hội thoại private chung) thì tạo mới
+        if (!$conversation) {
+            $conversation = DB::transaction(function () use ($senderId, $receiver) {
+                // 1. Tạo phòng chat private
+                $newConversation = Conversation::create([
+                    'type' => 'private',
+                    'name' => null,
+                ]);
+
+                // 2. Thêm cả 2 user vào bảng conversation_participants
+                $newConversation->participants()->attach([
+                    $senderId => ['role' => 'member'],
+                    $receiver->id => ['role' => 'member']
+                ]);
+
+                return $newConversation;
+            });
+        }
+
+        // Chuyển hướng về trang chat với ID cuộc hội thoại vừa tìm được hoặc vừa tạo
+        return redirect()->route('chat_messages', $conversation->id);
     }
 }

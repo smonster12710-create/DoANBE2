@@ -1,11 +1,13 @@
 @foreach($conversations as $chat)
 @php
-// Xác định partner để hiển thị avatar/tên (giống logic show của cậu)
+// XỬ LÝ CHUẨN: Lọc đối phương trên Collection dữ liệu User đã được nạp sẵn
 $partner = null;
 if ($chat->type === 'private') {
-$partner = $chat->participants->where('user_id', '!=', Auth::id())->first()?->user;
+$myId = (int) Auth::id();
+$partner = $chat->participants->filter(function ($user) use ($myId) {
+return (int) $user->id !== $myId;
+})->first();
 }
-
 @endphp
 
 <a href="{{ route('chat_messages', $chat->id) }}"
@@ -38,7 +40,11 @@ $partner = $chat->participants->where('user_id', '!=', Auth::id())->first()?->us
                 </span>
                 @endif
             </div>
-
+            @php
+            $last = $chat->last_visible_message;
+            // Tạo tiền tố "Bạn: " nếu mình là người gửi tin nhắn cuối
+            $prefix = ($last && $last->sender_id == Auth::id()) ? 'Bạn: ' : '';
+            @endphp
             @php
             $last = $chat->last_visible_message;
             @endphp
@@ -47,8 +53,12 @@ $partner = $chat->participants->where('user_id', '!=', Auth::id())->first()?->us
                 @if($last)
                 @if($last->is_deleted)
                 <i class="text-muted">Tin nhắn đã được thu hồi</i>
+                @elseif(!empty($last->image_url))
+                <span class="text-muted">{{ $prefix }}📷 Đã gửi một ảnh</span>
+                @elseif(!empty($last->content))
+                {{ $prefix }}{{ Str::limit($last->content, 30) }}
                 @else
-                {{ Str::limit($last->content ?? '', 30) }}
+                <span class="text-muted">Tin nhắn trống</span>
                 @endif
                 @else
                 <span class="text-primary">Bắt đầu trò chuyện ngay</span>

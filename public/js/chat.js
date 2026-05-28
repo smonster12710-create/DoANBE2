@@ -465,3 +465,70 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+/// --- LOGIC EMOJI PICKER CHUẨN FACEBOOK MESSENGER ---
+document.addEventListener('DOMContentLoaded', function () {
+    const emojiTriggerBtn = document.getElementById('emoji-trigger-btn');
+    const emojiContainer = document.getElementById('emoji-picker-container');
+    const chatInput = document.getElementById('chat-input');
+
+    if (emojiTriggerBtn && emojiContainer && chatInput) {
+
+        // 1. Khởi tạo bảng chọn Emoji Picker từ thư viện Emoji Mart
+        const pickerOptions = {
+            // Sự kiện tự động kích hoạt ngay khi cậu click chọn 1 icon emoji trên bảng
+            onEmojiSelect: function (emoji) {
+                // Lấy vị trí hiện tại của con trỏ chuột trong ô nhập tin nhắn (để chèn đúng chỗ)
+                const startPos = chatInput.selectionStart; // Vị trí đầu con trỏ
+                const endPos = chatInput.selectionEnd;     // Vị trí cuối con trỏ (nếu có bôi đen chữ)
+                const text = chatInput.value;              // Toàn bộ nội dung chữ hiện tại trong ô chat
+
+                // Thực hiện cắt chuỗi và chèn icon emoji (.native) vào ngay giữa vị trí con trỏ chuột
+                chatInput.value = text.substring(0, startPos) + emoji.native + text.substring(endPos);
+
+                // Ép ô chat phải Focus (nhấp nháy con trỏ) để người dùng gõ tiếp tục được luôn
+                chatInput.focus();
+
+                // Đẩy con trỏ chuột đứng ngay sau cái icon Emoji vừa mới được chèn vào
+                chatInput.selectionStart = chatInput.selectionEnd = startPos + emoji.native.length;
+
+                // Kích hoạt (bắn) ra một sự kiện 'input' giả lập. 
+                // Mục đích: Để các hàm khác (như hàm đổi icon nút gửi 🚀 thành 👍) tự nhận diện là ô chat vừa có thay đổi để chạy theo.
+                chatInput.dispatchEvent(new Event('input'));
+            },
+            theme: 'light',   // Cấu hình giao diện nền sáng sạch sẽ cho bảng chọn
+            set: 'facebook',  // Định dạng hiển thị bộ icon mập mập tròn tròn giống hệt Facebook Messenger
+            locale: 'vi'      // Cấu hình ngôn ngữ tiếng Việt (cậu gõ tìm kiếm chữ "cười", "khóc" trên ô tìm kiếm sẽ ra icon tương ứng)
+        };
+        //Tạo instance của Emoji Picker với các cấu hình đã định nghĩa
+        const picker = new EmojiMart.Picker(pickerOptions);
+
+        // Gắn bảng chọn emoji vào đúng container đã định sẵn trong HTML
+        emojiContainer.appendChild(picker);
+
+        // 🔥 BIỆN PHÁP DỨT ĐIỂM: ÉP CSS TRỰC TIẾP VÀO THÀNH PHẦN PICKER ĐỂ CĂN GIỮA TUYỆT ĐỐI
+        // Bảng Emoji Mart rộng chính xác 352px. Để căn giữa nút 😊 (rộng 40px):
+        // Ta lùi ngược bảng về bên trái một khoảng = (352px - 40px) / 2 = 156px.
+
+        // --- ÉP BẢNG CHỌN DỊCH HẲN SANG BÊN TRÁI KHÔNG BỊ VĂNG ---
+
+        // 2. Click nút mặt cười -> Ẩn hoặc Hiện bảng chọn emoji
+        emojiTriggerBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (emojiContainer.style.display === 'none' || emojiContainer.style.display === '') {
+                emojiContainer.style.display = 'block';
+            } else {
+                emojiContainer.style.display = 'none';
+            }
+        });
+
+        // 3. Đóng bảng Emoji thông minh khi bấm chuột ra vùng trống bên ngoài
+        document.addEventListener('click', function (e) {
+            if (!emojiContainer.contains(e.target) && e.target !== emojiTriggerBtn) {
+                emojiContainer.style.display = 'none';
+            }
+        });
+    }
+});

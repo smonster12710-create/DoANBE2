@@ -181,43 +181,57 @@
         </div>
         <div id="image-preview-container"></div>
 
-        <form class="chat-input" enctype="multipart/form-data">
-            @csrf
+        <div style="position: relative; width: 100%;">
+            <div id="emoji-picker-container" style="position: absolute; bottom: 65px; right: 20px; display: none; z-index: 99999;"></div>
 
-            <input
-                type="hidden"
-                name="conversation_id"
-                value="{{ $conversation->id }}">
+            <form class="chat-input" enctype="multipart/form-data" style="position: relative; display: flex; align-items: center; gap: 10px; width: 100%;">
+                @csrf
 
-            <!-- nút thêm ảnh -->
-            <label
-                for="image-input"
-                style="background:none;border:none;font-size:20px;cursor:pointer; margin-top:5px">
-                <svg width="30" height="30" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
-                    <path fill="rgb(0, 0, 0)" d="M160 96C124.7 96 96 124.7 96 160L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 160C544 124.7 515.3 96 480 96L160 96zM224 176C250.5 176 272 197.5 272 224C272 250.5 250.5 272 224 272C197.5 272 176 250.5 176 224C176 197.5 197.5 176 224 176zM368 288C376.4 288 384.1 292.4 388.5 299.5L476.5 443.5C481 450.9 481.2 460.2 477 467.8C472.8 475.4 464.7 480 456 480L184 480C175.1 480 166.8 475 162.7 467.1C158.6 459.2 159.2 449.6 164.3 442.3L220.3 362.3C224.8 355.9 232.1 352.1 240 352.1C247.9 352.1 255.2 355.9 259.7 362.3L286.1 400.1L347.5 299.6C351.9 292.5 359.6 288.1 368 288.1z" />
-                </svg>
-            </label>
+                <input
+                    type="hidden"
+                    name="conversation_id"
+                    value="{{ $conversation->id }}">
 
-            <input
-                id="image-input"
-                name="image"
-                type="file"
-                accept="image/*"
-                hidden>
+                <label for="image-input">
+                    <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                        <path fill="rgb(0, 0, 0)" d="M160 96C124.7 96 96 124.7 96 160L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 160C544 124.7 515.3 96 480 96L160 96zM224 176C250.5 176 272 197.5 272 224C272 250.5 250.5 272 224 272C197.5 272 176 250.5 176 224C176 197.5 197.5 176 224 176zM368 288C376.4 288 384.1 292.4 388.5 299.5L476.5 443.5C481 450.9 481.2 460.2 477 467.8C472.8 475.4 464.7 480 456 480L184 480C175.1 480 166.8 475 162.7 467.1C158.6 459.2 159.2 449.6 164.3 442.3L220.3 362.3C224.8 355.9 232.1 352.1 240 352.1C247.9 352.1 255.2 355.9 259.7 362.3L286.1 400.1L347.5 299.6C351.9 292.5 359.6 288.1 368 288.1z" />
+                    </svg>
+                </label>
 
-            <input
-                name="content"
-                type="text"
-                placeholder="Aa">
+                <div class="emoji-wrapper-box" style="position: relative; display: flex; justify-content: center; align-items: center; width: 40px; height: 40px; flex-shrink: 0;">
+                    <button type="button" id="emoji-trigger-btn" style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+                        😊
+                    </button>
 
-            <button
-                type="submit"
-                style="background:none;border:none;font-size:20px;cursor:pointer;">
-                🚀
-            </button>
-        </form>
+                    <div id="emoji-picker-container" style="position: absolute; bottom: 55px; right: 0; left: auto !important; display: none; z-index: 99999;"></div>
+                </div>
+
+                <input
+                    id="image-input"
+                    name="image"
+                    type="file"
+                    accept="image/*"
+                    hidden>
+
+                <input
+                    id="chat-input"
+                    name="content"
+                    type="text"
+                    placeholder="Aa"
+                    autocomplete="off"
+                    style="flex: 1;">
+
+                <button
+                    type="submit"
+                    style="background:none;border:none;font-size:20px;cursor:pointer; display: flex; align-items: center; margin: 0;">
+                    🚀
+                </button>
+            </form>
+        </div>
     </div>
     <script src="/js/chat.js?v={{ time() }}"></script>
     <script src="/js/list_chat.js?v={{ time() }}"></script>
-    
+
+    <!-- Thêm thư viện emoji-mart từ CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js"></script>
     @endsection

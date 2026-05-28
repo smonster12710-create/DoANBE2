@@ -178,10 +178,9 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/messages/delete-for-me/{id}', 'deleteForMe');
 
-        Route::post(
-            '/messages/{conversationId}/mark-read',
-            'markAsRead'
-        );
+        Route::post('/messages/{conversationId}/mark-read','markAsRead');
+        
+        Route::get('/messages/start/{username}', 'startChat')->name('messages.start');
     });
     // ============================== THÔNG BÁO ================================
     Route::prefix('notifications')
