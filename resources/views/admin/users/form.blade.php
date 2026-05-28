@@ -5,11 +5,11 @@
 
 @include('partials.social_topbar')
 
-{{-- Trang them/sua user trong khu vuc quan tri --}}
+{{-- Trang thêm/sửa user trong khu vực quản trị --}}
 <div class="admin-page">
     <div class="admin-container">
 
-        {{-- Header: tieu de trang va nut quay lai danh sach --}}
+        {{-- Header: tiêu đề trang và nút quay lại danh sách --}}
         <div class="admin-header">
             <div>
                 <div class="admin-logo">ESPACE</div>
@@ -28,7 +28,7 @@
 
         <div class="admin-card">
 
-            {{-- Hien thi loi validate dau tien neu form submit khong hop le --}}
+            {{-- Hiển thị lỗi validate đầu tiên nếu form submit không hợp lệ --}}
             @if($errors->any())
                 <div class="admin-toast error">
                     {{ $errors->first() }}
@@ -41,8 +41,11 @@
                 class="admin-form"
             >
                 @csrf
+                @if($user->exists)
+                    <input type="hidden" name="updated_at_token" value="{{ optional($user->updated_at)->timestamp }}">
+                @endif
 
-                {{-- Nhom input thong tin tai khoan --}}
+                {{-- Nhóm input thông tin tài khoản --}}
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Họ tên</label>
@@ -71,19 +74,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Vai trò</label>
-                        <select name="role" required>
-                            <option value="user" {{ old('role', $user->role ?? 'user') == 'user' ? 'selected' : '' }}>
-                                Người dùng
-                            </option>
-
-                            <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>
-                                Admin
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
                         <label>Trạng thái</label>
                         <select name="is_active" required>
                             <option value="1" {{ old('is_active', $user->is_active ?? 1) == 1 ? 'selected' : '' }}>
@@ -97,7 +87,7 @@
                     </div>
                 </div>
 
-                {{-- Nut huy va nut submit form --}}
+                {{-- Nút hủy và nút submit form --}}
                 <div class="form-actions">
                     <a href="{{ route('admin.users.index') }}" class="admin-btn gray">
                         Hủy
