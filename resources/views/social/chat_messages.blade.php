@@ -23,12 +23,19 @@
 
     {{-- SIDEBAR --}}
     <div class="messages-sidebar">
-        <div class="search-box">
-            <input type="text" id="sidebar-search" placeholder="Tìm kiếm ....">
+        <div class="sidebar-header-actions">
+
+            <div class="search-box">
+                <input type="text" id="sidebar-search" placeholder="Tìm kiếm ....">
+            </div>
+
+            <button type="button" id="openCreateGroupModal" class="btn-create-group" title="Tạo nhóm chat">
+                <i class="fas fa-plus"></i>
+            </button>
+
         </div>
 
         <div class="scrollable-list">
-            {{-- Gọi file partial lúc load trang lần đầu --}}
             @include('partials.list_chat', ['conversations' => $conversations])
         </div>
     </div>
@@ -39,8 +46,13 @@
             <div class="header-info">
 
                 @if($conversation->type === 'group')
-                <img src="{{ $conversation->image_url ?? 'https://i.pravatar.cc/45' }}"
-                    style="width:45px;height:45px;border-radius:50%;">
+                @if(!empty($conversation->image_url))
+                <img src="{{ asset('storage/' . $conversation->image_url) }}"
+                    style="width:45px; height:45px; border-radius:50%; object-fit: cover;">
+                @else
+                <img src="https://ui-avatars.com/api/?name={{ urlencode($conversation->name ?? 'Nhóm') }}&background=0084ff&color=fff&size=100&bold=true"
+                    style="width:45px; height:45px; border-radius:50%;">
+                @endif
 
                 <div>
                     <h4 style="margin:0;">{{ $conversation->name ?? 'Nhóm chat' }}</h4>
@@ -229,6 +241,121 @@
             </form>
         </div>
     </div>
+
+    <div id="createGroupModal" class="custom-modal-overlay">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h3 id="modal-group-title">Tạo nhóm chat mới</h3>
+                <button type="button" id="closeCreateGroupModal" class="btn-close-modal">&times;</button>
+            </div>
+
+            <form id="formCreateGroup" enctype="multipart/form-data">
+                @csrf
+
+                <div id="group-step-1" class="custom-modal-body">
+                    <div class="form-group-chat">
+                        <label for="modal-search-friends">Tìm kiếm thành viên</label>
+                        <input type="text" id="modal-search-friends" placeholder="Nhập tên người dùng để tìm nhanh..." autocomplete="off">
+                    </div>
+
+                    <div class="form-group-chat" style="margin-top: 15px;">
+                        <label>Chọn thành viên muốn thêm</label>
+                        <div class="friends-select-list">
+                            @if(isset($friends) && $friends->count() > 0)
+                            @foreach($friends as $friend)
+                            <label class="friend-select-item">
+                                <img src="{{ $friend->avatar_url ?? 'https://i.pravatar.cc/40' }}" class="friend-avatar">
+                                <span class="friend-name">{{ $friend->fullname ?? $friend->username }}</span>
+                                <input type="checkbox" name="user_ids[]" value="{{ $friend->id }}" class="friend-checkbox">
+                            </label>
+                            @endforeach
+                            @else
+                            <p style="padding: 15px; text-align: center; color: #999; font-size: 14px;">
+                                Không có người dùng nào khả dụng.
+                            </p>
+                            @endif
+
+                            <p id="search-empty-message" style="display: none; padding: 15px; text-align: center; color: #ff4d4f; font-size: 14px; margin: 0;">
+                                Không tìm thấy thành viên nào phù hợp!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="group-step-2" class="custom-modal-body" style="display: none;">
+                    <div class="form-group-chat" style="text-align: center;">
+                        <label>Ảnh đại diện nhóm</label>
+                        <div style="position: relative; display: inline-block; margin: 10px auto;">
+                            <img id="group-avatar-preview" src="https://ui-avatars.com/api/?name=Group&background=0084ff&color=fff&size=100"
+                                style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #0084ff;">
+                            <label for="group_avatar" style="position: absolute; bottom: 0; right: 0; background: #0084ff; color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; margin: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                                <i class="fas fa-camera" style="font-size: 14px;"></i>
+                            </label>
+                            <input type="file" id="group_avatar" name="group_avatar" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+
+                    <div class="form-group-chat">
+                        <label for="group_name">Tên nhóm chat</label>
+                        <input type="text" id="group_name" name="group_name" placeholder="Nhập tên nhóm của cậu...">
+                    </div>
+                </div>
+
+                <div class="custom-modal-footer">
+                    <button type="button" id="btnCancelModal" class="btn-chat-secondary">Hủy</button>
+                    <button type="button" id="btnNextStep" class="btn-chat-primary">Tiếp theo</button>
+
+                    <button type="button" id="btnBackStep" class="btn-chat-secondary" style="display: none;">Quay lại</button>
+                    <button type="submit" id="btnSubmitGroup" class="btn-chat-primary" style="display: none;">Tạo nhóm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="toast-container" style="position: fixed; bottom: 25px; right: 25px; z-index: 100000; display: flex; flex-direction: column-reverse; gap: 10px;"></div>
+
+    <style>
+        /* CSS cho từng hộp thông báo */
+        .custom-toast {
+            background: #333;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 250px;
+
+            /* Hiệu ứng trượt từ phải qua trái */
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s;
+            opacity: 0;
+        }
+
+        /* Trạng thái hiển thị */
+        .custom-toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        /* Các màu sắc định dạng theo loại thông báo */
+        .custom-toast.toast-error {
+            background: #ff4d4f;
+            /* Màu đỏ cho lỗi vặt */
+        }
+
+        .custom-toast.toast-success {
+            background: #52c41a;
+            /* Màu xanh lá cho thành công */
+        }
+
+        .custom-toast.toast-warning {
+            background: #faad14;
+            /* Màu vàng cảnh báo */
+        }
+    </style>
     <script src="/js/chat.js?v={{ time() }}"></script>
     <script src="/js/list_chat.js?v={{ time() }}"></script>
 

@@ -181,6 +181,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/messages/{conversationId}/mark-read','markAsRead');
         
         Route::get('/messages/start/{username}', 'startChat')->name('messages.start');
+
+        Route::post('/chat/group/create', 'createGroup')->name('chat.group.create');
     });
     // ============================== THÔNG BÁO ================================
     Route::prefix('notifications')

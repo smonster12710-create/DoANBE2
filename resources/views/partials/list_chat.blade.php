@@ -17,7 +17,11 @@ return (int) $user->id !== $myId;
 
         <div class="avatar-wrapper">
             @if($chat->type === 'group')
-            <img src="{{ $chat->image_url ?? 'https://i.pravatar.cc/40' }}" class="chat-avatar">
+            @if(!empty($chat->image_url))
+            <img src="{{ asset('storage/' . $chat->image_url) }}" class="chat-avatar">
+            @else
+            <img src="https://ui-avatars.com/api/?name={{ urlencode($chat->name) }}&background=0084ff&color=fff&size=100&bold=true" class="chat-avatar">
+            @endif
             @else
             <img src="{{ $partner?->avatar_url ?? 'https://i.pravatar.cc/40' }}" class="chat-avatar">
             @endif

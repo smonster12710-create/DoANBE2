@@ -51,6 +51,7 @@ class MessageController extends Controller
             ->values(); // Reset lại các key của mảng sau khi sắp xếp
 
         // Lấy các bài viết (bản tin mạng xã hội) hiển thị kèm theo trang list tin nhắn
+        // Lấy các bài viết (bản tin mạng xã hội) hiển thị kèm theo trang list tin nhắn
         $posts = Post::with([
             'user',
             'media',
@@ -58,8 +59,40 @@ class MessageController extends Controller
             'comments'
         ])->latest()->get();
 
-        // Trả về view kèm bộ dữ liệu danh sách chat và bài viết
-        return view('social.list_messages', compact('conversations', 'posts'));
+        // 1. Lấy ID những người ĐÃ KẾT BẠN từ bảng friendships
+        $friendIds = DB::table('friendships')
+            ->where(function ($query) use ($myId) {
+                $query->where('user_id', $myId)->orWhere('friend_id', $myId);
+            })
+            ->where('status', 'accepted')
+            ->get()
+            ->map(function ($row) use ($myId) {
+                return $row->user_id == $myId ? $row->friend_id : $row->user_id;
+            })
+            ->toArray();
+
+        // 2. Lấy ID những người CHƯA KẾT BẠN NHƯNG ĐÃ TỪNG NHẮN TIN (từ các cuộc trò chuyện private)
+        $chattedUserIds = DB::table('conversation_participants')
+            ->whereIn('conversation_id', function ($q) use ($myId) {
+                // Lấy danh sách id các phòng chat private mà mình có tham gia
+                $q->select('conversation_id')
+                    ->from('conversation_participants')
+                    ->join('conversations', 'conversations.id', '=', 'conversation_participants.conversation_id')
+                    ->where('conversation_participants.user_id', $myId)
+                    ->where('conversations.type', 'private');
+            })
+            ->where('user_id', '!=', $myId) // Loại chính mình ra
+            ->pluck('user_id')
+            ->toArray();
+
+        // 3. Gộp 2 mảng ID lại, lọc bỏ các ID trùng nhau
+        $allValidUserIds = array_unique(array_merge($friendIds, $chattedUserIds));
+
+        // 4. Bốc thông tin User đổ vào biến $friends để gửi ra Modal
+        $friends = User::whereIn('id', $allValidUserIds)->get();
+
+        // Trả về view kèm bộ dữ liệu danh sách chat, bài viết và danh sách bạn bè
+        return view('social.list_messages', compact('conversations', 'posts', 'friends'));
     }
 
     /**
@@ -150,15 +183,43 @@ class MessageController extends Controller
         // 5. Xác định đối phương chat cùng (chỉ áp dụng nếu là chat cá nhân 1-1)
         $activePartner = null;
         if ($currentChat->type === 'private') {
-            $activePartner = $currentChat->partner; // ĐÃ SỬA: Gọi trực tiếp qua thuộc tính Partner hữu ích cậu viết ở Model
+            $activePartner = $currentChat->partner;
         }
+
+        // 🔥 CẬP NHẬT: Gộp cả Bạn bè + Người đã từng nhắn tin tại trang chi tiết chat
+        $friendIds = DB::table('friendships')
+            ->where(function ($query) use ($myId) {
+                $query->where('user_id', $myId)->orWhere('friend_id', $myId);
+            })
+            ->where('status', 'accepted')
+            ->get()
+            ->map(function ($row) use ($myId) {
+                return $row->user_id == $myId ? $row->friend_id : $row->user_id;
+            })
+            ->toArray();
+
+        $chattedUserIds = DB::table('conversation_participants')
+            ->whereIn('conversation_id', function ($q) use ($myId) {
+                $q->select('conversation_id')
+                    ->from('conversation_participants')
+                    ->join('conversations', 'conversations.id', '=', 'conversation_participants.conversation_id')
+                    ->where('conversation_participants.user_id', $myId)
+                    ->where('conversations.type', 'private');
+            })
+            ->where('user_id', '!=', $myId)
+            ->pluck('user_id')
+            ->toArray();
+
+        $allValidUserIds = array_unique(array_merge($friendIds, $chattedUserIds));
+        $friends = User::whereIn('id', $allValidUserIds)->get();
 
         // Trả dữ liệu ra màn hình chat chính thức
         return view('social.chat_messages', [
             'conversations' => $conversations,
             'messages'      => $messages,
             'activePartner' => $activePartner,
-            'conversation'  => $currentChat
+            'conversation'  => $currentChat,
+            'friends'       => $friends
         ]);
     }
 
@@ -510,5 +571,62 @@ class MessageController extends Controller
 
         // Chuyển hướng về trang chat với ID cuộc hội thoại vừa tìm được hoặc vừa tạo
         return redirect()->route('chat_messages', $conversation->id);
+    }
+    /**
+     * 🔥 HÀM XỬ LÝ TẠO NHÓM CHAT MỚI QUA AJAX
+     */
+    public function createGroup(Request $request)
+    {
+        $request->validate([
+            'group_name'   => 'required|string|max:255',
+            'user_ids'     => 'required|array|min:1',
+            'user_ids.*'   => 'exists:users,id',
+            'group_avatar' => 'nullable|image|max:2048',
+        ]);
+
+        $myId = auth()->id();
+
+        try {
+            $conversation = DB::transaction(function () use ($request, $myId) {
+
+                $avatarPath = null;
+                if ($request->hasFile('group_avatar')) {
+                    // Lưu ảnh đại diện nhóm vào thư mục group_avatars công khai
+                    $avatarPath = $request->file('group_avatar')->store('group_avatars', 'public');
+                }
+
+                // 🔥 ĐÃ ĐỒNG BỘ: Đổi tên key thành 'image_url' cho đúng tên cột DB của cậu
+                $newChat = Conversation::create([
+                    'type'      => 'group',
+                    'name'      => $request->group_name,
+                    'image_url' => $avatarPath,
+                ]);
+
+                $members = [];
+                $members[$myId] = ['role' => 'admin'];
+
+                foreach ($request->user_ids as $id) {
+                    if ($id != $myId) {
+                        $members[$id] = ['role' => 'member'];
+                    }
+                }
+
+                $newChat->participants()->attach($members);
+
+                return $newChat;
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tạo nhóm chat thành công! 🎉',
+                'room_id' => $conversation->id
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Lỗi tạo nhóm chat: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra trên máy chủ, cậu thử lại nhé!'
+            ], 500);
+        }
     }
 }
