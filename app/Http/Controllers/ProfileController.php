@@ -7,6 +7,7 @@ use App\Models\Post;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\UploadedFile;
 
 class ProfileController extends Controller
 {
@@ -222,16 +223,28 @@ class ProfileController extends Controller
         ]));
 
         // Xử lý Upload Avatar
+        // Xử lý upload avatar: ảnh sẽ được resize và nén trước khi lưu.
         if ($request->hasFile('avatar')) {
-            $avatarName = time() . '_avatar.' . $request->avatar->extension();
-            $request->avatar->move(public_path('uploads_profile/avatar'), $avatarName);
+            $avatarName = $this->saveCompressedProfileImage(
+                $request->file('avatar'),
+                public_path('uploads_profile/avatar'),
+                'avatar',
+                600,
+                82
+            );
             $user->avatar_url = 'uploads_profile/avatar/' . $avatarName;
         }
 
         // Xử lý Upload Cover
+        // Xử lý upload ảnh bìa: cover cần rộng hơn avatar nên cho phép tối đa 1600px chiều ngang.
         if ($request->hasFile('cover')) {
-            $coverName = time() . '_cover.' . $request->cover->extension();
-            $request->cover->move(public_path('uploads_profile/cover'), $coverName);
+            $coverName = $this->saveCompressedProfileImage(
+                $request->file('cover'),
+                public_path('uploads_profile/cover'),
+                'cover',
+                1600,
+                82
+            );
             $user->cover_url = 'uploads_profile/cover/' . $coverName;
         }
 
@@ -240,5 +253,85 @@ class ProfileController extends Controller
         // Quay lại trang cá nhân của chính mình sau khi update
         return redirect()->route('profile.show', ['username' => $user->username])
             ->with('success', 'Đã cập nhật profile thành công!');
+    }
+
+    /**
+     * Nén và resize ảnh profile trước khi lưu.
+     *
+     * Lý do cần hàm này:
+     * - Ảnh người dùng chọn có thể rất nặng, nếu lưu trực tiếp sẽ tốn dung lượng và tải chậm.
+     * - Ảnh avatar/cover không cần giữ kích thước gốc quá lớn để hiển thị trên web.
+     * - Hàm này chuyển JPG/PNG/WebP về JPG, resize theo chiều ngang tối đa và giảm chất lượng xuống mức hợp lý.
+     * - Nếu server không có GD hoặc ảnh không đọc được, hàm sẽ fallback về upload file gốc để tránh lỗi trang.
+     */
+    private function saveCompressedProfileImage(
+        UploadedFile $image,
+        string $destination,
+        string $prefix,
+        int $maxWidth,
+        int $quality = 82
+    ): string {
+        // Tạo thư mục lưu ảnh nếu thư mục chưa tồn tại.
+        if (!is_dir($destination)) {
+            mkdir($destination, 0755, true);
+        }
+
+        // Ảnh sau khi nén được lưu dưới dạng JPG để giảm dung lượng tốt hơn.
+        $fileName = time() . '_' . uniqid($prefix . '_', true) . '.jpg';
+        $targetPath = $destination . DIRECTORY_SEPARATOR . $fileName;
+
+        // Nếu PHP chưa bật extension GD thì không thể resize/nén ảnh, vì vậy lưu file gốc.
+        if (!function_exists('imagecreatetruecolor')) {
+            return $this->moveOriginalProfileImage($image, $destination, $prefix);
+        }
+
+        // Đọc kích thước và mime type của ảnh upload.
+        $info = @getimagesize($image->getRealPath());
+
+        if (!$info) {
+            return $this->moveOriginalProfileImage($image, $destination, $prefix);
+        }
+
+        [$width, $height] = $info;
+        $mime = $info['mime'] ?? '';
+
+        // Tạo source image theo đúng loại file đầu vào.
+        $source = match ($mime) {
+            'image/jpeg' => @imagecreatefromjpeg($image->getRealPath()),
+            'image/png' => @imagecreatefrompng($image->getRealPath()),
+            'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($image->getRealPath()) : false,
+            default => false,
+        };
+
+        if (!$source) {
+            return $this->moveOriginalProfileImage($image, $destination, $prefix);
+        }
+
+        // Nếu ảnh lớn hơn maxWidth thì thu nhỏ lại, nếu nhỏ hơn thì giữ nguyên kích thước.
+        $newWidth = min($width, $maxWidth);
+        $newHeight = (int) round($height * ($newWidth / $width));
+        $canvas = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Tô nền trắng để ảnh PNG trong suốt khi chuyển sang JPG không bị nền đen.
+        $white = imagecolorallocate($canvas, 255, 255, 255);
+        imagefill($canvas, 0, 0, $white);
+        imagecopyresampled($canvas, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        // Lưu ảnh JPG với quality được truyền vào, mặc định 82 là mức cân bằng giữa nét và nhẹ.
+        imagejpeg($canvas, $targetPath, $quality);
+
+        imagedestroy($source);
+        imagedestroy($canvas);
+
+        return $fileName;
+    }
+
+    private function moveOriginalProfileImage(UploadedFile $image, string $destination, string $prefix): string
+    {
+        // Hàm fallback: chỉ dùng khi không nén được ảnh, để tính năng upload vẫn hoạt động.
+        $fileName = time() . '_' . uniqid($prefix . '_', true) . '.' . $image->extension();
+        $image->move($destination, $fileName);
+
+        return $fileName;
     }
 }

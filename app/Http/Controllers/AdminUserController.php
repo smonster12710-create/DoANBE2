@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
+use function Laravel\Prompts\alert;
+
 class AdminUserController extends Controller
 {
     /**
@@ -18,6 +20,7 @@ class AdminUserController extends Controller
         $keyword = $request->keyword;
 
         $users = User::query()
+            ->where('role', 'user')
             ->when($keyword, function ($query) use ($keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('fullname', 'like', "%{$keyword}%")
@@ -47,20 +50,19 @@ class AdminUserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'fullname' => 'nullable|string|max:100',
-            'username' => 'required|string|max:100|unique:users,username',
+            'fullname' => 'nullable|string|max:30',
+            'username' => 'required|string|max:30|unique:users,username',
             'email' => 'required|email|max:100|unique:users,email',
             'password' => 'required|min:6',
-            'role' => 'required|in:admin,user',
             'is_active' => 'required|in:0,1',
-        ]);
+        ], $this->validationMessages());
 
         $user = new User();
 
         $user->fullname = $request->fullname;
         $user->username = $request->username;
         $user->email = $request->email;
-        $user->role = $request->role;
+        $user->role = 'user';
         $user->is_active = $request->is_active;
 
         if (Schema::hasColumn('users', 'password')) {
@@ -83,7 +85,13 @@ class AdminUserController extends Controller
      */
     public function edit($id)
     {
-        $user = User::findOrFail($id);
+        $user = $this->findManagedUser($id);
+
+        if (!$user) {
+            return redirect()
+                ->route('admin.users.index')
+                ->with('error', 'Dữ liệu đã thay đổi, vui lòng load lại trang.');
+        }
 
         return view('admin.users.form', compact('user'));
     }
@@ -94,21 +102,26 @@ class AdminUserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        $user = $this->findManagedUser($id);
+
+        if (!$user || $this->isStaleRequest($request, $user)) {
+            return redirect()
+                ->route('admin.users.index')
+                ->with('error', 'Dữ liệu đã thay đổi, vui lòng load lại trang.');
+        }
 
         $request->validate([
-            'fullname' => 'nullable|string|max:100',
-            'username' => 'required|string|max:100|unique:users,username,' . $user->id,
-            'email' => 'required|email|max:100|unique:users,email,' . $user->id,
-            'password' => 'nullable|min:6',
-            'role' => 'required|in:admin,user',
+            'fullname' => 'nullable|string|max:30',
+            'username' => 'required|string|max:30|unique:users,username,' . $user->id,
+            'email' => ['required', 'email', 'max:100', 'regex:/^[A-Za-z0-9._%+\-]+@gmail\.com$/i', 'unique:users,email,' . $user->id],
+            'password' => 'nullable|min:6|max:32',
             'is_active' => 'required|in:0,1',
-        ]);
+        ], $this->validationMessages());
 
         $user->fullname = $request->fullname;
         $user->username = $request->username;
         $user->email = $request->email;
-        $user->role = $request->role;
+        $user->role = 'user';
         $user->is_active = $request->is_active;
 
         if ($request->filled('password')) {
@@ -133,10 +146,10 @@ class AdminUserController extends Controller
      */
     public function toggleStatus($id)
     {
-        $user = User::findOrFail($id);
+        $user = $this->findManagedUser($id);
 
-        if ($user->id == auth()->id()) {
-            return back()->with('error', 'Bạn không thể khóa chính tài khoản của mình!');
+        if (!$user || $this->isStaleRequest(request(), $user)) {
+            return back()->with('error', 'Dữ liệu đã thay đổi, vui lòng load lại trang.');
         }
 
         $user->is_active = $user->is_active ? 0 : 1;
@@ -146,26 +159,60 @@ class AdminUserController extends Controller
     }
 
     /**
-     * Xoa tai khoan user thuong.
-     * Chan xoa tai khoan dang dang nhap va chan xoa tai khoan admin.
+     * Xoa tai khoan user thuong trong danh sach quan tri.
      */
     public function destroy($id)
     {
-        $user = User::findOrFail($id);
+        $user = $this->findManagedUser($id);
 
-        // Không cho admin xóa chính tài khoản đang đăng nhập
-        if ($user->id == auth()->id()) {
-            return back()->with('error', 'Bạn không thể xóa chính tài khoản của mình!');
+        if (!$user || $this->isStaleRequest(request(), $user)) {
+            return back()->with('error', 'Dữ liệu đã thay đổi, vui lòng load lại trang.');
         }
 
-        // Không cho xóa tài khoản admin
-        if ($user->role === 'admin') {
-            return back()->with('error', 'Không thể xóa tài khoản admin!');
-        }
-
-        // Xóa user thường
         $user->delete();
 
         return back()->with('success', 'Xóa người dùng thành công!');
+    }
+
+    /**
+     * Thông báo validate bằng tiếng Việt cho form quản trị user.
+     */
+    private function validationMessages()
+    {
+        return [
+            'email.regex' => 'Email phai la dia chi @gmail.com.',
+            'fullname.string' => 'Họ tên phải là chuỗi ký tự.',
+            'fullname.max' => 'Họ tên không được vượt quá 30 ký tự.',
+            'username.required' => 'Vui lòng nhập username.',
+            'username.string' => 'Username phải là chuỗi ký tự.',
+            'username.max' => 'Username không được vượt quá 30 ký tự.',
+            'username.unique' => 'Username này đã được sử dụng.',
+            'email.required' => 'Vui lòng nhập email.',
+            'email.email' => 'Email không đúng định dạng.',
+            'email.max' => 'Email không được vượt quá 100 ký tự.',
+            'email.unique' => 'Email này đã được sử dụng.',
+            'password.required' => 'Vui lòng nhập mật khẩu.',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự.',
+            'is_active.required' => 'Vui lòng chọn trạng thái.',
+            'is_active.in' => 'Trạng thái không hợp lệ.',
+        ];
+    }
+
+    /**
+     * Chi lay tai khoan user thuong trong khu vuc quan tri nguoi dung.
+     */
+    private function findManagedUser($id)
+    {
+        return User::where('role', 'user')->find($id);
+    }
+
+    /**
+     * Kiem tra form/action co dang thao tac tren du lieu cu hay khong.
+     */
+    private function isStaleRequest(Request $request, User $user)
+    {
+        $token = $request->input('updated_at_token');
+
+        return !$token || $token !== (string) optional($user->updated_at)->timestamp;
     }
 }

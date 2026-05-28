@@ -37,7 +37,7 @@ class CrudUserController extends Controller
     {
         // Trỏ tới file view dashboard của Pro 
         // (Tui đoán là Pro có file resources/views/dashboard.blade.php dựa theo cái file login lúc nãy)
-        return view('dashboard');
+        return view('social');
     }
 
     /**

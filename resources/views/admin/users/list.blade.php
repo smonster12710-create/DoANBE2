@@ -5,7 +5,7 @@
 
 @include('partials.social_topbar')
 
-{{-- Trang danh sach va quan ly user trong khu vuc admin --}}
+{{-- Trang danh sách và quản lý user trong khu vực admin --}}
 <div class="admin-page">
     <div class="admin-container">
 
@@ -63,7 +63,6 @@
                         <tr>
                             <th>Người dùng</th>
                             <th>Email</th>
-                            <th>Vai trò</th>
                             <th>Trạng thái</th>
                             <th>Ngày tạo</th>
                             <th class="text-right">Thao tác</th>
@@ -96,19 +95,6 @@
                                 {{-- EMAIL --}}
                                 <td>
                                     {{ $item->email }}
-                                </td>
-
-                                {{-- VAI TRÒ --}}
-                                <td>
-                                    @if($item->role == 'admin')
-                                        <span class="badge red">
-                                            Admin
-                                        </span>
-                                    @else
-                                        <span class="badge gray">
-                                            Người dùng
-                                        </span>
-                                    @endif
                                 </td>
 
                                 {{-- TRẠNG THÁI --}}
@@ -147,6 +133,7 @@
                                             action="{{ route('admin.users.toggleStatus', $item->id) }}"
                                         >
                                             @csrf
+                                            <input type="hidden" name="updated_at_token" value="{{ optional($item->updated_at)->timestamp }}">
 
                                             <button type="submit" class="small-btn lock">
                                                 {{ $item->is_active ? 'Khóa' : 'Mở khóa' }}
@@ -161,6 +148,7 @@
                                         >
                                             @csrf
                                             @method('DELETE')
+                                            <input type="hidden" name="updated_at_token" value="{{ optional($item->updated_at)->timestamp }}">
 
                                             <button type="submit" class="small-btn delete">
                                                 Xóa
@@ -172,7 +160,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="empty-row">
+                                <td colspan="5" class="empty-row">
                                     Không tìm thấy người dùng nào.
                                 </td>
                             </tr>
