@@ -113,7 +113,7 @@ class AdminUserController extends Controller
         $request->validate([
             'fullname' => 'nullable|string|max:30',
             'username' => 'required|string|max:30|unique:users,username,' . $user->id,
-            'email' => 'required|email|max:100|unique:users,email,' . $user->id,
+            'email' => ['required', 'email', 'max:100', 'regex:/^[A-Za-z0-9._%+\-]+@gmail\.com$/i', 'unique:users,email,' . $user->id],
             'password' => 'nullable|min:6|max:32',
             'is_active' => 'required|in:0,1',
         ], $this->validationMessages());
@@ -180,6 +180,7 @@ class AdminUserController extends Controller
     private function validationMessages()
     {
         return [
+            'email.regex' => 'Email phai la dia chi @gmail.com.',
             'fullname.string' => 'Họ tên phải là chuỗi ký tự.',
             'fullname.max' => 'Họ tên không được vượt quá 30 ký tự.',
             'username.required' => 'Vui lòng nhập username.',
