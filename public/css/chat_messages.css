@@ -152,7 +152,7 @@ body {
 /* Message bubbles */
 .message-wrapper {
     display: flex;
-    
+
     margin-bottom: 10px;
 }
 
@@ -335,39 +335,41 @@ body {
     color: #ffffff;
 }
 
-.chat-image{
+.chat-image {
     max-width: 220px;
     border-radius: 12px;
     display: block;
-  
+
     margin-bottom: 3px;
     padding: 0;
     border: none;
     outline: none;
     box-shadow: none;
 }
-.message-bubble:has(.chat-image):not(:has(.message-content)){
+
+.message-bubble:has(.chat-image):not(:has(.message-content)) {
     background: transparent !important;
     padding: 0 !important;
     border: none !important;
     box-shadow: none !important;
 }
-#image-preview-container{
+
+#image-preview-container {
     padding: 0 12px 8px;
 }
 
-.preview-wrapper{
+.preview-wrapper {
     position: relative;
     display: inline-block;
 }
 
-.preview-image{
+.preview-image {
     width: 120px;
     border-radius: 14px;
     object-fit: cover;
 }
 
-.remove-preview{
+.remove-preview {
     position: absolute;
     top: -8px;
     right: -8px;
@@ -377,6 +379,7 @@ body {
     border-radius: 50%;
     cursor: pointer;
 }
+
 .message-wrapper.them .message-recalled {
     background: #e4e6eb;
     color: #65676b;
@@ -523,6 +526,7 @@ body {
     font-size: 11px;
     color: #888;
 }
+
 /* --- 1. KHUNG WRAPPER CHÍNH (Đóng vai trò xếp dòng dọc) --- */
 .message-wrapper {
     display: flex;
@@ -532,18 +536,22 @@ body {
 }
 
 .message-wrapper.me {
-    align-items: flex-end; /* Căn toàn bộ cụm tin nhắn của mình sang phải */
+    align-items: flex-end;
+    /* Căn toàn bộ cụm tin nhắn của mình sang phải */
 }
 
 .message-wrapper.them {
-    align-items: flex-start; /* Căn toàn bộ cụm tin nhắn người ta sang trái */
+    align-items: flex-start;
+    /* Căn toàn bộ cụm tin nhắn người ta sang trái */
 }
 
 
 /* --- 2. KHỐI CONTAINER (Trọng tâm xử lý absolute cho nút dots) --- */
 .message-container {
-    position: relative; /* Tạo điểm neo gốc tọa độ cho .message-actions */
-    max-width: 70%;     /* Giới hạn độ rộng tối đa của vùng nội dung tin nhắn */
+    position: relative;
+    /* Tạo điểm neo gốc tọa độ cho .message-actions */
+    max-width: 70%;
+    /* Giới hạn độ rộng tối đa của vùng nội dung tin nhắn */
     display: flex;
     flex-direction: column;
 }
@@ -565,7 +573,8 @@ body {
     line-height: 1.4;
     word-wrap: break-word;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    overflow: visible; /* Để menu dropdown không bị cắt cụm */
+    overflow: visible;
+    /* Để menu dropdown không bị cắt cụm */
 }
 
 .message-wrapper.me .message-bubble {
@@ -579,7 +588,8 @@ body {
 }
 
 .chat-image {
-    max-width: 100%; /* Cho ảnh tự co giãn theo max-width của container */
+    max-width: 100%;
+    /* Cho ảnh tự co giãn theo max-width của container */
     width: 220px;
     border-radius: 12px;
     display: block;
@@ -591,8 +601,9 @@ body {
 .message-actions {
     position: absolute;
     top: 50%;
-    transform: translateY(-50%); /* Căn giữa hoàn hảo theo chiều dọc của container */
-    
+    transform: translateY(-50%);
+    /* Căn giữa hoàn hảo theo chiều dọc của container */
+
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.15s ease, visibility 0.15s ease;
@@ -621,13 +632,15 @@ body {
 /* --- 5. HỘP THOẠI MENU (DROPDOWN) --- */
 .message-menu {
     position: absolute;
-    bottom: 36px; /* Đẩy menu hiển thị phía trên nút 3 chấm một chút */
+    bottom: 36px;
+    /* Đẩy menu hiển thị phía trên nút 3 chấm một chút */
     min-width: 160px;
     background: white;
     border-radius: 12px;
     padding: 5px;
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
-    display: none; /* Bật/Tắt bằng class .show trong JS */
+    display: none;
+    /* Bật/Tắt bằng class .show trong JS */
     z-index: 999;
 }
 
@@ -656,4 +669,71 @@ body {
 .message-status {
     font-size: 11px;
     color: #888;
+}
+
+#emoji-trigger-btn {
+    transition: transform 0.1s ease;
+    outline: none;
+}
+
+#emoji-trigger-btn:hover {
+    transform: scale(1.2);
+    /* Phóng to nhẹ khi hover */
+}
+
+/* TỐI ƯU VỊ TRÍ VÀ HIỆN THỊ BẢNG CHỌN EMOJI */
+#emoji-picker-container em-emoji-picker {
+    border-radius: 15px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+    /* Đổ bóng sâu hơn nhìn nổi bật hẳn lên */
+    border: 1px solid #f0f0f0;
+}
+
+/* Đẩy khoảng cách hiển thị của bảng lên cao hơn một chút so với ô nhập liệu */
+#emoji-picker-container {
+    bottom: 55px !important;
+    /* Đẩy hẳn lên 55px để lộ toàn vẹn bảng không bị khuất chân */
+}
+
+/* Tùy chỉnh thẻ label bọc icon ảnh */
+label[for="image-input"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    /* Tạo form tròn xung quanh để làm hiệu ứng hover */
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    margin: 0;
+    flex-shrink: 0;
+    /* Ép không cho nút bị bóp méo khi ô chat dài ra */
+}
+
+/* Tùy chỉnh màu sắc mặc định của hình SVG bên trong */
+label[for="image-input"] svg {
+    fill: #65676b;
+    /* Màu xám nhẹ chuẩn Messenger */
+    transition: fill 0.2s ease;
+}
+
+/* --- HIỆU ỨNG KHI RÊ CHUỘT VÀO (HOVER) --- */
+label[for="image-input"]:hover {
+    background-color: #f0f2f5;
+    /* Hiện vòng tròn nền xám nhạt phía sau giống Mess */
+    transform: scale(1.05);
+    /* Phóng to nhẹ icon lên 1 xíu */
+}
+
+/* Đổi màu icon SVG sang màu đen hoặc màu xanh khi hover (tùy cậu chọn) */
+label[for="image-input"]:hover svg {
+    fill: #0084ff;
+    /* Đổi sang màu xanh biểu tượng của Messenger, nếu muốn màu đen thì thay bằng #000000 nha */
+}
+
+/* --- HIỆU ỨNG KHI ẤN GIỮ CHUỘT (ACTIVE) --- */
+label[for="image-input"]:active {
+    transform: scale(0.95);
+    /* Thu nhỏ nhẹ lại tạo cảm giác như nút bấm thật */
 }
