@@ -3,120 +3,71 @@ body {
     font-family: Arial, sans-serif;
 }
 
-/* ===== PINTEREST LAYOUT ===== */
-/* ===== GRID LAYOUT (FIXED) ===== */
+/* ===== HỆ THỐNG LƯỚI CARD TỰ CO GIÃN ===== */
 .grid {
-    display: grid;
-    /* Tự động tính số cột dựa trên kích thước màn hình, tối thiểu 300px mỗi cột */
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: wrap;
+    /* Cho phép xuống hàng khi hết chỗ */
+    gap: 24px;
+    /* Khoảng cách giữa các bài viết */
     padding: 20px;
-    align-items: start;
-    /* Giúp các card không bị kéo dài bằng nhau nếu nội dung ngắn dài khác nhau */
-}
-
-/* 🔥 FIX CHÍNH */
-/* 🔥 CARD FIX */
-.card {
-    display: flex;
-    flex-direction: column;
     width: 100%;
-    background: #fff;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 0;
-    /* Grid đã quản lý gap rồi nên không cần margin-bottom */
-}
-
-/* hover nhẹ */
-.card:hover {
-    transform: translateY(-4px);
-    transition: 0.2s;
-}
-
-/* ===== HEADER ===== */
-.card-header {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-}
-
-.avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-.info {
-    flex: 1;
-}
-
-.name {
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.time {
-    font-size: 12px;
-    color: gray;
-    display: block;
-}
-
-.more {
-    font-size: 20px;
-    cursor: pointer;
-}
-
-/* ===== TEXT ===== */
-.card-text {
-    padding: 0 10px 10px;
-    font-size: 14px;
-}
-
-/* ===== IMAGE ===== */
-.card-img {
-    width: 100%;
-    height: auto;
-    display: block;
-}
-
-/* ===== ACTIONS ===== */
-.card-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    font-size: 14px;
-    flex-wrap: nowrap;
-}
-
-.card-actions span {
-    cursor: pointer;
-}
-
-.share {
-    margin-left: auto;
-}
-
-/* Layout lưới */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    padding: 20px;
+    box-sizing: border-box;
+    justify-content: center;
+    /* Căn toàn bộ hàng ra giữa màn hình */
 }
 
 /* Card bài viết */
-.card {
+.card.post-clickable {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    /* 🔥 Tự nở rộng ra để lấp đầy khoảng trống bên phải */
+
+    /* Mặc định tính toán kích thước chia 2 hoặc 3 cột tùy độ rộng màn hình */
+    width: calc(33.333% - 24px) !important;
+    min-width: 400px;
+    /* 🔥 Tăng chiều ngang tối thiểu lên hẳn 400px cho to rộng */
+    max-width: 550px;
+    /* 🔥 Khống chế độ rộng tối đa để 1 card đơn lẻ không bị dãn quá dài */
+
     background: white;
-    border-radius: 12px;
-    border: 1px solid #ddd;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
     overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
+/* Responsive mượt mà cho thiết bị di động */
+@media (max-width: 768px) {
+    .grid {
+        padding: 10px;
+        gap: 16px;
+    }
+
+    .card.post-clickable {
+        width: 100% !important;
+        min-width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* Đảm bảo text và các link bên trong co giãn theo card mới */
+.card-body,
+.card-text {
+    width: 100%;
+    word-break: break-word;
+}
+
+/* Hover mượt mà cho card */
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== HEADER ===== */
 .card-header {
     display: flex;
     align-items: center;
@@ -134,6 +85,7 @@ body {
     margin-left: 10px;
     display: flex;
     flex-direction: column;
+    flex: 1;
 }
 
 .name {
@@ -146,28 +98,146 @@ body {
     color: #777;
 }
 
-.more {
-    margin-left: auto;
-    color: #999;
+.more-btn {
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    font-size: 24px;
     cursor: pointer;
+    padding: 0;
+    color: #999;
+    margin-left: auto;
 }
 
-/* Nội dung & Hình ảnh */
+/* ===== NỘI DUNG VÀ TEXT ===== */
 .card-text {
     padding: 0 15px 12px;
     font-size: 15px;
     line-height: 1.5;
-
 }
 
-.card-img {
+.card-text a {
+    color: #000000;
+    text-decoration: none;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+a.hashtag-link {
+    color: #1877f2 !important;
+    font-weight: 600 !important;
+    text-decoration: none;
+}
+
+a.hashtag-link:hover {
+    text-decoration: underline;
+    color: #166fe5 !important;
+}
+
+/* Cấu trúc phủ click lên toàn bộ card */
+.card-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.actions-container,
+.card-header .dropdown,
+.btn-action,
+.parent-fb-gallery,
+.fb-gallery,
+form {
+    position: relative;
+    z-index: 2;
+    /* Đảm bảo các nút và form tương tác nằm trên card-link */
+}
+
+/* ===== HỆ THỐNG GALLERY HÌNH ẢNH (Tự co giãn theo chiều dọc giống Pinterest) ===== */
+.fb-gallery,
+.parent-fb-gallery {
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    margin-bottom: 12px;
+}
+
+.fb-gallery img,
+.parent-fb-gallery img {
     width: 100%;
     display: block;
+}
+
+/* 1 ảnh: Để chiều cao auto tự co giãn tự nhiên theo tỉ lệ ảnh gốc */
+.single-image img {
+    height: auto;
     max-height: 500px;
     object-fit: cover;
 }
 
-/* Actions */
+/* 2 ảnh */
+.two-images {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    height: 300px;
+    /* Hạ bớt chiều cao cố định để cân đối trong cột dọc */
+}
+
+.two-images img {
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 3 ảnh */
+.three-images {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2px;
+    height: 300px;
+}
+
+.three-images img {
+    height: 100%;
+    object-fit: cover;
+}
+
+.three-images .right {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 2px;
+}
+
+/* 4+ ảnh */
+.four-images {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 140px 140px;
+    gap: 2px;
+}
+
+.four-images img {
+    height: 100%;
+    object-fit: cover;
+}
+
+.img-box {
+    position: relative;
+}
+
+.overlay-more {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ===== ACTIONS TƯƠNG TÁC ===== */
 .actions-container {
     border-top: 1px solid #eee;
     padding: 10px 15px;
@@ -181,7 +251,7 @@ body {
 
 .left-actions {
     display: flex;
-    gap: 20px;
+    gap: 15px;
     align-items: center;
 }
 
@@ -201,18 +271,12 @@ body {
 }
 
 .icon-svg {
-    height: 24px;
-    width: 24px;
+    height: 22px;
+    width: 22px;
     color: #333;
 }
 
-.icon-share {
-    height: 20px;
-    width: 20px;
-    fill: #333;
-}
-
-/* Trạng thái đã LIKE */
+/* Các trạng thái Like, Pin, Save */
 .is-liked .icon-svg {
     fill: red;
     color: red !important;
@@ -226,6 +290,34 @@ body {
 .count-text {
     margin-left: 6px;
     font-weight: bold;
+    font-size: 13px;
+}
+
+.pin-btn {
+    color: #555;
+    transition: 0.2s;
+}
+
+.pin-btn.is-pinned {
+    color: #fbbf24;
+}
+
+.pin-btn:hover {
+    transform: scale(1.1);
+}
+
+.save-btn.saved {
+    color: #fc5421;
+}
+
+.btn-following {
+    color: #6c757d;
+    font-size: 13px;
+}
+
+.btn-follow {
+    color: #0095f6;
+    font-size: 13px;
 }
 
 /* Dòng người thích */
@@ -247,7 +339,7 @@ body {
     text-decoration: underline;
 }
 
-/* Loại bỏ hiệu ứng mặc định của nút dropdown */
+/* ===== BOOTSTRAP DROPDOWN & MODAL OPTIMIZATION ===== */
 .dropdown-toggle::after {
     display: none;
 }
@@ -267,94 +359,180 @@ body {
     min-width: 200px;
 }
 
-/* Xóa bỏ các hiệu ứng thừa của button trong dropdown/modal */
 .btn-close:focus {
     box-shadow: none !important;
 }
 
-.post-edit-image-container {
-    transition: all 0.3s ease;
-    border: 1px solid #e0e0e0 !important;
-}
-
-.post-edit-image-container:hover {
-    background-color: #f0f2f5;
-}
-
-/* Đảm bảo textarea mượt mà */
 textarea.form-control:focus {
     background-color: transparent;
 }
 
-.more-btn {
-    background: transparent;
+/* ===== IMAGE PREVIEW MODAL ===== */
+.image-preview-modal {
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(3px);
+}
+
+.preview-overlay {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-image-wrapper {
+    max-width: 85%;
+    max-height: 90vh;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+}
+
+.preview-image {
+    width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    display: block;
+}
+
+.preview-close {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 52px;
+    height: 52px;
     border: none;
-    outline: none;
-    box-shadow: none;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .12);
+    color: white;
+    font-size: 28px;
+    z-index: 9999;
+    transition: .2s;
 }
 
-.card-text a {
-    color: #000000;
-    /* xanh Facebook */
-    text-decoration: none;
-    /* bỏ gạch chân */
+.preview-close:hover {
+    background: rgba(255, 255, 255, .22);
+    transform: scale(1.08);
+}
+
+.post-user-link {
+    color: #111 !important;
+    text-decoration: none !important;
+}
+
+/* ===== RESPONSIVE TỰ ĐỘNG BUNG RỘNG ===== */
+@media (max-width: 1400px) {
+    .card {
+        /* Khi màn hình vừa, tự động đổi sang chia đôi (2 cột) để giữ chiều ngang to */
+        width: calc(50% - 12px) !important;
+    }
+}
+
+@media (max-width: 992px) {
+    .card {
+        width: calc(50% - 12px) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .grid {
+        padding: 12px;
+        gap: 16px;
+    }
+
+    .card {
+        /* Màn hình nhỏ: Bung toàn bộ 100% chiều ngang */
+        width: 100% !important;
+        min-width: 100%;
+    }
+}
+
+/* ===== GIAO DIỆN KHI TRANG TRỐNG ===== */
+.saved-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 80vh;
+    /* Đẩy chiều cao vùng chứa lên để quản lý khoảng trống */
+}
+
+.saved-title {
+    padding: 20px;
+    margin: 0;
+}
+
+.saved-empty-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    /* Giữ thông báo nằm dịch lên trên một chút cho cân đối */
+    padding-top: 60px;
+    width: 100%;
+}
+
+.saved-empty-card {
+    background: #ffffff;
+    padding: 40px 60px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    max-width: 450px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.saved-empty-text {
+    margin: 0;
+    font-size: 16px;
+    color: #4a5568;
     font-weight: 500;
-    word-break: break-word;
-    /* tránh tràn */
 }
 
-.card {
-    position: relative;
+/* ===== GIAO DIỆN TỔNG THỂ TRANG LƯU ===== */
+.saved-page {
+    display: flex;
+    flex-direction: column;
+    /* Chiều cao tối thiểu bằng toàn bộ màn hình trừ đi header/padding nếu có */
+    min-height: calc(100vh - 40px);
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.card-link {
-    position: absolute;
-    inset: 0;
-    /* phủ toàn bộ card */
-    z-index: 1;
+.saved-title {
+    padding: 20px 20px 10px 20px;
+    margin: 0;
 }
 
-.actions-container,
-.card-header .dropdown,
-.btn-action,
-form {
-    position: relative;
-    z-index: 2;
-    /* cao hơn overlay */
+/* Container bọc hộp trống */
+.saved-empty-container {
+    flex: 1;
+    /* Tự động giãn ra để chiếm toàn bộ diện tích còn trống phía dưới */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    /* Để hộp nằm dịch lên phía trên cho cân đối */
+    padding-top: 80px;
+    width: 100%;
+    /* Nếu muốn phần trống này màu trắng luôn thay vì màu xám, hãy bỏ comment dòng dưới: */
+    /* background: #ffffff; */
 }
 
-/* PIN mặc định */
-.pin-btn {
-    color: #555;
-    transition: 0.2s;
-}
-
-/* Khi đã ghim */
-.pin-btn.is-pinned {
-    color: #fbbf24;
-    /* vàng */
-}
-
-/* Hover cho đẹp */
-.pin-btn:hover {
-    transform: scale(1.1);
-}
-
-/*  */
-a.hashtag-link {
-    color: #1877f2 !important;
-    font-weight: 600 !important;
-    text-decoration: none;
-}
-
-a.hashtag-link:hover {
-    text-decoration: underline;
-    color: #166fe5 !important;
-}
-
-.save-btn.saved {
-    color: #fc5421;
+/* Chiếc hộp trắng thông báo */
+.saved-empty-card {
+    background: #ffffff;
+    padding: 40px 60px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    max-width: 450px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }

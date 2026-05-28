@@ -1,291 +1,214 @@
-// ========================
-// INIT ELEMENTS
-// ========================
-let chatBox = document.getElementById('chat-box');
-let conversationId = chatBox.dataset.conversation;
-let currentUserId = chatBox.dataset.user;
+// =========================================================================
+// 1. KHỞI TẠO CÁC BIẾN BAN ĐẦU (INIT ELEMENTS)
+// =========================================================================
+let chatBox = document.getElementById('chat-box'); // Khung chứa toàn bộ nội dung tin nhắn
+let conversationId = chatBox ? chatBox.dataset.conversation : null;
+let currentUserId = chatBox ? chatBox.dataset.user : null;
 
-let lastMessageId = Number(chatBox.dataset.lastId) || 0;
-let firstMessageId = Number(chatBox.dataset.firstId) || 0;
+// Quản lý ID tin nhắn phục vụ việc kéo lên tải tin cũ
+let lastMessageId = chatBox ? (Number(chatBox.dataset.lastId) || 0) : 0;
+let firstMessageId = chatBox ? (Number(chatBox.dataset.firstId) || 0) : 0;
 
+// Các trạng thái flag chống spam request
 let isSending = false;
 let isLoadingOlder = false;
-let messageInterval = null;
 
-// ========================
-// SCROLL LOGIC
-// ========================
+// KHỞI CHẠY KHI DOM SẴN SÀNG
+document.addEventListener('DOMContentLoaded', function () {
+    const chatBox = document.getElementById('chat-box');
+    if (!chatBox) return; // Không có khung chat thì dừng toàn bộ logic file này
+
+    // Gọi hàm markAsRead ngay khi vừa mở trang
+    markAsRead();
+
+    // -----------------------------------------------------------------
+    // KẾT NỐI WEBSOCKET REALTIME QUA LARAVEL ECHO (ĐOẠN CHÍNH)
+    // -----------------------------------------------------------------
+    if (typeof window.Echo !== 'undefined' && conversationId) {
+        const channelName = `chat-conversation.${conversationId}`;
+
+        window.Echo.private(channelName)
+            .subscribed(() => {
+                console.log('SUBSCRIBED OK VIA DOM:', channelName);
+            })
+            .error((error) => {
+                console.error('CHANNEL ERROR:', error);
+            })
+            // Tìm đoạn .listen('.MessageSent'...) ở MỤC 11 và thay bằng đoạn này:
+            .listen('.MessageSent', (e) => {
+                let msg = e.message;
+                if (!msg) return;
+
+                // Chỗ này xử lý realtime thu hồi cho đối phương nè cậu:
+                if (msg.is_deleted == 1) {
+                    let wrapper = document.querySelector(`.message-wrapper[data-id="${msg.id}"]`);
+                    if (wrapper) {
+                        let wrapperClass = msg.sender_id == currentUserId ? 'me' : 'them';
+                        wrapper.className = `message-wrapper ${wrapperClass}`;
+                        wrapper.innerHTML = `<div class="message-recalled">Tin nhắn đã được thu hồi</div>`;
+                    }
+                } else {
+                    // Tin nhắn bình thường thì giữ nguyên logic append cũ của cậu
+                    const existed = document.querySelector(`.message-wrapper[data-id="${msg.id}"]`);
+                    if (!existed) {
+                        appendMessageRealtime(msg);
+                        scrollBottom();
+
+                        if (msg.sender_id != currentUserId) {
+                            markAsRead();
+                        }
+                    }
+                }
+            })
+            .listen('.ChatReadStatusUpdated', (e) => {
+                console.log('🔥 ĐÃ THẤY TÍN HIỆU ĐÃ XEM VỀ REALTIME:', e);
+
+                // Quét sạch các chữ "Đã gửi" trên màn hình của mình và biến thành "Đã xem"
+                const allStatuses = document.querySelectorAll('.message-status');
+                allStatuses.forEach(status => {
+                    if (status.innerText.trim() === 'Đã gửi') {
+                        status.innerText = 'Đã xem';
+                    }
+                });
+            });
+    }
+});
+
+// =========================================================================
+// 2. LOGIC ĐIỀU KHIỂN THANH CUỘN (SCROLL LOGIC)
+// =========================================================================
 function forceScrollBottom() {
-    chatBox.scrollTop = chatBox.scrollHeight;
+    let box = document.getElementById('chat-box');
+    if (box) box.scrollTop = box.scrollHeight;
 }
 
 function scrollBottom() {
-    chatBox.scrollTop = chatBox.scrollHeight;
+    let box = document.getElementById('chat-box');
+    if (box) box.scrollTop = box.scrollHeight;
 }
 
-// load tin cũ khi kéo lên
-chatBox.addEventListener('scroll', function () {
-
-    if (
-        chatBox.scrollTop <= 10 &&
-        !isLoadingOlder &&
-        firstMessageId > 0
-    ) {
-        loadOlderMessages();
-    }
-
-});
-
-// ========================
-// LOAD NEW MESSAGES
-// ========================
-function loadMessages() {
-
-    fetch(`/messages/${conversationId}?last_id=${lastMessageId}`)
-
-        .then(res => {
-
-            if (!res.ok) {
-
-                if (
-                    res.status === 401 ||
-                    res.status === 403
-                ) {
-
-                    stopPolling();
-
-                    window.location.href =
-                        "/list_messages";
-                }
-
-                return null;
-            }
-
-            return res.json();
-        })
-
-        .then(data => {
-
-            if (!data || data.length === 0) return;
-
-            let hasNew = false;
-
-            data.forEach(msg => {
-
-                // tránh append trùng
-                if (
-                    !document.querySelector(
-                        `.message-wrapper[data-id="${msg.id}"]`
-                    )
-                ) {
-
-                    appendMessage(msg);
-
-                    hasNew = true;
-                }
-
-                if (msg.id > lastMessageId) {
-                    lastMessageId = msg.id;
-                }
-
-            });
-
-            if (hasNew) {
-
-                scrollBottom();
-                markAsRead();
-                updateSidebar();
-            }
-
-        })
-
-        .catch(err => {
-            console.log("Chat error:", err);
-        });
-
+// Lazy load tin nhắn cũ khi cuộn lên đỉnh
+let boxScroll = document.getElementById('chat-box');
+if (boxScroll) {
+    boxScroll.addEventListener('scroll', function () {
+        if (
+            boxScroll.scrollTop <= 10 &&
+            !isLoadingOlder &&
+            firstMessageId > 0
+        ) {
+            loadOlderMessages();
+        }
+    });
 }
 
-// ========================
-// LOAD OLDER MESSAGES
-// ========================
+// =========================================================================
+// 3. TẢI TIN NHẮN CŨ HƠN (LAZY LOAD VIA API)
+// =========================================================================
 function loadOlderMessages() {
-
-    if (
-        isLoadingOlder ||
-        firstMessageId <= 0
-    ) return;
+    let box = document.getElementById('chat-box');
+    if (isLoadingOlder || firstMessageId <= 0 || !box) return;
 
     isLoadingOlder = true;
+    let oldHeight = box.scrollHeight;
 
-    let oldHeight = chatBox.scrollHeight;
-
-    fetch(
-        `/messages/${conversationId}/older?first_id=${firstMessageId}`
-    )
-
+    fetch(`/messages/${conversationId}/older?first_id=${firstMessageId}`)
         .then(res => res.json())
-
         .then(data => {
-
             if (!data || data.length === 0) {
-
                 firstMessageId = 0;
-
                 return;
             }
 
             data.reverse().forEach(msg => {
-
-                // tránh load trùng
-                if (
-                    !document.querySelector(
-                        `.message-wrapper[data-id="${msg.id}"]`
-                    )
-                ) {
+                if (!document.querySelector(`.message-wrapper[data-id="${msg.id}"]`)) {
                     prependMessage(msg);
                 }
-
             });
 
-            firstMessageId = Math.min(
-                ...data.map(m => m.id)
-            );
-
-            // giữ vị trí scroll
-            chatBox.scrollTop =
-                chatBox.scrollHeight - oldHeight;
-
+            firstMessageId = Math.min(...data.map(m => m.id));
+            box.scrollTop = box.scrollHeight - oldHeight;
         })
-
         .catch(err => {
-            console.error(
-                "Lỗi load tin cũ:",
-                err
-            );
+            console.error("Lỗi load tin cũ:", err);
         })
-
         .finally(() => {
             isLoadingOlder = false;
         });
-
 }
 
-// ========================
-// SEND MESSAGE
-// ========================
-document.querySelector('.chat-input')
-    .addEventListener('submit', function (e) {
-
+// =========================================================================
+// 4. GỬI TIN NHẮN MỚI
+// =========================================================================
+const chatInputForm = document.querySelector('.chat-input');
+if (chatInputForm) {
+    chatInputForm.addEventListener('submit', function (e) {
         e.preventDefault();
 
-        // chặn spam
         if (isSending) return;
-
         isSending = true;
 
         let formData = new FormData(this);
-
-        let input = this.querySelector(
-            'input[name="content"]'
-        );
-
-        let submitBtn = this.querySelector(
-            'button[type="submit"]'
-        );
+        let input = this.querySelector('input[name="content"]');
+        let submitBtn = this.querySelector('button[type="submit"]');
 
         submitBtn.disabled = true;
         input.disabled = true;
+
         fetch('/messages/send', {
-
             method: 'POST',
-
             headers: {
-
-                'X-CSRF-TOKEN':
-                    this.querySelector(
-                        'input[name="_token"]'
-                    ).value
-
+                'X-CSRF-TOKEN': this.querySelector('input[name="_token"]').value
             },
-
             body: formData
-
         })
-
             .then(res => res.json())
+            .then(response => {
+                let msg = response.message;
 
-            .then(() => {
-
-                // reset text
-                input.value = '';
-
-                // reset ảnh
-                document.getElementById(
-                    'image-input'
-                ).value = '';
-                // xoá preview ảnh
-                const previewContainer =
-                    document.getElementById(
-                        'image-preview-container'
-                    );
-
-                if (previewContainer) {
-                    previewContainer.innerHTML =
-                        '';
+                if (msg && !document.querySelector(`.message-wrapper[data-id="${msg.id}"]`)) {
+                    appendMessageRealtime(msg);
+                    scrollBottom();
                 }
-                loadMessages();
 
-                updateSidebar();
+                input.value = '';
+                document.getElementById('image-input').value = '';
 
+                const previewContainer = document.getElementById('image-preview-container');
+                if (previewContainer) {
+                    previewContainer.innerHTML = '';
+                }
             })
-
             .catch(err => {
-
-                console.log(
-                    'Send error:',
-                    err
-                );
-
+                console.log('Send error:', err);
             })
-
             .finally(() => {
-
-                // mở lại sau 700ms
                 setTimeout(() => {
-
                     isSending = false;
                     input.disabled = false;
-
                     submitBtn.disabled = false;
-
+                    input.focus();
                 }, 700);
-
             });
-
     });
+}
 
-// ========================
-// RENDER HELPERS
-// ========================
+// =========================================================================
+// 5. HÀM TẠO GIAO DIỆN TIN NHẮN (RENDER HELPERS)
+// =========================================================================
 function createMessageHTML(msg) {
     let isMe = msg.sender_id == currentUserId;
     let wrapperClass = isMe ? 'me' : 'them';
 
-    // 1. Trường hợp tin nhắn đã bị thu hồi
     if (msg.is_deleted == 1) {
         return `
             <div class="message-wrapper ${wrapperClass}" data-id="${msg.id}">
-                <div class="message-recalled">
-                    Tin nhắn đã được thu hồi
-                </div>
+                <div class="message-recalled">Tin nhắn đã được thu hồi</div>
             </div>
         `;
     }
 
-    // 2. Trường hợp tin nhắn hiển thị bình thường (Có bọc message-container)
     return `
         <div class="message-wrapper ${wrapperClass}" data-id="${msg.id}">
-            
             <div class="message-container">
                 
                 ${msg.image_url ? `
@@ -296,29 +219,21 @@ function createMessageHTML(msg) {
 
                 ${msg.content && String(msg.content).trim() !== '' ? `
                     <div class="message-bubble">
-                        <div class="message-content">
-                            ${msg.content}
-                        </div>
+                        <div class="message-content">${msg.content}</div>
                     </div>
                 ` : ''}
 
-                ${msg.image_url || (msg.content && String(msg.content).trim() !== '') ? `
-                    <div class="message-actions">
-                        <button type="button" class="dots-btn">⋯</button>
-                        <div class="message-menu">
-                            ${isMe ? `
-                                <button type="button" class="recall-btn" data-id="${msg.id}">
-                                    Thu hồi
-                                </button>
-                            ` : ''}
-                            <button type="button" class="delete-btn" data-id="${msg.id}">
-                                Xoá ở phía bạn
-                            </button>
-                        </div>
+                <div class="message-actions">
+                    <button type="button" class="dots-btn">⋯</button>
+                    <div class="message-menu">
+                        ${isMe ? `
+                            <button type="button" class="recall-btn" data-id="${msg.id}">Thu hồi</button>
+                        ` : ''}
+                        <button type="button" class="delete-btn" data-id="${msg.id}">Xoá ở phía bạn</button>
                     </div>
-                ` : ''}
+                </div>
 
-            </div> <!-- Hết message-container -->
+            </div>
 
             ${isMe ? `
                 <div class="message-status-row">
@@ -327,517 +242,293 @@ function createMessageHTML(msg) {
                     </small>
                 </div>
             ` : ''}
-
         </div>
     `;
 }
-// ========================
-// Xoá tin nhắn 1 chiều
-// ========================
-document.addEventListener('click', function (e) {
 
-    if (e.target.classList.contains('delete-btn')) {
-
-        let messageId = e.target.dataset.id;
-
-        fetch(`/messages/delete-for-me/${messageId}`, {
-
-            method: 'POST',
-
-            headers: {
-
-                'X-CSRF-TOKEN':
-                    document.querySelector(
-                        'input[name="_token"]'
-                    ).value
-
-            }
-
-        })
-
-            .then(res => res.json())
-
-            .then(data => {
-
-                if (data.success) {
-
-                    let message = document.querySelector(
-                        `.message-wrapper[data-id="${messageId}"]`
-                    );
-
-                    if (message) {
-                        message.remove();
-                    }
-
-                    updateSidebar();
-                }
-
-            });
-
-    }
-
-});
-// ========================
-// APPEND / PREPEND
-// ========================
+// =========================================================================
+// 6. THAO TÁC APPEND / PREPEND DOM
+// =========================================================================
 function appendMessage(msg) {
-
+    let box = document.getElementById('chat-box');
+    if (!box) return;
     let div = document.createElement('div');
+    div.innerHTML = createMessageHTML(msg);
+    box.appendChild(div.firstElementChild);
+}
 
-    div.innerHTML =
-        createMessageHTML(msg);
-
-    chatBox.appendChild(
-        div.firstElementChild
-    );
+function appendMessageRealtime(msg) {
+    appendMessage(msg);
+    if (msg.id > lastMessageId) {
+        lastMessageId = msg.id;
+    }
 }
 
 function prependMessage(msg) {
-
+    let box = document.getElementById('chat-box');
+    if (!box) return;
     let div = document.createElement('div');
-
-    div.innerHTML =
-        createMessageHTML(msg);
-
-    chatBox.insertBefore(
-        div.firstElementChild,
-        chatBox.firstChild
-    );
+    div.innerHTML = createMessageHTML(msg);
+    box.insertBefore(div.firstElementChild, box.firstChild);
 }
 
-// ========================
-// TOGGLE MENU
-// ========================
+// =========================================================================
+// 7. ĐIỀU KHIỂN ĐÓNG / MỞ MENU BA CHẤM
+// =========================================================================
 document.addEventListener('click', function (e) {
-    // mở menu hành động (đổ xúc xắc ⋯)
     if (e.target.classList.contains('dots-btn')) {
         e.stopPropagation();
         let menu = e.target.nextElementSibling;
 
-        // đóng tất cả menu khác
         document.querySelectorAll('.message-menu').forEach(m => {
-            if (m !== menu) {
-                m.classList.remove('show');
-            }
+            if (m !== menu) m.classList.remove('show');
         });
 
-        // Bật/tắt menu hiện tại
-        if (menu) {
-            menu.classList.toggle('show');
-        }
+        if (menu) menu.classList.toggle('show');
     } else {
-        // Click ra ngoài thì đóng toàn bộ menu đang mở
         document.querySelectorAll('.message-menu').forEach(m => {
             m.classList.remove('show');
         });
     }
 });
 
-// ========================
-// RECALL MESSAGE
-// ========================
+// =========================================================================
+// 8. THU HỒI TIN NHẮN
+// =========================================================================
 function recallMessage(messageId) {
-
-    fetch(
-        `/messages/recall/${messageId}`,
-        {
-
-            method: 'POST',
-
-            headers: {
-
-                'X-CSRF-TOKEN':
-                    document.querySelector(
-                        'meta[name="csrf-token"]'
-                    ).content,
-
-                'Accept':
-                    'application/json'
-            }
-
-        }
-    )
-
-        .then(res => res.json())
-
-        .then(data => {
-
-            if (!data.success) return;
-
-            let messageWrapper =
-                document.querySelector(
-                    `.message-wrapper[data-id="${messageId}"]`
-                );
-
-            if (!messageWrapper) return;
-
-            let isMe =
-                messageWrapper.classList.contains(
-                    'me'
-                );
-
-            messageWrapper.innerHTML = `
-                <div class="message-recalled">
-                    Tin nhắn đã được thu hồi
-                </div>
-            `;
-
-            updateSidebar();
-
-        })
-
-        .catch(err => {
-            console.log(
-                "Recall error:",
-                err
-            );
-        });
-
-}
-
-// click recall
-document.addEventListener('click', function (e) {
-
-    if (
-        e.target.classList.contains(
-            'recall-btn'
-        )
-    ) {
-
-        let messageId =
-            e.target.dataset.id;
-
-        recallMessage(messageId);
-    }
-
-});
-
-// ========================
-// DELETE FOR ME
-// ========================
-document.addEventListener('click', function (e) {
-
-    if (
-        e.target.classList.contains(
-            'delete-btn'
-        )
-    ) {
-
-        let messageId =
-            e.target.dataset.id;
-
-        fetch(
-            `/messages/delete-for-me/${messageId}`,
-            {
-
-                method: 'POST',
-
-                headers: {
-
-                    'X-CSRF-TOKEN':
-                        document.querySelector(
-                            'meta[name="csrf-token"]'
-                        ).content,
-
-                    'Accept':
-                        'application/json'
-                }
-
-            }
-        )
-
-            .then(res => res.json())
-
-            .then(data => {
-
-                if (!data.success) return;
-
-                let message =
-                    document.querySelector(
-                        `.message-wrapper[data-id="${messageId}"]`
-                    );
-
-                if (message) {
-                    message.remove();
-                }
-
-                updateSidebar();
-
-            })
-
-            .catch(err => {
-
-                console.log(
-                    "Delete error:",
-                    err
-                );
-
-            });
-
-    }
-
-});
-
-// ========================
-// SIDEBAR UPDATE
-// ========================
-function updateSidebar() {
-
-    fetch(
-        `/messages/conversations/${conversationId}`
-    )
-
-        .then(res =>
-            res.ok
-                ? res.text()
-                : null
-        )
-
-        .then(html => {
-
-            if (!html) return;
-
-            const list =
-                document.querySelector(
-                    '.scrollable-list'
-                );
-
-            if (
-                list &&
-                list.innerHTML.trim() !==
-                html.trim()
-            ) {
-
-                list.innerHTML = html;
-
-            }
-
-        });
-
-}
-
-// ========================
-// POLLING
-// ========================
-function startPolling() {
-
-    if (
-        !window.location.pathname.includes(
-            'chat-messages'
-        )
-    ) return;
-
-    messageInterval = setInterval(() => {
-
-        loadMessages();
-
-        updateSidebar();
-
-        syncReadStatus();
-
-    }, 2000);
-
-}
-
-function stopPolling() {
-
-    clearInterval(
-        messageInterval
-    );
-
-}
-
-// ========================
-// INIT
-// ========================
-// ========================
-// INIT (Code Mới)
-// ========================
-document.addEventListener('DOMContentLoaded', function () {
-    // 1. Đánh dấu đã xem
-    markAsRead();
-
-    // 2. Ép cuộn xuống đáy sau khi DOM đã ổn định
-    setTimeout(() => {
-        forceScrollBottom();
-    }, 100);
-
-    // 3. Nếu trong chat có nhiều ảnh, đợi ảnh tải xong rồi cuộn lại phát nữa cho chắc
-    window.addEventListener('load', () => {
-        forceScrollBottom();
-    });
-
-    // 4. Bắt đầu gọi vòng lặp lấy tin nhắn mới
-    startPolling();
-});
-function syncReadStatus() {
-
-    fetch(`/messages/${conversationId}/read-status`)
-
-        .then(res => res.json())
-
-        .then(data => {
-
-            data.forEach(msg => {
-
-                let wrapper = document.querySelector(
-                    `.message-wrapper[data-id="${msg.id}"]`
-                );
-
-                if (!wrapper) return;
-
-                let status = wrapper.querySelector(
-                    '.message-status'
-                );
-
-                if (!status) return;
-
-                status.innerText =
-                    msg.is_read ? 'Đã xem' : 'Đã gửi';
-
-            });
-
-        });
-
-}
-function markAsRead() {
-
-    fetch(`/messages/${conversationId}/mark-read`, {
-
+    let tokenMeta = document.querySelector('meta[name="csrf-token"]');
+    fetch(`/messages/recall/${messageId}`, {
         method: 'POST',
-
         headers: {
-
-            'X-CSRF-TOKEN':
-                document.querySelector(
-                    'meta[name="csrf-token"]'
-                ).content,
-
+            'X-CSRF-TOKEN': tokenMeta ? tokenMeta.content : '',
             'Accept': 'application/json'
         }
-
-    });
-
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                let wrapper = document.querySelector(`.message-wrapper[data-id="${messageId}"]`);
+                if (wrapper) {
+                    wrapper.className = `message-wrapper me`;
+                    wrapper.innerHTML = `<div class="message-recalled">Tin nhắn đã được thu hồi</div>`;
+                }
+            }
+        })
+        .catch(err => console.log("Recall error:", err));
 }
-document.addEventListener(
-    'DOMContentLoaded',
-    function () {
 
-        const imageBtn =
-            document.getElementById(
-                'image-btn'
-            );
-
-        const imageInput =
-            document.getElementById(
-                'image-input'
-            );
-
-        const previewContainer =
-            document.getElementById(
-                'image-preview-container'
-            );
-
-        // mở file explorer
-        if (
-            imageBtn &&
-            imageInput
-        ) {
-
-            imageBtn.addEventListener(
-                'click',
-                function () {
-
-                    imageInput.click();
-
-                }
-            );
-
-        }
-
-        // preview ảnh
-        if (
-            imageInput &&
-            previewContainer
-        ) {
-
-            imageInput.addEventListener(
-                'change',
-                function () {
-
-                    previewContainer.innerHTML =
-                        '';
-
-                    const file =
-                        this.files[0];
-
-                    if (!file) return;
-
-                    const wrapper =
-                        document.createElement(
-                            'div'
-                        );
-
-                    wrapper.className =
-                        'preview-wrapper';
-
-                    const img =
-                        document.createElement(
-                            'img'
-                        );
-
-                    img.src =
-                        URL.createObjectURL(
-                            file
-                        );
-
-                    img.className =
-                        'preview-image';
-
-                    // nút xoá
-                    const removeBtn =
-                        document.createElement(
-                            'button'
-                        );
-
-                    removeBtn.type =
-                        'button';
-
-                    removeBtn.innerHTML =
-                        '✕';
-
-                    removeBtn.className =
-                        'remove-preview';
-
-                    removeBtn.addEventListener(
-                        'click',
-                        function () {
-
-                            imageInput.value =
-                                '';
-
-                            previewContainer.innerHTML =
-                                '';
-
-                        }
-                    );
-
-                    wrapper.appendChild(
-                        img
-                    );
-
-                    wrapper.appendChild(
-                        removeBtn
-                    );
-
-                    previewContainer.appendChild(
-                        wrapper
-                    );
-
-                }
-            );
-
-        }
-
+document.addEventListener('click', function (e) {
+    if (e.target.classList.contains('recall-btn')) {
+        let messageId = e.target.dataset.id;
+        recallMessage(messageId);
     }
-);
+});
+
+// =========================================================================
+// 9. XOÁ TIN NHẮN 1 CHIỀU (ĐÃ LỌC BỎ LOGIC SIDEBAR)
+// =========================================================================
+document.addEventListener('click', function (e) {
+    if (e.target.classList.contains('delete-btn')) {
+        let messageId = e.target.dataset.id;
+        let tokenMeta = document.querySelector('meta[name="csrf-token"]');
+
+        fetch(`/messages/delete-for-me/${messageId}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': tokenMeta ? tokenMeta.content : '',
+                'Accept': 'application/json'
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) return;
+
+                let messageElement = document.querySelector(`.message-wrapper[data-id="${messageId}"]`);
+                if (messageElement) {
+                    messageElement.remove();
+                }
+            })
+            .catch(err => console.error("Lỗi xóa 1 chiều:", err));
+    }
+});
+
+// =========================================================================
+// 10. ĐÁNH DẤU ĐÃ XEM (CHỈ XỬ LÝ KHUNG CHAT CHI TIẾT)
+// =========================================================================
+function markAsRead() {
+    if (!conversationId) return;
+    let tokenMeta = document.querySelector('meta[name="csrf-token"]');
+    fetch(`/messages/${conversationId}/mark-read`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': tokenMeta ? tokenMeta.content : '',
+            'Accept': 'application/json'
+        }
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Đã xử lý DB thành công
+                console.log('Đã cập nhật DB thành đã đọc');
+            }
+        });
+}
+
+// =========================================================================
+// 11. ĐOẠN ECHO THỨ 2 (GIỮ NGUYÊN CẤU TRÚC GỐC, KHÔNG CÓ SIDEBAR)
+// =========================================================================
+if (typeof window.Echo !== 'undefined' && chatBox) {
+    const channelName = `chat-conversation.${conversationId}`;
+
+    window.Echo.private(channelName)
+        .listen('.MessageSent', (e) => {
+            let msg = e.message;
+            if (!msg) return;
+
+            if (msg.is_deleted == 0) {
+                const existed = document.querySelector(`.message-wrapper[data-id="${msg.id}"]`);
+                if (!existed) {
+                    appendMessageRealtime(msg);
+                    scrollBottom();
+
+                    if (msg.sender_id != currentUserId) {
+                        markAsRead();
+                    }
+                }
+            } else {
+                let wrapper = document.querySelector(`.message-wrapper[data-id="${msg.id}"]`);
+                if (wrapper) {
+                    let wrapperClass = msg.sender_id == currentUserId ? 'me' : 'them';
+                    wrapper.className = `message-wrapper ${wrapperClass}`;
+                    wrapper.innerHTML = `<div class="message-recalled">Tin nhắn đã được thu hồi</div>`;
+                }
+            }
+        })
+        .listen('.ChatReadStatusUpdated', (e) => {
+            if (e.updatedMessages) {
+                e.updatedMessages.forEach(msg => {
+                    let status = document.querySelector(`.message-status[data-id="${msg.id}"]`);
+                    if (status) {
+                        status.innerText = 'Đã xem';
+                    }
+                });
+            }
+        });
+}
+
+// =========================================================================
+// 12. KHỞI CHẠY PHỤ (PREVIEW IMAGE)
+// =========================================================================
+document.addEventListener('DOMContentLoaded', function () {
+    const chatBox = document.getElementById('chat-box');
+    if (!chatBox) return;
+
+    setTimeout(() => { forceScrollBottom(); }, 100);
+    window.addEventListener('load', () => { forceScrollBottom(); });
+
+    const imageBtn = document.getElementById('image-btn');
+    const imageInput = document.getElementById('image-input');
+    const previewContainer = document.getElementById('image-preview-container');
+
+    if (imageBtn && imageInput) {
+        imageBtn.addEventListener('click', function () {
+            imageInput.click();
+        });
+    }
+
+    if (imageInput && previewContainer) {
+        imageInput.addEventListener('change', function () {
+            previewContainer.innerHTML = '';
+            const file = this.files[0];
+            if (!file) return;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'preview-wrapper';
+
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'preview-image';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.innerHTML = '✕';
+            removeBtn.className = 'remove-preview';
+
+            removeBtn.addEventListener('click', function () {
+                imageInput.value = '';
+                previewContainer.innerHTML = '';
+            });
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(removeBtn);
+            previewContainer.appendChild(wrapper);
+        });
+    }
+});
+
+/// --- LOGIC EMOJI PICKER CHUẨN FACEBOOK MESSENGER ---
+document.addEventListener('DOMContentLoaded', function () {
+    const emojiTriggerBtn = document.getElementById('emoji-trigger-btn');
+    const emojiContainer = document.getElementById('emoji-picker-container');
+    const chatInput = document.getElementById('chat-input');
+
+    if (emojiTriggerBtn && emojiContainer && chatInput) {
+
+        // 1. Khởi tạo bảng chọn Emoji Picker từ thư viện Emoji Mart
+        const pickerOptions = {
+            // Sự kiện tự động kích hoạt ngay khi cậu click chọn 1 icon emoji trên bảng
+            onEmojiSelect: function (emoji) {
+                // Lấy vị trí hiện tại của con trỏ chuột trong ô nhập tin nhắn (để chèn đúng chỗ)
+                const startPos = chatInput.selectionStart; // Vị trí đầu con trỏ
+                const endPos = chatInput.selectionEnd;     // Vị trí cuối con trỏ (nếu có bôi đen chữ)
+                const text = chatInput.value;              // Toàn bộ nội dung chữ hiện tại trong ô chat
+
+                // Thực hiện cắt chuỗi và chèn icon emoji (.native) vào ngay giữa vị trí con trỏ chuột
+                chatInput.value = text.substring(0, startPos) + emoji.native + text.substring(endPos);
+
+                // Ép ô chat phải Focus (nhấp nháy con trỏ) để người dùng gõ tiếp tục được luôn
+                chatInput.focus();
+
+                // Đẩy con trỏ chuột đứng ngay sau cái icon Emoji vừa mới được chèn vào
+                chatInput.selectionStart = chatInput.selectionEnd = startPos + emoji.native.length;
+
+                // Kích hoạt (bắn) ra một sự kiện 'input' giả lập. 
+                // Mục đích: Để các hàm khác (như hàm đổi icon nút gửi 🚀 thành 👍) tự nhận diện là ô chat vừa có thay đổi để chạy theo.
+                chatInput.dispatchEvent(new Event('input'));
+            },
+            theme: 'light',   // Cấu hình giao diện nền sáng sạch sẽ cho bảng chọn
+            set: 'facebook',  // Định dạng hiển thị bộ icon mập mập tròn tròn giống hệt Facebook Messenger
+            locale: 'vi'      // Cấu hình ngôn ngữ tiếng Việt (cậu gõ tìm kiếm chữ "cười", "khóc" trên ô tìm kiếm sẽ ra icon tương ứng)
+        };
+        //Tạo instance của Emoji Picker với các cấu hình đã định nghĩa
+        const picker = new EmojiMart.Picker(pickerOptions);
+
+        // Gắn bảng chọn emoji vào đúng container đã định sẵn trong HTML
+        emojiContainer.appendChild(picker);
+
+        // 🔥 BIỆN PHÁP DỨT ĐIỂM: ÉP CSS TRỰC TIẾP VÀO THÀNH PHẦN PICKER ĐỂ CĂN GIỮA TUYỆT ĐỐI
+        // Bảng Emoji Mart rộng chính xác 352px. Để căn giữa nút 😊 (rộng 40px):
+        // Ta lùi ngược bảng về bên trái một khoảng = (352px - 40px) / 2 = 156px.
+
+        // --- ÉP BẢNG CHỌN DỊCH HẲN SANG BÊN TRÁI KHÔNG BỊ VĂNG ---
+
+        // 2. Click nút mặt cười -> Ẩn hoặc Hiện bảng chọn emoji
+        emojiTriggerBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (emojiContainer.style.display === 'none' || emojiContainer.style.display === '') {
+                emojiContainer.style.display = 'block';
+            } else {
+                emojiContainer.style.display = 'none';
+            }
+        });
+
+        // 3. Đóng bảng Emoji thông minh khi bấm chuột ra vùng trống bên ngoài
+        document.addEventListener('click', function (e) {
+            if (!emojiContainer.contains(e.target) && e.target !== emojiTriggerBtn) {
+                emojiContainer.style.display = 'none';
+            }
+        });
+    }
+});

@@ -19,7 +19,7 @@ class PostController extends Controller
     {
         // Lấy bài viết kèm theo user, media và cả likes (để hiển thị số lượt like)
         $posts = Post::with(['user', 'media', 'likes'])
-            ->orderByDesc('is_pinned') // 🔥 ghim lên trước
+            // ->orderByDesc('is_pinned') // 🔥 XÓA HOẶC COMMENT DÒNG NÀY ĐI
             ->latest()
             ->get();
 
@@ -202,6 +202,7 @@ class PostController extends Controller
     }
     public function toggleLike($postId)
     {
+        $post = \App\Models\Post::find($postId);
         $userId = Auth::id();
         if (!$userId)
             return response()->json(['error' => 'Unauthenticated'], 401);
@@ -221,24 +222,13 @@ class PostController extends Controller
             ]);
             $isLiked = true;
 
-            $post = \App\Models\Post::find($postId);
 
-            // Check bài viết có tồn tại không
-            if ($post && $post->user_id !== $userId) {
-                \App\Models\Notification::create([
-                    'user_id' => $post->user_id,      // User nhận thông báo (chủ bài viết)
-                    'actor_id' => $userId,            // User thả tim (chính là mình)
-                    'type' => 'like',                 // Phân loại là 'like' để mốt Frontend biết đường hiện icon cho chuẩn
-                    'reference_id' => $postId,        // Lưu ID bài để mốt click vô nó đá qua đúng bài
-                    'is_read' => 0,                   // Đánh dấu chưa đọc
-                ]);
-            }
-            // ====================================================================
         }
 
         // Đếm lại tổng số tim
         $count = \App\Models\Like::where('post_id', $postId)->count();
 
+        event(new \App\Events\PostLiked(Auth::user(), $post, $isLiked));
         // Nhả cục JSON về cho con Frontend nó render
         return response()->json([
             'isLiked' => $isLiked,
