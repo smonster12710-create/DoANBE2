@@ -90,4 +90,5 @@
     @endforeach
     <script src="/js/chat.js?v={{ time() }}"></script>
     <script src="/js/list_chat.js?v={{ time() }}"></script>
+    
     @endsection

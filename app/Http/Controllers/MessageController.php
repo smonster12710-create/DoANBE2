@@ -289,8 +289,9 @@ class MessageController extends Controller
 
         $message->is_deleted = 1;
         $message->save();
-
-        broadcast(new MessageSent($message))->toOthers();
+        $conversation = Conversation::with('participants')->find($message->conversation_id);
+        $broadcastIds = $conversation->participants->pluck('user_id')->toArray();
+        broadcast(new MessageSent($message, $broadcastIds))->toOthers();
 
         return response()->json([
             'success' => true
@@ -342,26 +343,47 @@ class MessageController extends Controller
     /**
      * Xoá tin nhắn ở phía một mình tôi (Chèn ID vào bảng trung gian `deleted_messages`)
      */
+    /**
+     * Xoá tin nhắn ở phía một mình tôi (Chèn ID vào bảng trung gian `deleted_messages`)
+     */
     public function deleteForMe($id)
     {
+        $myId = Auth::id();
+
         $deleted = DeletedMessage::firstOrCreate([
             'message_id' => $id,
-            'user_id' => Auth::id()
+            'user_id' => $myId
         ]);
 
-        // 🔥 BỔ SUNG: Tìm tin nhắn vừa xóa để lấy conversation_id
         $message = Message::find($id);
         if ($message) {
-            // Phát tín hiệu thông báo trạng thái đọc/hoặc cập nhật sidebar cho chính mình
-            // Truyền ID của mình vào mảng người nhận để máy mình tự nghe và update sidebar
-            broadcast(new ChatReadStatusUpdated($message->conversation_id, [], [Auth::id()]))->toOthers();
+            $conversationId = $message->conversation_id;
+
+         
+            $conversation = Conversation::find($conversationId);
+
+            // Bốc ngay tin nhắn cuối cùng thực sự còn hiển thị sau khi đã xóa tin hiện tại
+            $nextLastMessage = $conversation->lastVisibleMessage($myId);
+
+            if ($nextLastMessage) {
+                // Nếu còn tin nhắn cũ hơn, bắn Event gối đầu để Sidebar cập nhật lại chữ
+                // Chỉ bắn cho CHÍNH MÌNH (mảng [$myId]) vì người khác không xóa tin này
+                broadcast(new MessageSent($nextLastMessage, [$myId]));
+            } else {
+                // Nếu xóa sạch sành sanh không còn tin nào, tạo một tin nhắn giả lập rỗng
+                $fakeMessage = new Message();
+                $fakeMessage->conversation_id = $conversationId;
+                $fakeMessage->content = '';
+                $fakeMessage->sender_id = $myId;
+
+                broadcast(new MessageSent($fakeMessage, [$myId]));
+            }
         }
 
         return response()->json([
             'success' => true
         ]);
     }
-
     /**
      * Định nghĩa mối quan hệ HasMany
      */
