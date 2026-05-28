@@ -34,19 +34,29 @@ document.addEventListener('DOMContentLoaded', function () {
             .error((error) => {
                 console.error('CHANNEL ERROR:', error);
             })
+            // Tìm đoạn .listen('.MessageSent'...) ở MỤC 11 và thay bằng đoạn này:
             .listen('.MessageSent', (e) => {
                 let msg = e.message;
                 if (!msg) return;
 
-                // Tránh append trùng tin nhắn trong khung chat
-                const existed = document.querySelector(`.message-wrapper[data-id="${msg.id}"]`);
-                if (!existed) {
-                    appendMessageRealtime(msg);
-                    scrollBottom();
+                // Chỗ này xử lý realtime thu hồi cho đối phương nè cậu:
+                if (msg.is_deleted == 1) {
+                    let wrapper = document.querySelector(`.message-wrapper[data-id="${msg.id}"]`);
+                    if (wrapper) {
+                        let wrapperClass = msg.sender_id == currentUserId ? 'me' : 'them';
+                        wrapper.className = `message-wrapper ${wrapperClass}`;
+                        wrapper.innerHTML = `<div class="message-recalled">Tin nhắn đã được thu hồi</div>`;
+                    }
+                } else {
+                    // Tin nhắn bình thường thì giữ nguyên logic append cũ của cậu
+                    const existed = document.querySelector(`.message-wrapper[data-id="${msg.id}"]`);
+                    if (!existed) {
+                        appendMessageRealtime(msg);
+                        scrollBottom();
 
-                    // SỬA LỖI ĐỌC TIN: Người nhận đang mở chat thì tự động báo đã đọc
-                    if (msg.sender_id != currentUserId) {
-                        markAsRead();
+                        if (msg.sender_id != currentUserId) {
+                            markAsRead();
+                        }
                     }
                 }
             })

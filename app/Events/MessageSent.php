@@ -25,21 +25,21 @@ class MessageSent implements ShouldBroadcastNow
         $this->receiverIds = $receiverIds;
     }
 
-    public function broadcastOn(): array
+    public function broadcastOn()
     {
-        $channels = [
-            // Realtime trong phòng chat chi tiết
-            new PrivateChannel('chat-conversation.' . $this->message->conversation_id)
-        ];
+        $channels = [];
 
-        // 1. Realtime badge cho những người NHẬN tin nhắn
-        foreach ($this->receiverIds as $id) {
-            $channels[] = new PrivateChannel('user.' . $id);
-        }
+        // 1. Kênh phòng chat (Dành cho khung chat chi tiết chat.js nghe)
+        $channels[] = new PrivateChannel('chat-conversation.' . $this->message->conversation_id);
 
-        // 2. THÊM DÒNG NÀY: Bắn ngược lại cho chính NGƯỜI GỬI để tự cập nhật Sidebar của mình
-        if ($this->message->user_id) {
-            $channels[] = new PrivateChannel('user.' . $this->message->user_id);
+        // 2. Kênh cá nhân (Dành cho Sidebar list_chat.js nghe)
+        if (!empty($this->receiverIds)) {
+            foreach ($this->receiverIds as $id) {
+                $channels[] = new PrivateChannel('user.' . $id);
+            }
+        } else {
+            // Dự phòng nếu không truyền mảng ID thì phát về kênh của người gửi
+            $channels[] = new PrivateChannel('user.' . $this->message->sender_id);
         }
 
         return $channels;
