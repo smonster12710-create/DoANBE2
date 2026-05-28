@@ -96,7 +96,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
             Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
             // tương tác thêm bạn bè theo dõi giữa các người dùng
-            Route::post('/profile/{username}/friend', [ProfileController::class, 'toggleFriend'])->name('profile.friend.toggle');
+            //Route::post('/profile/{username}/friend', [ProfileController::class, 'toggleFriend'])->name('profile.friend.toggle');
             //Route::post('/profile/{username}/follow', [ProfileController::class, 'toggleFollow'])->name('profile.follow.toggle');
 
             // BẠN BÈ
