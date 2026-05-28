@@ -28,21 +28,18 @@ class MessageSent implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         $channels = [
-
-            // realtime trong phòng chat
-            new PrivateChannel(
-                'chat-conversation.' .
-                    $this->message->conversation_id
-            )
+            // Realtime trong phòng chat chi tiết
+            new PrivateChannel('chat-conversation.' . $this->message->conversation_id)
         ];
 
-        // realtime badge theo user
+        // 1. Realtime badge cho những người NHẬN tin nhắn
         foreach ($this->receiverIds as $id) {
+            $channels[] = new PrivateChannel('user.' . $id);
+        }
 
-            $channels[] =
-                new PrivateChannel(
-                    'user.' . $id
-                );
+        // 2. THÊM DÒNG NÀY: Bắn ngược lại cho chính NGƯỜI GỬI để tự cập nhật Sidebar của mình
+        if ($this->message->user_id) {
+            $channels[] = new PrivateChannel('user.' . $this->message->user_id);
         }
 
         return $channels;
