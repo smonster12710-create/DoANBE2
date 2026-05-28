@@ -1,63 +1,87 @@
+
 services:
-  # App (PHP-FPM)
+  # PHP App
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    image: techstore-php
-    container_name: techstore-app
+    image: doanbe2-php
+    container_name: doanbe2-app
     restart: unless-stopped
+    working_dir: /var/www
     volumes:
       - ./:/var/www
     networks:
-      - techstore-network
+      - doanbe2-network
 
-  # Web Server (Nginx)
+  # Nginx Web Server
   webserver:
     image: nginx:stable-alpine
-    container_name: techstore-webserver
+    container_name: doanbe2-webserver
     restart: unless-stopped
     ports:
       - "8000:80"
     volumes:
-      - /home/tien/projects/DoANBE2:/var/www
-      - /home/tien/projects/DoANBE2/docker_config/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./:/var/www
+      - ./docker_config/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
     networks:
-      - techstore-network
+      - doanbe2-network
 
-  # Database (MySQL 8.0)
+  # MySQL Database
   db:
     image: mysql:8.0
-    container_name: techstore-db
+    container_name: doanbe2-db
     restart: unless-stopped
     ports:
       - "3306:3306"
     environment:
-      MYSQL_DATABASE: techstore_db
+      MYSQL_DATABASE: doanbe2_db
       MYSQL_ROOT_PASSWORD: root
       MYSQL_PASSWORD: root
       MYSQL_USER: user
     volumes:
       - dbdata:/var/lib/mysql
     networks:
-      - techstore-network
+      - doanbe2-network
 
-  # phpMyAdmin (Quản lý DB cho sướng)
+  # phpMyAdmin
   phpmyadmin:
     image: phpmyadmin
-    container_name: techstore-pma
+    container_name: doanbe2-pma
     restart: unless-stopped
     ports:
       - "8080:80"
     environment:
-      - PMA_HOST=db
+      PMA_HOST: db
+    depends_on:
+      - db
     networks:
-      - techstore-network
+      - doanbe2-network
+
+  # Node + Vite
+  node:
+    image: node:20
+    container_name: doanbe2-node
+    working_dir: /var/www
+    tty: true
+    volumes:
+      - ./:/var/www
+      - node_modules:/var/www/node_modules
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    networks:
+      - doanbe2-network
 
 networks:
-  techstore-network:
+  doanbe2-network:
     driver: bridge
 
 volumes:
   dbdata:
     driver: local
+
+  node_modules:
+
