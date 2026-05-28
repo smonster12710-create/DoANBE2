@@ -209,8 +209,8 @@ class MessageController extends Controller
             ->values() // reset lại key sau khi lọc để đảm bảo không bị lỗi khi pluck
             ->pluck('user_id')
             ->toArray();
-
-        broadcast(new MessageSent($message, $receiverIds))->toOthers();
+        $broadcastIds = array_merge($receiverIds, [Auth::id()]);
+        broadcast(new MessageSent($message, $broadcastIds))->toOthers();
 
         // Trả phản hồi thành công về cho Javascript xử lý giao diện người gửi
         return response()->json([
