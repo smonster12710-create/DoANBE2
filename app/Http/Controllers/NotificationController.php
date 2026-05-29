@@ -81,7 +81,23 @@ class NotificationController extends Controller
             case 'like_post':
             case 'comment':
             case 'mention':
-                $redirectUrl = route('posts.show', $notification->reference_id); // reference_id là ID bài viết
+                // 1. Chọc xuống DB check coi bài viết còn sống không
+                $post = \App\Models\Post::find($notification->reference_id);
+
+                // 2. Nếu bài viết bay màu rồi
+                if (!$post) {
+                    // Tiện tay xóa luôn cái thông báo vô dụng này dưới DB
+                    $notification->delete();
+
+                    // Nhả false về để con JS bung Toast báo lỗi và xóa UI
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Bài viết này không còn tồn tại hoặc đã bị xóa!'
+                    ]);
+                }
+
+                // 3. Nếu bài viết còn sống nhăn răng thì mới tạo link
+                $redirectUrl = route('posts.show', $post->id);
                 break;
 
             // ==========================================
@@ -93,12 +109,14 @@ class NotificationController extends Controller
                 $actorUser = \App\Models\User::find($notification->reference_id);
 
                 if ($actorUser) {
-                    // Bẻ lái qua route cá nhân. 
-                    // Pro nhớ check xem cái tên route hiển thị profile bên Pro tên là gì nha (ví dụ: 'profile.show')
-                    // Vì hệ thống của Pro tìm user bằng username nên mình truyền $actorUser->username vô nghen!
                     $redirectUrl = url('/profile/' . $actorUser->username);
                 } else {
-                    $redirectUrl = url('/'); // Nếu user đó xóa acc thì cho về trang chủ
+                    // Nếu User bị ban hoặc xóa acc thì cũng y chang bài viết
+                    $notification->delete();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Người dùng này không còn tồn tại!'
+                    ]);
                 }
                 break;
 
