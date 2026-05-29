@@ -8,9 +8,9 @@ class PostMention
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $mentioner; // Đại ca đi thả tim
-    public $post; // Bài viết được thả tim
-    public $mentionedUser; // Người bị mention
+    public $mentioner; 
+    public $post; 
+    public $mentionedUser; 
 
     public function __construct($mentioner, $post, $mentionedUser)
     {
