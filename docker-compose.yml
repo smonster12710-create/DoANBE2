@@ -75,6 +75,32 @@ services:
     networks:
       - doanbe2-network
 
+  # Laravel Reverb
+  reverb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: doanbe2-php
+    container_name: doanbe2-reverb
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    command: >
+      sh -c "
+        sleep 15 &&
+        php artisan optimize:clear &&
+        php artisan reverb:start --host=0.0.0.0 --port=8080
+      "
+    ports:
+      - "8081:8080"
+    depends_on:
+      - app
+      - db
+    networks:
+      - doanbe2-network
+
+
 networks:
   doanbe2-network:
     driver: bridge
