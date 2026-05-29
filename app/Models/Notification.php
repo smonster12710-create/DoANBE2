@@ -1,8 +1,10 @@
 <?php
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Notification extends Model
 {
+    use HasFactory;
     protected $fillable = ['user_id', 'actor_id', 'type', 'reference_id', 'is_read'];
     //Lay thong tin nguoi tao thong bao
     public function user()
