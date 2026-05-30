@@ -63,8 +63,14 @@
 
                 @elseif($activePartner)
 
-                <img src="{{ $activePartner->avatar_url ?? 'https://i.pravatar.cc/45' }}"
-                    style="width:45px;height:45px;border-radius:50%;">
+                <div class="avatar-online-wrap">
+                    <img src="{{ $activePartner->avatar_url ?? 'https://i.pravatar.cc/45' }}"
+                        style="width:45px;height:45px;border-radius:50%;">
+
+                    @if($activePartner->canShowActivityTo(auth()->user()))
+                        <span class="online-dot"></span>
+                    @endif
+                </div>
 
                 <div>
                     <h4 style="margin:0;">{{ $activePartner->fullname }}</h4>
@@ -264,7 +270,13 @@
                             @if(isset($friends) && $friends->count() > 0)
                             @foreach($friends as $friend)
                             <label class="friend-select-item">
-                                <img src="{{ $friend->avatar_url ?? 'https://i.pravatar.cc/40' }}" class="friend-avatar">
+                                <div class="avatar-online-wrap">
+                                    <img src="{{ $friend->avatar_url ?? 'https://i.pravatar.cc/40' }}" class="friend-avatar">
+
+                                    @if($friend->canShowActivityTo(auth()->user()))
+                                        <span class="online-dot"></span>
+                                    @endif
+                                </div>
                                 <span class="friend-name">{{ $friend->fullname ?? $friend->username }}</span>
                                 <input type="checkbox" name="user_ids[]" value="{{ $friend->id }}" class="friend-checkbox">
                             </label>

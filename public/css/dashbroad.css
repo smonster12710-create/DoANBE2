@@ -165,3 +165,26 @@ body {
     text-decoration: none;
     color: black;
 }
+
+/* Chấm xanh trạng thái hoạt động dùng chung cho avatar trên toàn layout dashboard */
+.avatar-online-wrap {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.avatar-online-wrap img {
+    display: block;
+}
+
+.online-dot {
+    position: absolute;
+    right: 1px;
+    bottom: 1px;
+    width: 12px;
+    height: 12px;
+    background: #31a24c;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    z-index: 5;
+}

@@ -92,15 +92,18 @@ document.addEventListener('DOMContentLoaded', function () {
                         "
                     >
 
-                        <img src="${avatar}"
-                            style="
-                                width:38px;
-                                height:38px;
-                                border-radius:50%;
-                                object-fit:cover;
-                                flex-shrink:0;
-                            "
-                        >
+                        <div class="avatar-online-wrap">
+                            <img src="${avatar}"
+                                style="
+                                    width:38px;
+                                    height:38px;
+                                    border-radius:50%;
+                                    object-fit:cover;
+                                    flex-shrink:0;
+                                "
+                            >
+                            ${post.user?.can_show_activity ? '<span class="online-dot"></span>' : ''}
+                        </div>
 
                         <div style="flex:1; min-width:0;">
 

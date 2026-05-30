@@ -28,6 +28,8 @@ class User extends Authenticatable
         'cover_url',
         'role',
         'is_active',
+        'show_activity_status',
+        'profile_locked',
     ];
 
     protected $hidden = [
@@ -68,7 +70,7 @@ class User extends Authenticatable
     public function sentFriendRequests()
     {
         return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id')
-                    ->withPivot('status')->withTimestamps();
+            ->withPivot('status')->withTimestamps();
     }
 
     /**
@@ -77,7 +79,7 @@ class User extends Authenticatable
     public function receivedFriendRequests()
     {
         return $this->belongsToMany(User::class, 'friendships', 'friend_id', 'user_id')
-                    ->withPivot('status')->withTimestamps();
+            ->withPivot('status')->withTimestamps();
     }
 
     /**
@@ -95,10 +97,47 @@ class User extends Authenticatable
         // Kiểm tra xem họ có gửi lời mời cho mình chưa
         $received = $this->receivedFriendRequests()->where('user_id', $userId)->first();
         if ($received) {
-            return $received->pivot->status === 'pending' ? 'requested' : 'accepted'; 
+            return $received->pivot->status === 'pending' ? 'requested' : 'accepted';
             // 'requested' nghĩa là đối phương đang chờ mình đồng ý
         }
 
         return 'none'; // Chưa có quan hệ gì cả
+    }
+    /**
+     * Kiểm tra người dùng hiện tại có phải bạn bè với người xem hay không.
+     * Dùng cho các chức năng cần quan hệ bạn bè:
+     * - Trạng thái hoạt động
+     * - Quyền xem trang cá nhân
+     */
+    public function isFriendWith($viewer)
+    {
+        if (!$viewer) {
+            return false;
+        }
+
+        if ($this->id == $viewer->id) {
+            return true;
+        }
+
+        return $this->getFriendshipStatus($viewer->id) === 'accepted';
+    }
+
+    /**
+     * Kiểm tra có được hiển thị chấm xanh hoạt động cho người xem hay không.
+     *
+     * Điều kiện:
+     * - Người đang xem cũng bật trạng thái hoạt động
+     * - Người được xem cũng bật trạng thái hoạt động
+     * - Hai người là bạn bè
+     */
+    public function canShowActivityTo($viewer)
+    {
+        if (!$viewer) {
+            return false;
+        }
+
+        return $this->show_activity_status == 1
+            && $viewer->show_activity_status == 1
+            && $this->isFriendWith($viewer);
     }
 }
