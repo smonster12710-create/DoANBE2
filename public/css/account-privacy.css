@@ -1,0 +1,47 @@
+.account-setting-wrapper {
+    position: relative;
+}
+
+.privacy-dropdown {
+    display: none;
+
+    position: absolute;
+    left: 35px;
+    top: 50px;
+
+    width: 100%;
+
+    padding: 8px;
+
+    background: #fff;
+    border-radius: 12px;
+
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+
+    z-index: 99999;
+}
+
+.privacy-dropdown.show {
+    display: block;
+}
+
+.privacy-dropdown a {
+    display: block;
+
+    padding: 12px 14px;
+
+    border-radius: 10px;
+
+    background: #f5f5f5;
+
+    color: #e51f28 !important;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.privacy-dropdown a:hover {
+    background: #eeeeee;
+}
+.account-setting-wrapper > a {
+    display: block;
+}

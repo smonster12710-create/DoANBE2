@@ -113,6 +113,9 @@ Route::middleware('auth')->group(function () {
             // chuyển tài khoản
             Route::post('/switch-account', [CrudUserController::class, 'switchAccount'])->name('account.switch');
 
+            // Khoá bảo vệ trang cá nhân
+            Route::get('/profile-lock', [ProfileController::class, 'profileLock'])->name('profile.lock');
+            Route::post('/profile-lock/toggle', [ProfileController::class, 'toggleProfileLock'])->name('profile.lock.toggle');
 
 
 
@@ -178,8 +181,8 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/messages/delete-for-me/{id}', 'deleteForMe');
 
-        Route::post('/messages/{conversationId}/mark-read','markAsRead');
-        
+        Route::post('/messages/{conversationId}/mark-read', 'markAsRead');
+
         Route::get('/messages/start/{username}', 'startChat')->name('messages.start');
 
         Route::post('/chat/group/create', 'createGroup')->name('chat.group.create');

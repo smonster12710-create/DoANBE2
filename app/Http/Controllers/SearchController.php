@@ -22,10 +22,12 @@ class SearchController extends Controller
         // Ép từ khóa về chữ thường để tìm cho chuẩn
         $keyword = mb_strtolower($keyword, 'UTF-8');
 
-        $users = User::where(function ($query) use ($keyword) {
-            $query->where('username', 'LIKE', "%{$keyword}%")
-                ->orWhere('fullname', 'LIKE', "%{$keyword}%");
-        })
+        // Tìm kiếm người dùng dựa trên username hoặc fullname, loại trừ admin
+        $users = User::where('role', '!=', 'admin')
+            ->where(function ($query) use ($keyword) {
+                $query->where('username', 'LIKE', "%{$keyword}%")
+                    ->orWhere('fullname', 'LIKE', "%{$keyword}%");
+            })
             // Nếu Pro không chắc user đã active chưa thì tạm thời bỏ cái where('is_active', 1) để test nhé!
             ->select('id', 'username', 'fullname', 'avatar_url', 'role')
             ->paginate(5);

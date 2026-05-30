@@ -28,15 +28,15 @@ class ProfileController extends Controller
 
         $posts = \App\Models\Post::with(['user', 'media', 'likes', 'comments'])
             ->where('user_id', $user->id)
-            ->orderBy('is_pinned', 'desc')  
-            ->orderBy('created_at', 'desc') 
+            ->orderBy('is_pinned', 'desc')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         $authId = Auth::id();
 
         // 🌟 FIX LOGIC: Chỉ đếm số lượng bạn bè THỰC SỰ (đã accepted)
         $friendsCount = DB::table('friendships')
-            ->where(function($q) use ($user) {
+            ->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)->orWhere('friend_id', $user->id);
             })
             ->where('status', 'accepted')
@@ -69,6 +69,17 @@ class ProfileController extends Controller
             ->where('following_id', $user->id)
             ->exists();
 
+        // KHÓA BẢO VỆ TRANG CÁ NHÂN
+        // Chủ tài khoản, bạn bè và admin vẫn được xem.
+        // Người lạ sẽ bị chặn.
+        $isOwner = $authId == $user->id;
+
+        $isAdmin = Auth::check() && Auth::user()->role === 'admin';
+
+        if ($user->profile_locked && !$isOwner && !$isFriend && !$isAdmin) {
+            return view('social.profile_private', compact('user'));
+        }
+        
         return view('social.profile', compact(
             'user',
             'posts',
@@ -255,6 +266,31 @@ class ProfileController extends Controller
             ->with('success', 'Đã cập nhật profile thành công!');
     }
 
+    /**
+     * Khóa bảo vệ trang cá nhân: Khi bật, chỉ bạn bè mới có thể xem được trang cá nhân của bạn.
+     *  Người khác sẽ thấy thông báo "Trang cá nhân này được bảo vệ".
+     *  Đây là tính năng bổ sung để tăng cường quyền riêng tư cho người dùng.
+     */
+    public function profileLock()
+    {
+        $user = auth()->user();
+
+        return view('social.profile_lock', compact('user'));
+    }
+
+    public function toggleProfileLock()
+    {
+        $user = auth()->user();
+
+        $user->profile_locked = !$user->profile_locked;
+        $user->save();
+
+        if ($user->profile_locked) {
+            return back()->with('success', 'Đã bật khóa bảo vệ trang cá nhân!');
+        }
+
+        return back()->with('success', 'Đã tắt khóa bảo vệ trang cá nhân!');
+    }
     /**
      * Nén và resize ảnh profile trước khi lưu.
      *
