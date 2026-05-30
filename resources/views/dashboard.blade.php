@@ -21,6 +21,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
         console.log("Blade đã ép ID vào window thành công:", window.currentUserId);
     </script>
     <title>ESPACE</title>
+    <link rel="stylesheet" href="{{ asset('css/account-privacy.css') }}">
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/dashbroad.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/search.css') }}">
@@ -424,6 +425,36 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
             background: #f2f2f2;
             color: #e51f28;
         }
+
+        .account-setting-wrapper {
+            position: relative;
+        }
+
+        .privacy-dropdown {
+            display: none;
+            margin: 4px 0 6px 14px;
+            padding: 8px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+        }
+
+        .privacy-dropdown.show {
+            display: block;
+        }
+
+        .privacy-dropdown a {
+            display: block;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: #e51f28 !important;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .privacy-dropdown a:hover {
+            background: #f2f2f2;
+        }
     </style>
 </head>
 
@@ -702,8 +733,19 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
 
                         @endif
                         <a href="{{ route('profile') }}">Xem trang cá nhân</a>
-                        <a href="#">Cài đặt và quyền riêng tư</a>
-                        <a href="#">Trợ giúp và hỗ trợ</a>
+                        <div class="account-setting-wrapper">
+
+                            <a href="javascript:void(0)" onclick="togglePrivacyDropdown(event)">
+                                Cài đặt và quyền riêng tư
+                            </a>
+
+                            <div id="privacyDropdown" class="privacy-dropdown">
+                                <a href="{{ route('profile.lock') }}">
+                                    Khóa bảo vệ tài khoản cá nhân
+                                </a>
+                            </div>
+
+                        </div> <a href="#">Trợ giúp và hỗ trợ</a>
                         <a href="#">Màn hình và trợ năng</a>
                         <a href="#">Đóng góp ý kiến</a>
                         <a href="{{ route('signout') }}" class="logout-link">Đăng xuất</a>
@@ -825,6 +867,25 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
 
         if (menu) {
             menu.classList.remove('show');
+        }
+    });
+</script>
+<script>
+    function togglePrivacyDropdown(event) {
+        event.stopPropagation();
+
+        const dropdown = document.getElementById('privacyDropdown');
+
+        if (dropdown) {
+            dropdown.classList.toggle('show');
+        }
+    }
+
+    document.addEventListener('click', function() {
+        const dropdown = document.getElementById('privacyDropdown');
+
+        if (dropdown) {
+            dropdown.classList.remove('show');
         }
     });
 </script>
