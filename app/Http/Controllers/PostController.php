@@ -294,6 +294,14 @@ class PostController extends Controller
             ->latest()
             ->paginate(5);
 
+        $posts->getCollection()->transform(function ($post) {
+            if ($post->user) {
+                $post->user->can_show_activity = $post->user->canShowActivityTo(auth()->user());
+            }
+
+            return $post;
+        });
+
         return response()->json([
             'data' => $posts
         ]);

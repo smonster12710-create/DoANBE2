@@ -8,7 +8,16 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
                 <a href="{{ route('profile.show', $post->user->username) }}" onclick="event.stopPropagation()" class="post-user-link">
-                    <img class="avatar" src="{{ $post->user->avatar_url ? asset($post->user->avatar_url) : asset('img/user/user.jpg') }}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                    <div class="avatar-online-wrap">
+                        <img
+                            class="avatar"
+                            src="{{ $post->user->avatar_url ? asset($post->user->avatar_url) : asset('img/user/user.jpg') }}"
+                            alt="avatar">
+
+                        @if($post->user && $post->user->canShowActivityTo(auth()->user()))
+                        <span class="online-dot"></span>
+                        @endif
+                    </div>
                 </a>
 
                 <div class="info ms-2">

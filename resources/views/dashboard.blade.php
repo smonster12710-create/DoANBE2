@@ -707,9 +707,15 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
                                     <input type="hidden" name="user_id" value="{{ $account->id }}">
 
                                     <button type="submit" class="switch-account-item">
-                                        <img
-                                            src="{{ $account->avatar_url ? asset($account->avatar_url) : asset('img/user/user.jpg') }}"
-                                            alt="avatar">
+                                        <div class="avatar-online-wrap">
+                                            <img
+                                                src="{{ $account->avatar_url ? asset($account->avatar_url) : asset('img/user/user.jpg') }}"
+                                                alt="avatar">
+
+                                            @if($account->canShowActivityTo(auth()->user()))
+                                                <span class="online-dot"></span>
+                                            @endif
+                                        </div>
 
                                         <div>
                                             <strong>{{ $account->fullname ?? $account->name ?? 'Người dùng' }}</strong>
@@ -742,6 +748,9 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
                             <div id="privacyDropdown" class="privacy-dropdown">
                                 <a href="{{ route('profile.lock') }}">
                                     Khóa bảo vệ tài khoản cá nhân
+                                </a>
+                                <a href="{{ route('activity.status') }}">
+                                    Trạng thái hoạt động
                                 </a>
                             </div>
 

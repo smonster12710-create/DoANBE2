@@ -117,6 +117,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/profile-lock', [ProfileController::class, 'profileLock'])->name('profile.lock');
             Route::post('/profile-lock/toggle', [ProfileController::class, 'toggleProfileLock'])->name('profile.lock.toggle');
 
+            // trạng thái hoạt động
+            Route::get('/activity-status', [ProfileController::class, 'activityStatus'])->name('activity.status');
+            Route::post('/activity-status/toggle', [ProfileController::class, 'toggleActivityStatus'])->name('activity.status.toggle');
+
 
 
             // Route phụ: Nếu gõ domain.com/profile thì tự nhảy về profile của mình

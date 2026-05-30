@@ -52,7 +52,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             html += `
                             <div class="result-item" onclick="window.location.href='/profile/${user.username}'" style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 12px;">
-                                <img src="${userImg}" alt="avatar" style="width:35px; height:35px; border-radius:50%; object-fit: cover;">
+                                <div class="avatar-online-wrap">
+                                    <img src="${userImg}" alt="avatar" style="width:35px; height:35px; border-radius:50%; object-fit: cover;">
+                                    ${user.can_show_activity ? '<span class="online-dot"></span>' : ''}
+                                </div>
                                 <div>
                                     <div style="font-weight: bold; color: #333;">${user.fullname}</div>
                                     <div style="font-size: 12px; color: #888;">@${user.username}</div>

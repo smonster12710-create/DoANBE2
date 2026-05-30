@@ -79,7 +79,7 @@ class ProfileController extends Controller
         if ($user->profile_locked && !$isOwner && !$isFriend && !$isAdmin) {
             return view('social.profile_private', compact('user'));
         }
-        
+
         return view('social.profile', compact(
             'user',
             'posts',
@@ -266,6 +266,30 @@ class ProfileController extends Controller
             ->with('success', 'Đã cập nhật profile thành công!');
     }
 
+    /**
+     * Trạng thái hoạt động tài khoản: Khi bật, bạn bè sẽ thấy "Đang hoạt động" khi bạn online.
+     *  Khi tắt, bạn sẽ luôn hiển thị là offline.
+     */
+    public function activityStatus()
+    {
+        $user = auth()->user();
+
+        return view('social.activity_status', compact('user'));
+    }
+
+    public function toggleActivityStatus()
+    {
+        $user = auth()->user();
+
+        $user->show_activity_status = !$user->show_activity_status;
+        $user->save();
+
+        if ($user->show_activity_status) {
+            return back()->with('success', 'Đã bật trạng thái hoạt động!');
+        }
+
+        return back()->with('success', 'Đã tắt trạng thái hoạt động!');
+    }
     /**
      * Khóa bảo vệ trang cá nhân: Khi bật, chỉ bạn bè mới có thể xem được trang cá nhân của bạn.
      *  Người khác sẽ thấy thông báo "Trang cá nhân này được bảo vệ".

@@ -14,9 +14,15 @@
                 <div class="detail-header card-header d-flex justify-content-between align-items-center bg-transparent border-0 p-3">
                     <div class="d-flex align-items-center">
                         <a href="{{ route('profile.show', $post->user->username) }}" class="post-user-link">
-                            <img class="detail-avatar avatar"
-                                src="{{ $post->user->avatar_url ? asset($post->user->avatar_url) : asset('img/user/user.jpg') }}"
-                                alt="avatar" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                            <div class="avatar-online-wrap">
+                                <img class="detail-avatar avatar"
+                                    src="{{ $post->user->avatar_url ? asset($post->user->avatar_url) : asset('img/user/user.jpg') }}"
+                                    alt="avatar" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+
+                                @if($post->user && $post->user->canShowActivityTo(auth()->user()))
+                                    <span class="online-dot"></span>
+                                @endif
+                            </div>
                         </a>
 
                         <div class="detail-info ms-2">
@@ -72,7 +78,13 @@
                     @if($post->parent_id && $post->parent)
                     <div class="original-post-block border rounded p-3 bg-light mb-3 mx-1">
                         <div class="d-flex align-items-center mb-2">
-                            <img src="{{ $post->parent->user->avatar_url ? asset($post->parent->user->avatar_url) : asset('img/user/user.jpg') }}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+                            <div class="avatar-online-wrap">
+                                <img src="{{ $post->parent->user->avatar_url ? asset($post->parent->user->avatar_url) : asset('img/user/user.jpg') }}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+
+                                @if($post->parent->user && $post->parent->user->canShowActivityTo(auth()->user()))
+                                    <span class="online-dot"></span>
+                                @endif
+                            </div>
                             <strong class="text-dark ms-2" style="font-size: 14px;">
                                 {{ $post->parent->user->fullname ?? 'Người dùng' }}
                             </strong>

@@ -52,7 +52,13 @@
                     <div class="user-list-grid" id="userListGrid">
                         @foreach($users as $item)
                         <a href="{{ route('profile.show', $item->username) }}" class="user-list-item">
-                            <img src="{{ $item->avatar_url ? asset($item->avatar_url) : asset('img/user/user.jpg') }}" alt="avatar">
+                            <div class="avatar-online-wrap">
+                                <img src="{{ $item->avatar_url ? asset($item->avatar_url) : asset('img/user/user.jpg') }}" alt="avatar">
+
+                                @if($item->canShowActivityTo(auth()->user()))
+                                    <span class="online-dot"></span>
+                                @endif
+                            </div>
                             <div>
                                 <strong>{{ $item->fullname ?? 'Người dùng' }}</strong>
                                 <span>{{ '@' . $item->username }}</span>
@@ -92,7 +98,13 @@
                         <div class="user-list-grid" id="userListGrid">
                             @foreach($friends as $item)
                             <a href="{{ route('profile.show', $item->username) }}" class="user-list-item">
-                                <img src="{{ $item->avatar_url ? asset($item->avatar_url) : asset('img/user/user.jpg') }}" alt="avatar">
+                                <div class="avatar-online-wrap">
+                                    <img src="{{ $item->avatar_url ? asset($item->avatar_url) : asset('img/user/user.jpg') }}" alt="avatar">
+
+                                    @if($item->canShowActivityTo(auth()->user()))
+                                        <span class="online-dot"></span>
+                                    @endif
+                                </div>
                                 <div>
                                     <strong>{{ $item->fullname ?? 'Người dùng' }}</strong>
                                     <span>{{ '@' . $item->username }}</span>
@@ -113,7 +125,13 @@
                             @foreach($friendRequests as $item)
                             <div class="user-list-item" style="justify-content: space-between; cursor: default;">
                                 <a href="{{ route('profile.show', $item->username) }}" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit;">
-                                    <img src="{{ $item->avatar_url ? asset($item->avatar_url) : asset('img/user/user.jpg') }}" alt="avatar">
+                                    <div class="avatar-online-wrap">
+                                        <img src="{{ $item->avatar_url ? asset($item->avatar_url) : asset('img/user/user.jpg') }}" alt="avatar">
+
+                                        @if($item->canShowActivityTo(auth()->user()))
+                                            <span class="online-dot"></span>
+                                        @endif
+                                    </div>
                                     <div>
                                         <strong>{{ $item->fullname ?? 'Người dùng' }}</strong>
                                         <span>{{ '@' . $item->username }}</span>
