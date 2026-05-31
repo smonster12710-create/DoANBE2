@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Post;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -39,6 +40,63 @@ class User extends Authenticatable
     public function getAuthPassword()
     {
         return $this->password_hash;
+    }
+
+    // Khi luu avatar, neu du lieu cu/gui len dang URL local thi doi ve path tuong doi.
+    public function setAvatarUrlAttribute($value)
+    {
+        $this->attributes['avatar_url'] = $this->normalizeLocalImagePath($value);
+    }
+
+    // Khi luu cover, chi giu path anh local de khong bi dinh cung theo domain/localhost.
+    public function setCoverUrlAttribute($value)
+    {
+        $this->attributes['cover_url'] = $this->normalizeLocalImagePath($value);
+    }
+
+    // Dung trong Blade de hien thi avatar ma khong can goi asset() truc tiep.
+    public function getAvatarSrcAttribute()
+    {
+        return $this->profileImageSrc($this->avatar_url, 'img/user/user.jpg');
+    }
+
+    // Dung trong Blade de hien thi cover ma khong phu thuoc APP_URL.
+    public function getCoverSrcAttribute()
+    {
+        return $this->profileImageSrc($this->cover_url, 'img/cover/default-cover.jpg');
+    }
+
+    private function profileImageSrc($path, string $default): string
+    {
+        $path = $this->normalizeLocalImagePath($path) ?: $default;
+
+        // Link anh ben ngoai nhu Dicebear/Picsum van duoc giu nguyen.
+        if (Str::startsWith($path, ['http://', 'https://', '//'])) {
+            return $path;
+        }
+
+        // Anh local dung root-relative path de chay duoc ca localhost va hosting.
+        return '/' . ltrim($path, '/');
+    }
+
+    private function normalizeLocalImagePath($path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+
+        $path = trim((string) $path);
+
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            $urlPath = parse_url($path, PHP_URL_PATH);
+
+            // Chi strip domain voi anh local cua he thong, khong dung toi URL anh ngoai.
+            if ($urlPath && Str::startsWith(ltrim($urlPath, '/'), ['uploads_profile/', 'img/'])) {
+                return ltrim($urlPath, '/');
+            }
+        }
+
+        return ltrim($path, '/');
     }
 
     public function posts()
@@ -115,13 +173,13 @@ class User extends Authenticatable
             return false;
         }
 
+        // Chính mình không tính là bạn bè để tránh tự thấy chấm xanh của mình
         if ($this->id == $viewer->id) {
-            return true;
+            return false;
         }
 
         return $this->getFriendshipStatus($viewer->id) === 'accepted';
     }
-
     /**
      * Kiểm tra có được hiển thị chấm xanh hoạt động cho người xem hay không.
      *
@@ -133,6 +191,11 @@ class User extends Authenticatable
     public function canShowActivityTo($viewer)
     {
         if (!$viewer) {
+            return false;
+        }
+
+        // Không hiển thị chấm xanh của chính mình
+        if ($this->id == $viewer->id) {
             return false;
         }
 

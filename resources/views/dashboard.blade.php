@@ -197,6 +197,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
             text-overflow: ellipsis;
         }
 
+        /*css chuyển tài khoản*/
         .switch-toggle-btn {
             position: absolute;
             right: 12px;
@@ -224,15 +225,22 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
 
         .switch-account-panel {
             display: none;
-            position: fixed;
-            left: 20px;
-            bottom: 90px;
-            width: 300px;
+
+            position: absolute;
+            left: 12px;
+            top: 88px;
+
+            width: 360px;
+            max-width: calc(100vw - 30px);
+
             background: #fff;
-            border-radius: 16px;
-            padding: 16px;
+            border-radius: 18px;
+
+            padding: 18px;
+
             box-shadow: 0 10px 35px rgba(0, 0, 0, 0.18);
-            z-index: 100000;
+
+            z-index: 99999;
         }
 
         .switch-account-panel.show {
@@ -242,28 +250,42 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
         .switch-header {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
+
             margin-bottom: 18px;
         }
 
         .switch-header button {
+            width: 36px;
+            height: 36px;
+
             border: none;
+            border-radius: 50%;
+
             background: transparent;
-            font-size: 26px;
+
+            font-size: 28px;
             cursor: pointer;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .switch-header h3 {
             margin: 0;
-            font-size: 24px;
+
+            font-size: 25px;
             font-weight: 800;
+            line-height: 1.15;
+
             color: #111;
         }
 
         .switch-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .switch-list form {
@@ -272,89 +294,144 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
 
         .switch-account-item {
             width: 100%;
+
             border: none;
             background: transparent;
+
             display: flex;
             align-items: center;
             gap: 12px;
+
             padding: 10px;
-            border-radius: 12px;
+
+            border-radius: 14px;
+
             cursor: pointer;
+
             text-align: left;
         }
 
         .switch-account-item:hover {
-            background: #f2f2f2;
+            background: #f2f3f5;
         }
 
-        .switch-account-item img {
-            width: 52px;
-            height: 52px;
+        .switch-account-avatar {
+            width: 54px;
+            height: 54px;
+
             border-radius: 50%;
             object-fit: cover;
+
+            flex-shrink: 0;
         }
 
-        .switch-account-item div {
-            flex: 1;
+        .switch-account-info {
             min-width: 0;
+            flex: 1;
         }
 
-        .switch-account-item strong {
+        .switch-account-info strong {
             display: block;
+
             font-size: 16px;
+            font-weight: 800;
+
             color: #111;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .switch-account-item small {
+        .switch-account-info small {
             display: block;
-            font-size: 13px;
-            color: #555;
+
+            margin-top: 2px;
+
+            font-size: 14px;
+            color: #606770;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .active-check {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
+
             border-radius: 50%;
+
+            background: #1877f2;
+            color: #fff;
+
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #1877f2;
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
+
+            font-size: 18px;
+            font-weight: 800;
+
+            flex-shrink: 0;
         }
 
         .create-page-row {
+            margin-top: 10px;
+            padding: 12px 10px;
+
+            border-top: 1px solid #eee;
+
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 10px;
-            margin-top: 10px;
-            border-top: 1px solid #eee;
-            cursor: pointer;
-        }
 
-        .create-page-row span {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: #e4e6eb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-        }
-
-        .create-page-row {
-            text-decoration: none;
             color: #111;
+            text-decoration: none;
+
+            border-radius: 14px;
         }
 
         .create-page-row:hover {
-            background: #f2f2f2;
+            background: #f2f3f5;
             color: #111;
         }
 
+        .add-account-icon {
+            width: 48px;
+            height: 48px;
+
+            border-radius: 50%;
+
+            background: #e4e6eb;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 32px;
+            font-weight: 300;
+
+            flex-shrink: 0;
+        }
+
+        .create-page-row strong {
+            display: block;
+
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .create-page-row small {
+            display: block;
+
+            margin-top: 2px;
+
+            font-size: 13px;
+            color: #65676b;
+        }
+
+
+        /*css admin*/
         .settings-submenu {
             display: none;
             margin-left: 42px;
@@ -685,7 +762,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
 
                             @if(auth()->check() && auth()->user()->role !== 'admin')
                             <button type="button" id="switchToggleBtn" class="switch-toggle-btn" onclick="toggleSwitchAccount(event)">
-                                ⌄
+                                ▾
                             </button>
                             @endif
                         </div>
@@ -695,7 +772,9 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
                         <div id="switchAccountPanel" class="switch-account-panel">
 
                             <div class="switch-header">
-                                <button type="button" onclick="closeSwitchPanel(event)">←</button>
+                                <button type="button" class="switch-back-btn" onclick="closeSwitchPanel(event)">
+                                    ←
+                                </button>
                                 <h3>Chọn trang cá nhân</h3>
                             </div>
 
@@ -707,18 +786,13 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
                                     <input type="hidden" name="user_id" value="{{ $account->id }}">
 
                                     <button type="submit" class="switch-account-item">
-                                        <div class="avatar-online-wrap">
-                                            <img
-                                                src="{{ $account->avatar_url ? asset($account->avatar_url) : asset('img/user/user.jpg') }}"
-                                                alt="avatar">
+                                        <img
+                                            src="{{ $account->avatar_url ? asset($account->avatar_url) : asset('img/user/user.jpg') }}"
+                                            alt="avatar"
+                                            class="switch-account-avatar">
 
-                                            @if($account->canShowActivityTo(auth()->user()))
-                                                <span class="online-dot"></span>
-                                            @endif
-                                        </div>
-
-                                        <div>
-                                            <strong>{{ $account->fullname ?? $account->name ?? 'Người dùng' }}</strong>
+                                        <div class="switch-account-info">
+                                            <strong>{{ $account->fullname ?? 'Người dùng' }}</strong>
                                             <small>{{ '@' . ($account->username ?? 'user') }}</small>
                                         </div>
 
@@ -729,12 +803,14 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
                                 </form>
                                 @endforeach
                             </div>
-
                             <a href="{{ route('signout') }}" class="create-page-row">
-                                <span>＋</span>
-                                <strong>Thêm tài khoản</strong>
-                            </a>
+                                <span class="add-account-icon">＋</span>
 
+                                <div>
+                                    <strong>Thêm tài khoản</strong>
+                                    <small>Đăng nhập tài khoản khác</small>
+                                </div>
+                            </a>
                         </div>
 
                         @endif

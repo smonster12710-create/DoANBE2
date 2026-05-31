@@ -25,20 +25,6 @@
                 + Thêm người dùng
             </a>
         </div>
-
-        {{-- THÔNG BÁO --}}
-        @if(session('success'))
-            <div class="admin-toast success">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="admin-toast error">
-                {{ session('error') }}
-            </div>
-        @endif
-
         {{-- CARD DANH SÁCH --}}
         <div class="admin-card">
 
