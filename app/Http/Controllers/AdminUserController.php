@@ -180,7 +180,7 @@ class AdminUserController extends Controller
     private function validationMessages()
     {
         return [
-            'email.regex' => 'Email phai la dia chi @gmail.com.',
+            'email.regex' => 'Email phải là địa chỉ @gmail.com.',
             'fullname.string' => 'Họ tên phải là chuỗi ký tự.',
             'fullname.max' => 'Họ tên không được vượt quá 30 ký tự.',
             'username.required' => 'Vui lòng nhập username.',

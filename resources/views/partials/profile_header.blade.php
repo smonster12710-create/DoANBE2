@@ -1,9 +1,10 @@
 <div class="profile-card">
-    <img class="cover-img" src="{{ $user->cover_url ? asset($user->cover_url) : asset('img/cover/cover.jpg') }}"
+    {{-- cover_src/avatar_src da xu ly URL local de khong phu thuoc APP_URL. --}}
+    <img class="cover-img" src="{{ $user->cover_src }}"
         alt="cover">
 
     <div class="profile-info">
-        <img class="profile-avatar" src="{{ $user->avatar_url ? asset($user->avatar_url) : asset('img/user/user.jpg') }}"
+        <img class="profile-avatar" src="{{ $user->avatar_src }}"
             alt="avatar">
 
         <div class="profile-main">

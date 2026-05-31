@@ -5,28 +5,21 @@
 
 @php
     $user = Auth::user();
-
-    $avatar = $user && $user->avatar_url
-        ? asset($user->avatar_url)
-        : asset('img/user/user.jpg');
-
-    $cover = $user && $user->cover_url
-        ? asset($user->cover_url)
-        : asset('img/cover/default-cover.jpg');
 @endphp
 <div class="edit-profile-page">
     <div class="edit-profile-container">
 
         <div class="edit-header">
+            {{-- Dung *_src tu model de anh local khong bi render thanh http://localhost. --}}
             <img
-                src="{{ $cover }}"
+                src="{{ $user->cover_src }}"
                 class="edit-cover clickable-image"
                 alt="cover"
                 onclick="document.getElementById('coverInput').click()"
             >
             <div class="edit-user">
             <img
-                src="{{ $avatar }}"
+                src="{{ $user->avatar_src }}"
                 class="edit-avatar clickable-image"
                 alt="avatar"
                 onclick="document.getElementById('avatarInput').click()"
