@@ -148,32 +148,37 @@
 
                     {{-- KHOANG CHỨA NỘI DUNG VÀ CÁC BÌNH LUẬN --}}
                     <div class="flex-grow-1 p-3" style="overflow-y: auto;">
-                        <div class="mb-3">
+                        {{-- Ép thẻ bọc ngoài cùng chiếm 100% chiều ngang và tự giãn --}}
+                        <div class="w-100 flex-grow-1 p-3">
+
                             <div class="post-main-content mb-3" style="font-size: 14px; line-height: 1.5; color: #1c1e21;">
                                 {!! Str::replace('[#LOCK_COMMENT#]', '', $post->formatted_content ?? e($post->content)) !!}
                             </div>
 
                             @if($post->sharedPost)
-                            <div class="card mt-2 p-3"
-                                style="background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; cursor: pointer;"
+                            {{-- Thêm class w-100 d-block vào thẻ card --}}
+                            <div class="card mt-2 p-3 w-100 d-block"
+                                style="background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; cursor: pointer; min-width: 100%;"
                                 data-bs-toggle="modal"
                                 data-bs-target="#instagramModal{{ $post->sharedPost->id }}">
+
                                 <div class="d-flex align-items-center mb-2">
                                     <img src="{{ $post->sharedPost->user->avatar_url ? asset($post->sharedPost->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->sharedPost->user_id }}" class="rounded-circle me-2" width="24" height="24" style="object-fit: cover;">
                                     <strong class="small" style="font-size: 13px;">{{ $post->sharedPost->user->fullname ?? 'Người dùng gốc' }}</strong>
                                 </div>
 
                                 @if($post->sharedPost->content)
-                                <div class="small text-secondary mb-2" style="font-size: 13px; line-height: 1.4;">
+                                <div class="small text-secondary mb-2" style="font-size: 13px; line-height: 1.4; word-break: break-word;">
                                     {{ $post->sharedPost->content }}
                                 </div>
                                 @endif
 
                                 @if($post->sharedPost->media && $post->sharedPost->media->count() > 0)
                                 @if($post->sharedPost->media->count() == 1)
-                                <div class="row mt-2">
-                                    <div class="col-10">
-                                        <div style="padding-top: 100%; position: relative; overflow: hidden; border-radius: 6px;">
+                                {{-- Đổi hẳn thành col-12 để ảnh đơn to ra --}}
+                                <div class="row mt-2 g-0">
+                                    <div class="col-12">
+                                        <div style="padding-top: 60%; position: relative; overflow: hidden; border-radius: 6px;">
                                             <img src="{{ asset($post->sharedPost->media->first()->media_url) }}"
                                                 class="position-absolute top-0 start-0 w-100 h-100"
                                                 style="object-fit: cover;">
@@ -233,114 +238,6 @@
                             @endforeach
                         </div>
                     </div>
-
-                    {{-- NƠI ĐƯỢC CHUYỂN ĐẾN: KHU VỰC NÚT BẤM HÀNH ĐỘNG (LIKE, COMMENT, SAVE, PIN, SHARE) --}}
-                    <div class="card-actions d-flex justify-content-between align-items-center border-top pt-3 px-3 prevent-post-modal no-post-modal">
-                        <div class="d-flex align-items-center gap-3">
-                            {{-- LIKE --}}
-                            <form action="{{ route('post.like', $post->id) }}" method="POST" class="m-0 like-form">
-                                @csrf
-                                @php
-                                $userId = auth()->id();
-                                $checkLike = $userId ? $post->likes->contains('user_id', $userId) : false;
-                                @endphp
-                                <button type="submit"
-                                    class="btn-action border-0 bg-transparent p-0 d-flex align-items-center btn-like-ajax btn-like-{{ $post->id }} {{ $checkLike ? 'text-danger' : '' }}"
-                                    style="gap: 5px;"
-                                    data-id="{{ $post->id }}">
-
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="like-icon"
-                                        fill="{{ $checkLike ? 'currentColor' : 'none' }}"
-                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="24" height="24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                                    </svg>
-                                    <span class="fw-bold like-count-text like-count-{{ $post->id }}" style="font-size: 14px;">{{ $post->likes->count() }}</span>
-                                </button>
-                            </form>
-
-                            {{-- COMMENT --}}
-                            <button class="btn-action border-0 bg-transparent p-0 d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->id }}" style="gap: 5px;">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="24" height="24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48l-1.115 2.91a.45.45 0 0 0 .584.584l2.91-1.115A8.97 8.97 0 0 0 12 20.25Z" />
-                                </svg>
-                                <span class="fw-bold comment-count-{{ $post->id }}" style="font-size: 14px;">{{ $post->comments->count() }}</span>
-                            </button>
-
-                            {{-- SAVE --}}
-                            @php
-                            $isSaved = auth()->user() ? auth()->user()->savedPosts->contains($post->id) : false;
-                            @endphp
-                            <form action="{{ route('posts.save', $post->id) }}" method="POST" class="no-post-modal m-0 ajax-save-form">
-                                @csrf
-                                <button type="submit" class="btn-action save-btn {{ $isSaved ? 'saved text-warning' : '' }}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="{{ $isSaved ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-5-7 5V4a1 1 0 0 1 1-1z" />
-                                    </svg>
-                                </button>
-                            </form>
-
-                            {{-- PIN --}}
-                            @if(auth()->id() == $post->user_id && request()->routeIs('profile.show'))
-                            <form action="{{ route('post.pin', $post->id) }}" method="POST" class="no-post-modal m-0 ajax-pin-form">
-                                @csrf
-                                <button type="submit" class="btn-action pin-btn {{ $post->is_pinned ? 'is-pinned text-primary' : '' }}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 640 640">
-                                        <path d="M288.6 76.8C344.8 20.6 436 20.6 492.2 76.8C548.4 133 548.4 224.2 492.2 280.4L328.2 444.4C293.8 478.8 238.1 478.8 203.7 444.4C169.3 410 169.3 354.3 203.7 319.9L356.5 167.3C369 154.8 389.3 154.8 401.8 167.3C414.3 179.8 414.3 200.1 401.8 212.6L249 365.3C239.6 374.7 239.6 389.9 249 399.2C258.4 408.5 273.6 408.6 282.9 399.2L446.9 235.2C478.1 204 478.1 153.3 446.9 122.1C415.7 90.9 365 90.9 333.8 122.1L169.8 286.1C116.7 339.2 116.7 425.3 169.8 478.4C222.9 531.5 309 531.5 362.1 478.4L492.3 348.3C504.8 335.8 525.1 335.8 537.6 348.3C550.1 360.8 550.1 381.1 537.6 393.6L407.4 523.6C329.3 601.7 202.7 601.7 124.6 523.6C46.5 445.5 46.5 318.9 124.6 240.8L288.6 76.8z" />
-                                    </svg>
-                                </button>
-                            </form>
-                            @endif
-                        </div>
-
-                        {{-- SHARE --}}
-                        <button type="button" class="btn-action border-0 bg-transparent p-0 d-flex align-items-center text-primary" data-bs-toggle="modal" data-bs-target="#shareModal-{{ $post->id }}" style="gap: 5px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 640 640" width="24" height="24" opacity="0.7">
-                                <path d="M371.8 82.4C359.8 87.4 352 99 352 112L352 192L240 192C142.8 192 64 270.8 64 368C64 481.3 145.5 531.9 164.2 542.1C166.7 543.5 169.5 544 172.3 544C183.2 544 192 535.1 192 524.3C192 516.8 187.7 509.9 182.2 504.8C172.8 496 160 478.4 160 448.1C160 395.1 203 352.1 256 352.1L352 352.1L352 432.1C352 445 359.8 456.7 371.8 461.7C383.8 466.7 397.5 463.9 406.7 454.8L566.7 294.8C579.2 282.3 579.2 262 566.7 249.5L406.7 89.5C397.5 80.3 383.8 77.6 371.8 82.6z" />
-                            </svg>
-                        </button>
-
-                        {{-- MODAL SHARE ĐƯỢC GIỮ LẠI ĐÚNG VỊ TRÍ TRONG DOM PUSH --}}
-                        @push('modals')
-                        <div class="modal fade" id="shareModal-{{ $post->id }}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title fw-bold">Chia sẻ bài viết</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <form action="{{ route('post.share', $post->id) }}" method="POST">
-                                        @csrf
-                                        <div class="modal-body">
-                                            <textarea name="content" class="form-control mb-3" rows="3" placeholder="Hãy viết gì đó về bài viết này..."></textarea>
-                                            <div class="p-3 bg-light border rounded">
-                                                <div class="d-flex align-items-center mb-2">
-                                                    <strong class="text-dark">{{ $post->fullname ?? $post->user->fullname ?? $post->user->username }}</strong>
-                                                </div>
-                                                <p class="text-muted mb-0 style-content-preview">
-                                                    {{ Str::limit($post->content, 120) }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary shadow-none" data-bs-dismiss="modal">Hủy</button>
-                                            <button type="submit" class="btn btn-primary shadow-none">Chia sẻ ngay</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        @endpush
-                    </div>
-
-                    {{-- LIKERS ROW ĐƯỢC ĐƯA VÀO DƯỚI NÚT HÀNH ĐỘNG --}}
-                    @if ($post->likes->count() > 0)
-                    <div class="likers-row pb-2 px-3">
-                        <a href="{{ route('post.likers', $post->id) }}" class="likers-link text-decoration-none small fw-bold text-muted">
-                            Xem tất cả người đã thích
-                        </a>
-                    </div>
-                    @endif
 
                     {{-- KHU VỰC FORM SUBMIT BÌNH LUẬN --}}
                     <div class="border-top p-3">

@@ -2,7 +2,7 @@
 
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/profile.css') }}">
-
+<link rel="stylesheet" href="{{ asset('css/social.css') }}">
 <div class="profile-page">
     <div class="profile-container">
 

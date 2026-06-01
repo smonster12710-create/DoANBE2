@@ -11,6 +11,7 @@
     <div class="grid">
         @foreach($posts as $post)
         @include('posts.post_card')
+        @include('partials.post_modals', ['post' => $post])
         @endforeach
     </div>
     @else
@@ -19,5 +20,5 @@
     </div>
     @endif
 </div>
-@include('partials.post_modals', ['post' => $post])
+
 @endsection

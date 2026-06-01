@@ -255,16 +255,27 @@
                         <h5 class="modal-title fw-bold">Chia sẻ bài viết</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form action="{{ route('post.share', $post->id) }}" method="POST">
+
+                    {{-- Mẹo: Xác định ID thực sự cần chia sẻ --}}
+                    @php
+                    $targetPost = $post->parent_id && $post->parent ? $post->parent : $post;
+                    @endphp
+
+                    {{-- Gửi route chia sẻ với ID của bài viết đích --}}
+                    <form action="{{ route('post.share', $targetPost->id) }}" method="POST">
                         @csrf
                         <div class="modal-body">
                             <textarea name="content" class="form-control mb-3" rows="3" placeholder="Hãy viết gì đó về bài viết này..."></textarea>
+
+                            {{-- Phần preview trong modal cũng sẽ đổi thành thông tin bài gốc --}}
                             <div class="p-3 bg-light border rounded">
                                 <div class="d-flex align-items-center mb-2">
-                                    <strong class="text-dark">{{ $post->fullname ?? $post->user->fullname ?? $post->user->username }}</strong>
+                                    <strong class="text-dark">
+                                        {{ $targetPost->fullname ?? $targetPost->user->fullname ?? $targetPost->user->username }}
+                                    </strong>
                                 </div>
                                 <p class="text-muted mb-0 style-content-preview">
-                                    {{ Str::limit($post->content, 120) }}
+                                    {{ Str::limit($targetPost->content, 120) }}
                                 </p>
                             </div>
                         </div>
