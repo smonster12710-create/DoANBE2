@@ -66,6 +66,7 @@
         </div>
     </div>
 </div>
+
 {{-- MODAL YÊU CẦU TẢI LẠI TRANG --}}
 <div class="modal fade" id="reloadPageModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -80,6 +81,7 @@
         </div>
     </div>
 </div>
+
 {{-- MODAL CHI TIẾT (INSTAGRAM STYLE) --}}
 <div class="modal fade" id="instagramModal{{ $post->id }}" tabindex="-1" aria-hidden="true">
     @php
@@ -146,17 +148,14 @@
                         <strong>{{ $post->user->fullname ?? 'Người dùng' }}</strong>
                     </div>
 
-                    {{-- KHOANG CHỨA NỘI DUNG VÀ CÁC BÌNH LUẬN --}}
+                    {{-- KHOANG CHỨA NỘI DUNG VÀ CÁC BÌNH LUẬN (CÓ SCROLLY) --}}
                     <div class="flex-grow-1 p-3" style="overflow-y: auto;">
-                        {{-- Ép thẻ bọc ngoài cùng chiếm 100% chiều ngang và tự giãn --}}
-                        <div class="w-100 flex-grow-1 p-3">
-
+                        <div class="w-100">
                             <div class="post-main-content mb-3" style="font-size: 14px; line-height: 1.5; color: #1c1e21;">
                                 {!! Str::replace('[#LOCK_COMMENT#]', '', $post->formatted_content ?? e($post->content)) !!}
                             </div>
 
                             @if($post->sharedPost)
-                            {{-- Thêm class w-100 d-block vào thẻ card --}}
                             <div class="card mt-2 p-3 w-100 d-block"
                                 style="background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; cursor: pointer; min-width: 100%;"
                                 data-bs-toggle="modal"
@@ -175,7 +174,6 @@
 
                                 @if($post->sharedPost->media && $post->sharedPost->media->count() > 0)
                                 @if($post->sharedPost->media->count() == 1)
-                                {{-- Đổi hẳn thành col-12 để ảnh đơn to ra --}}
                                 <div class="row mt-2 g-0">
                                     <div class="col-12">
                                         <div style="padding-top: 60%; position: relative; overflow: hidden; border-radius: 6px;">
@@ -212,35 +210,52 @@
                         <div class="danhmuc-comment-{{ $post->id }}">
                             @foreach ($post->comments as $comment)
                             <div class="d-flex mb-3 justify-content-between align-items-start small">
-                                <div class="d-flex">
+                                <div class="d-flex" style="flex: 1; max-width: 85%;">
                                     <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://i.pravatar.cc/40?u=' . $comment->user_id }}"
                                         class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
-                                    <div>
+                                    <div style="flex: 1;">
                                         <strong>{{ $comment->user->fullname ?? 'Người dùng' }}</strong>
-                                        {{ $comment->content }}
-                                        <div class="text-muted" style="font-size: 11px;">
+                                        
+                                        {{-- BỌC NỘI DUNG VĂN BẢN ĐỂ SỬA TRỰC TIẾP --}}
+                                        <div id="comment-text-{{ $comment->id }}" style="word-break: break-word; margin-top: 2px;">
+                                            {{ $comment->content }}
+                                        </div>
+
+                                        <div class="text-muted" style="font-size: 11px; margin-top: 2px;">
                                             {{ $comment->created_at->diffForHumans() }}
                                         </div>
                                     </div>
                                 </div>
 
+                                {{-- DROPDOWN MENU BA CHẤM MỚI --}}
                                 @if (auth()->id() == $comment->user_id || auth()->id() == $post->user_id)
-                                <button type="button"
-                                    class="btn-trigger-delete-comment p-0 border-0 bg-transparent text-danger"
-                                    data-url="{{ route('comments.destroy', $comment->id) }}"
-                                    title="Xóa bình luận">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                    </svg>
-                                </button>
+                                <div class="dropdown">
+                                    <button class="btn btn-link text-muted p-0 border-0 m-0 lh-1 shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none; font-size: 13px;">
+                                        •••
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width: 100px; padding: 4px 0; border-radius: 6px; border: 1px solid #e4e6eb;">
+                                        @if(auth()->id() == $comment->user_id)
+                                        <li>
+                                            <button type="button" class="dropdown-item d-flex align-items-center py-1 px-3" onclick="triggerEditComment({{ $comment->id }}, '{{ addslashes($comment->content) }}')" style="font-size: 13px; gap: 6px;">
+                                                Sửa
+                                            </button>
+                                        </li>
+                                        @endif
+                                        <li>
+                                            <button type="button" class="btn-trigger-delete-comment dropdown-item d-flex align-items-center text-danger py-1 px-3" data-url="{{ route('comments.destroy', $comment->id) }}" style="font-size: 13px; gap: 6px;">
+                                                Xóa
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
                                 @endif
                             </div>
                             @endforeach
                         </div>
-                    </div>
+                    </div> {{-- ĐÓNG KHOANG CHỨA BÌNH LUẬN CHUẨN --}}
 
-                    {{-- KHU VỰC FORM SUBMIT BÌNH LUẬN --}}
-                    <div class="border-top p-3">
+                    {{-- KHU VỰC FORM SUBMIT BÌNH LUẬN (BỊ CỐ ĐỊNH Ở ĐÁY) --}}
+                    <div class="border-top p-3 bg-white">
                         @if(Str::contains($post->content, '[#LOCK_COMMENT#]'))
                         <div class="text-muted text-center small py-2 w-100">
                             🔒 Tính năng bình luận đã bị đóng cho bài viết này.
@@ -249,10 +264,11 @@
                         <form action="{{ route('comments.store', $post->id) }}" method="POST" class="d-flex align-items-center ajax-form" data-id="{{ $post->id }}">
                             @csrf
                             <input type="text" name="content" class="form-control border-0 shadow-none p-0 comment-input" placeholder="Thêm bình luận..." style="font-size: 14px;" required autocomplete="off">
-                            <button type="submit" class="btn text-primary fw-bold shadow-none">Đăng</button>
+                            <button type="submit" class="btn text-primary fw-bold shadow-none p-0 ms-2">Đăng</button>
                         </form>
                         @endif
                     </div>
+
                 </div>
             </div>
         </div>
@@ -368,21 +384,39 @@
                     })
                     .then(data => {
                         if (data.success) {
+                            // Escape dấu nháy đơn để tránh lỗi cú pháp inline onClick JS
+                            const escapedContent = content.replace(/'/g, "\\'");
+
                             const newCommentHtml = `
                                 <div class="d-flex mb-3 justify-content-between align-items-start small" data-post-id="${postId}">
-                                    <div class="d-flex">
-                                        <img src="${data.user_avatar}" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
-                                        <div>
+                                    <div class="d-flex" style="flex-grow: 1; max-width: calc(100% - 30px);">
+                                        <img src="${data.user_avatar}" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover; width: 32px; height: 32px; flex-shrink: 0;">
+                                        <div style="flex-grow: 1; min-width: 0; word-break: break-word;">
                                             <strong>${data.user_fullname}</strong>
-                                            <span class="ms-1">${content}</span>
-                                            <div class="text-muted" style="font-size: 11px;">Vừa xong</div>
+                                            <span class="ms-1" id="comment-text-${data.comment_id}">${content}</span>
+                                            <div class="text-muted" style="font-size: 11px; margin-top: 2px;">Vừa xong</div>
                                         </div>
                                     </div>
-                                    <button type="button" class="btn-trigger-delete-comment p-0 border-0 bg-transparent text-danger" data-url="${data.destroy_route}" title="Xóa bình luận">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                        </svg>
-                                    </button>
+                                    
+                                    <div class="dropdown" style="flex-shrink: 0;">
+                                        <button class="btn btn-link text-muted p-0 border-0 bg-transparent shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none; line-height: 1; outline: none;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16">
+                                                <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
+                                            </svg>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size: 12px; min-width: 80px; padding: 4px 0;">
+                                            <li>
+                                                <a class="dropdown-item" style="padding: 4px 12px;" href="javascript:void(0)" onclick="triggerEditComment(${data.comment_id}, '${escapedContent}')">
+                                                    Sửa
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item text-danger btn-trigger-delete-comment" style="padding: 4px 12px;" href="javascript:void(0)" data-url="${data.destroy_route}">
+                                                    Xóa
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                             `;
 
@@ -470,15 +504,13 @@
                 .then(data => {
                     if (data.success) {
                         // --- TỰ ĐỘNG GIẢM SỐ LƯỢNG BÌNH LUẬN KHI XÓA THÀNH CÔNG ---
-                        // Bằng cách tìm ID bài viết dựa vào class container danh mục bình luận cha
                         const container = commentElementToDelete.closest('[class*="danhmuc-comment-"]');
                         if (container) {
-                            // Trích xuất lấy ID bài viết từ tên class (ví dụ: danhmuc-comment-5 -> lấy số 5)
                             const postId = container.className.match(/danhmuc-comment-(\d+)/)?.[1];
                             const countSpan = document.querySelector(`.comment-count-${postId}`);
                             if (countSpan) {
                                 let currentCount = parseInt(countSpan.textContent) || 0;
-                                countSpan.textContent = Math.max(0, currentCount - 1); // Không để số lượng âm
+                                countSpan.textContent = Math.max(0, currentCount - 1);
                             }
                         }
 
@@ -504,8 +536,92 @@
                 });
         });
     }
+
+    // ==========================================
+    // 3. XỬ LÝ SỬA BÌNH LUẬN INLINE (CẬP NHẬT)
+    // ==========================================
+    if (typeof triggerEditComment !== 'function') {
+        window.triggerEditComment = function(commentId, oldContent) {
+            const container = document.getElementById(`comment-text-${commentId}`);
+            if (!container || document.getElementById(`edit-form-${commentId}`)) return;
+
+            container.innerHTML = `
+                <form id="edit-form-${commentId}" action="/comments/${commentId}" method="POST" style="margin-top: 5px; width: 100%;">
+                    <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}">
+                    <input type="hidden" name="_method" value="PUT">
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="content" class="form-control" value="${oldContent}" required style="border-radius: 8px 0 0 8px; font-size: 12px;">
+                        <button class="btn btn-primary btn-sm" type="submit" style="border-radius: 0 8px 8px 0; font-size: 11px; font-weight: bold;">Lưu</button>
+                    </div>
+                    <div style="margin-top: 2px;">
+                        <button type="button" class="btn btn-link btn-sm text-muted p-0" onclick="cancelEditComment(${commentId}, '${oldContent.replace(/'/g, "\\'")}')" style="font-size: 11px; text-decoration: none;">Hủy sửa</button>
+                    </div>
+                </form>
+            `;
+        };
+
+        window.cancelEditComment = function(commentId, oldContent) {
+            const container = document.getElementById(`comment-text-${commentId}`);
+            if (container) {
+                container.innerHTML = oldContent;
+            }
+        };
+
+        // --- ĐOẠN CODE AJAX BỊ THIẾU ĐỂ CHẶN CHUYỂN TRANG ---
+        document.body.addEventListener('submit', function(e) {
+            // Nếu form đang submit có id bắt đầu bằng edit-form-
+            if (e.target && e.target.id && e.target.id.startsWith('edit-form-')) {
+                e.preventDefault(); // CHẶN KHÔNG CHO BỊ ĐƯA ĐI TRANG KHÁC
+
+                const form = e.target;
+                const commentId = form.id.replace('edit-form-', '');
+                const input = form.querySelector('input[name="content"]');
+                const newContent = input.value.trim();
+                const container = document.getElementById(`comment-text-${commentId}`);
+
+                if (!newContent) return;
+
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
+
+                // Gửi dữ liệu cập nhật ngầm qua Fetch API
+                fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value
+                        },
+                        body: new FormData(form)
+                    })
+                    .then(res => {
+                        if (!res.ok) throw new Error('Cập nhật thất bại');
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // Thay đổi chữ trực tiếp ngay trên màn hình mà không cần reload trang
+                            if (container) {
+                                container.innerHTML = data.content || newContent;
+                            }
+                        } else {
+                            alert('Lỗi: ' + (data.message || 'Không thể lưu bình luận'));
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Có lỗi xảy ra khi sửa bình luận, vui lòng thử lại!');
+                    })
+                    .finally(() => {
+                        if (submitBtn) submitBtn.disabled = false;
+                    });
+            }
+        });
+    }
+
+    // ==========================================
+    // 4. CÁC EVENT KHÁC (DOM CONTENT LOADED / UPDATE POST)
+    // ==========================================
     document.addEventListener('DOMContentLoaded', function() {
-        // Khi click vào box bài viết gốc, tắt modal hiện tại đi trước để tránh lỗi đen màn hình
         $(document).on('click', '[data-bs-target^="#instagramModal"]', function() {
             var currentModal = $(this).closest('.modal');
             if (currentModal.length) {
@@ -516,6 +632,7 @@
             }
         });
     });
+
     document.addEventListener("DOMContentLoaded", function() {
         const actionForms = document.querySelectorAll("form[action*='posts']");
         const reloadModalEl = document.getElementById('reloadPageModal');
@@ -565,6 +682,7 @@
             });
         });
     });
+
     document.addEventListener("DOMContentLoaded", function() {
         const postId = "{{ $post->id }}";
         const form = document.getElementById(`editPostForm${postId}`);
@@ -573,38 +691,41 @@
         const imageInput = document.getElementById(`editImagesInput${postId}`);
         const previewContainer = document.getElementById(`imagePreviewContainer${postId}`);
 
+        if (!form) return;
+
         let accumulatedFiles = [];
         let isFirstTimeSelecting = true;
 
-        // 1. Đếm ký tự
         function updateCharCount() {
-            charCount.textContent = textarea.value.length;
+            if (textarea && charCount) {
+                charCount.textContent = textarea.value.length;
+            }
         }
-        textarea.addEventListener("input", updateCharCount);
+        if (textarea) textarea.addEventListener("input", updateCharCount);
         updateCharCount();
 
-        // 2. Gom ảnh tích lũy
-        imageInput.addEventListener("change", function() {
-            if (!this.files || this.files.length === 0) return;
+        if (imageInput && previewContainer) {
+            imageInput.addEventListener("change", function() {
+                if (!this.files || this.files.length === 0) return;
 
-            if (isFirstTimeSelecting) {
-                previewContainer.innerHTML = "";
-                isFirstTimeSelecting = false;
-            }
-
-            Array.from(this.files).forEach(file => {
-                if (!file.type.startsWith('image/')) return;
-
-                const isDuplicate = accumulatedFiles.some(f => f.name === file.name && f.size === file.size);
-                if (!isDuplicate) {
-                    accumulatedFiles.push(file);
-                    renderPreviewCard(file);
+                if (isFirstTimeSelecting) {
+                    previewContainer.innerHTML = "";
+                    isFirstTimeSelecting = false;
                 }
-            });
 
-            // BƯỚC THAY ĐỔI: Đồng bộ mảng tích lũy NGAY LẬP TỨC vào chính input gốc
-            syncFilesToInput();
-        });
+                Array.from(this.files).forEach(file => {
+                    if (!file.type.startsWith('image/')) return;
+
+                    const isDuplicate = accumulatedFiles.some(f => f.name === file.name && f.size === file.size);
+                    if (!isDuplicate) {
+                        accumulatedFiles.push(file);
+                        renderPreviewCard(file);
+                    }
+                });
+
+                syncFilesToInput();
+            });
+        }
 
         function renderPreviewCard(file) {
             const reader = new FileReader();
@@ -612,15 +733,15 @@
                 const col = document.createElement("div");
                 col.className = "col-4 position-relative";
                 col.innerHTML = `
-                <img src="${e.target.result}" class="w-100 rounded object-fit-cover" style="height: 120px;">
-                <span class="badge bg-success position-absolute top-0 start-0 m-1">Mới</span>
-                <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 p-0 rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; font-size: 10px;">✕</button>
-            `;
+                    <img src="${e.target.result}" class="w-100 rounded object-fit-cover" style="height: 120px;">
+                    <span class="badge bg-success position-absolute top-0 start-0 m-1">Mới</span>
+                    <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 p-0 rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; font-size: 10px;">✕</button>
+                `;
 
                 col.querySelector('button').addEventListener('click', function() {
                     accumulatedFiles = accumulatedFiles.filter(f => f !== file);
                     col.remove();
-                    syncFilesToInput(); // Cập nhật lại input gốc khi xóa ảnh preview
+                    syncFilesToInput();
                 });
 
                 previewContainer.appendChild(col);
@@ -628,8 +749,8 @@
             reader.readAsDataURL(file);
         }
 
-        // Hàm đồng bộ mảng tạm thời vào thẳng input gốc của Form để trình duyệt gửi đi thành công
         function syncFilesToInput() {
+            if (!imageInput) return;
             const dataTransfer = new DataTransfer();
             accumulatedFiles.forEach(file => {
                 dataTransfer.items.add(file);

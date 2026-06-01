@@ -203,4 +203,14 @@ class User extends Authenticatable
             && $viewer->show_activity_status == 1
             && $this->isFriendWith($viewer);
     }
+
+    /**
+     * Mối quan hệ: Một người dùng có thể tham gia nhiều hội nhóm khác nhau
+     */
+    public function joinedGroups()
+    {
+        return $this->belongsToMany(Group::class, 'group_members')
+            ->withPivot('role', 'status')
+            ->withTimestamps();
+    }
 }

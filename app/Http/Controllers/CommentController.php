@@ -35,7 +35,6 @@ class CommentController extends Controller
         $comment->content = $request->content;
         $comment->save();
 
-
         // ====================================================================
         event(new \App\Events\PostComment(Auth::user(), $post, $comment));
         // ====================================================================
@@ -45,14 +44,27 @@ class CommentController extends Controller
             event(new \App\Events\PostMention(Auth::user(), $post, $mentionedUsernames));
         }
         // ====================================================================
-        
+
         if ($request->ajax() || $request->wantsJson()) {
-            $user = Auth::user();
+            // ĐÃ CẬP NHẬT: Ưu tiên lấy trang cá nhân/fanpage hiện tại trong session nếu có
+            $currentProfile = session('current_profile') ?? Auth::user();
+
+            // Xác định tên hiển thị chính xác của trang cá nhân
+            $fullName = $currentProfile->fullname ?? $currentProfile->name ?? Auth::user()->fullname ?? 'Người dùng';
+
+            // Xác định đúng avatar của trang cá nhân đang chọn
+            if (!empty($currentProfile->avatar_url)) {
+                $avatarUrl = asset($currentProfile->avatar_url);
+            } elseif (!empty(Auth::user()->avatar_url)) {
+                $avatarUrl = asset(Auth::user()->avatar_url);
+            } else {
+                $avatarUrl = 'https://i.pravatar.cc/40?u=' . Auth::id();
+            }
+
             return response()->json([
                 'success' => true,
-                'user_fullname' => $user->fullname ?? 'Người dùng',
-                // Kiểm tra avatar y hệt logic trong file Blade của bạn
-                'user_avatar' => $user->avatar_url ? asset($user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $user->id,
+                'user_fullname' => $fullName,
+                'user_avatar' => $avatarUrl,
                 'comment_id' => $comment->id,
                 'created_at' => 'Vừa xong',
                 'destroy_route' => route('comments.destroy', $comment->id) // Trả về link xóa để JS vẽ nút xóa
@@ -95,5 +107,31 @@ class CommentController extends Controller
 
         // Nếu không phải AJAX và thất bại
         return back()->with('error', 'Bạn không có quyền xóa bình luận này.');
+    }
+
+    public function update(Request $request, $id)
+    {
+        // Tìm comment, nếu không có trả về lỗi 404
+        $comment = Comment::findOrFail($id);
+
+        // Kiểm tra quyền (Chỉ cho phép chính chủ sửa bình luận)
+        if (auth()->id() !== $comment->user_id) {
+            return response()->json(['success' => false, 'message' => 'Bạn không có quyền sửa!'], 403);
+        }
+
+        // Validate dữ liệu đầu vào gọn lẹ
+        $request->validate([
+            'content' => 'required|string',
+        ]);
+
+        // Lưu nội dung mới
+        $comment->content = $request->input('content');
+        $comment->save();
+
+        // Trả về JSON cho đoạn mã Javascript/Ajax hiển thị lên màn hình
+        return response()->json([
+            'success' => true,
+            'content' => $comment->content
+        ]);
     }
 }

@@ -16,7 +16,8 @@ class Post extends Model
         'content',
         'image_url',
         'video_url',
-        'expires_at' // 3. Thêm cột này vào fillable để cho phép lưu dữ liệu
+        'expires_at', // 3. Thêm cột này vào fillable để cho phép lưu dữ liệu
+        'group_id' // ✨ THÊM DÒNG NÀY: Cho phép lưu ID của nhóm vào bài viết
     ];
 
     protected $with = ['user'];

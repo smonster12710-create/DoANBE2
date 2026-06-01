@@ -19,6 +19,7 @@ class PostController extends Controller
     {
         // Lấy bài viết kèm theo user, media và cả likes (để hiển thị số lượt like)
         $posts = Post::with(['user', 'media', 'likes'])
+            ->whereNull('group_id') // 🔥 THÊM DÒNG NÀY: Chỉ lấy bài viết công cộng không thuộc nhóm nào
             // ->orderByDesc('is_pinned') // 🔥 XÓA HOẶC COMMENT DÒNG NÀY ĐI
             ->latest()
             ->get();
@@ -57,6 +58,8 @@ class PostController extends Controller
         $post->content = $request->content;
         $post->privacy = 0;
         $post->expires_at = $expiresAt;
+        // Thêm dòng này để lưu bài viết vào nhóm (nếu có, không có thì tự động là null)
+        $post->group_id = $request->input('group_id', null);
         $post->save();
 
         // Xử lý hashtag
