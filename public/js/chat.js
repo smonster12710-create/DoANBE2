@@ -141,7 +141,7 @@ function loadOlderMessages() {
 // =========================================================================
 const chatInputForm = document.querySelector('.chat-input');
 if (chatInputForm) {
-    chatInputForm.addEventListener('submit', async function (e) { // Thêm chữ async ở đây để dùng await
+    chatInputForm.addEventListener('submit', async function (e) { // Thêm chữ async để dùng await
         e.preventDefault();
 
         if (isSending) return;
@@ -151,13 +151,14 @@ if (chatInputForm) {
         let submitBtn = this.querySelector('button[type="submit"]');
         let imageInput = document.getElementById('image-input');
 
+        // 🌟 BƯỚC 1: KHỞI TẠO FORMDATA TRƯỚC (Để bốc đầy đủ chữ trong input khi chưa bị disable)
+        let formData = new FormData(this);
+
+        // BƯỚC 2: BÂY GIỜ MỚI KHÓA KHUNG CHAT ĐỂ CHỐNG SPAM
         submitBtn.disabled = true;
         input.disabled = true;
 
-        // Khởi tạo FormData để chuẩn bị gửi dữ liệu
-        let formData = new FormData(this);
-
-        // 🔥 LOGIC NÉN ẢNH TẠI TRÌNH DUYỆT ĐÂY CẬU NÈ:
+        // 🔥 BƯỚC 3: XỬ LÝ NÉN ẢNH TẠI TRÌNH DUYỆT (NẾU CÓ ẢNH LỚN)
         if (imageInput && imageInput.files.length > 0) {
             const imageFile = imageInput.files[0];
 
@@ -165,7 +166,6 @@ if (chatInputForm) {
             if (imageFile.size > 1.5 * 1024 * 1024) {
                 console.log('⚡ Ảnh lớn hơn 1.5MB, bắt đầu nén tại trình duyệt...');
 
-                // Cấu hình nén: Ép dung lượng tối đa về dưới 1MB, chiều rộng tối đa 1000px
                 const options = {
                     maxSizeMB: 0.8,          // Dung lượng tối đa mong muốn sau nén (0.8 MB)
                     maxWidthOrHeight: 1000,   // Chiều rộng hoặc cao tối đa 1000px
@@ -173,21 +173,26 @@ if (chatInputForm) {
                 };
 
                 try {
-                    // Tiến hành nén ảnh bằng thư viện
-                    const compressedFile = await imageCompression(imageFile, options);
+                    // Gọi hàm nén an toàn từ cửa sổ window toàn cục
+                    const compressor = window.imageCompression || imageCompression;
 
-                    console.log('✅ Nén thành công! Dung lượng cũ:', (imageFile.size / 1024 / 1024).toFixed(2), 'MB');
-                    console.log('🎉 Dung lượng mới gửi lên server:', (compressedFile.size / 1024 / 1024).toFixed(2), 'MB');
+                    if (typeof compressor === 'function') {
+                        const compressedFile = await compressor(imageFile, options);
+                        console.log('✅ Nén thành công! Dung lượng cũ:', (imageFile.size / 1024 / 1024).toFixed(2), 'MB');
+                        console.log('🎉 Dung lượng mới gửi lên server:', (compressedFile.size / 1024 / 1024).toFixed(2), 'MB');
 
-                    // Ghi đè file đã nén vào FormData để gửi lên Server thay cho file gốc ban đầu
-                    formData.set('image', compressedFile, imageFile.name);
+                        // Ghi đè file đã nén vào FormData để gửi lên Server thay cho file gốc
+                        formData.set('image', compressedFile, imageFile.name);
+                    } else {
+                        console.warn('⚠️ Thư viện nén ảnh chưa sẵn sàng, giữ nguyên file gốc.');
+                    }
                 } catch (error) {
                     console.error('❌ Lỗi nén ảnh JS, giữ nguyên file gốc:', error);
                 }
             }
         }
 
-        // Bắn request lên Server như cũ
+        // BƯỚC 4: BẮN REQUEST LÊN SERVER
         fetch('/messages/send', {
             method: 'POST',
             headers: {
@@ -204,6 +209,7 @@ if (chatInputForm) {
                     scrollBottom();
                 }
 
+                // Xóa sạch ô nhập liệu và input ảnh sau khi gửi thành công
                 input.value = '';
                 imageInput.value = '';
 
@@ -216,6 +222,7 @@ if (chatInputForm) {
                 console.log('Send error:', err);
             })
             .finally(() => {
+                // Mở khóa khung chat để người dùng nhập tin nhắn tiếp theo
                 setTimeout(() => {
                     isSending = false;
                     input.disabled = false;
