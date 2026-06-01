@@ -91,4 +91,20 @@ class SearchController extends Controller
             'cleanKeyword' => $cleanKeyword
         ]);
     }
+
+    public function showHashtag($name)
+    {
+
+        $hashtag = Hashtag::where('name', $name)->first();
+        if (!$hashtag) {
+            return redirect()->route('social')->with('error', 'Hashtag không tồn tại!');
+        }
+        // Bươi DB lấy những bài viết có chứa hashtag này
+        // Khúc này tùy cấu trúc DB của Pro (có bảng trung gian hay dạng chuỗi)
+        $posts = \App\Models\Post::whereHas('hashtags', function ($q) use ($name) {
+            $q->where('name', $name);
+        })->latest()->get();
+
+        return view('social.hashtag', compact('posts', 'name'));
+    }
 }
