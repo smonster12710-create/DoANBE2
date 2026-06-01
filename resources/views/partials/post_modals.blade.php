@@ -1,22 +1,42 @@
 {{-- VÒNG LẶP 2: ĐƯA TẤT CẢ MODAL VỀ CUỐI FILE (NGOÀI THẺ GRID) --}}
 {{-- MODAL SỬA --}}
 <div class="modal fade" id="editPostModal{{ $post->id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Sửa bài viết</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('posts.update', $post->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('posts.update', $post->id) }}" method="POST" enctype="multipart/form-data" id="editPostForm{{ $post->id }}">
                 @csrf @method('PUT')
                 <input type="hidden" name="last_updated_at" value="{{ $post->updated_at }}">
+
                 <div class="modal-body">
-                    <textarea name="content" class="form-control" rows="5" required>{{ $post->content }}</textarea>
-                    @if ($post->media->count())
-                    <img src="{{ asset($post->media->first()->media_url) }}" class="mt-3 w-100 rounded">
-                    @endif
-                    <input type="file" name="image" class="form-control mt-3">
+                    <div class="position-relative">
+                        <textarea name="content" id="editContent{{ $post->id }}" class="form-control" rows="5" maxlength="500" required>{{ $post->content }}</textarea>
+                        <div class="text-end text-muted small mt-1">
+                            <span id="charCount{{ $post->id }}">0</span>/500 ký tự
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mt-2" id="imagePreviewContainer{{ $post->id }}">
+                        @if ($post->media->count())
+                        @foreach($post->media as $media)
+                        <div class="col-4 position-relative old-image-item">
+                            <img src="{{ asset($media->media_url) }}" class="w-100 rounded object-fit-cover" style="height: 120px;">
+                            <span class="badge bg-secondary position-absolute top-0 start-0 m-1">Ảnh cũ</span>
+                        </div>
+                        @endforeach
+                        @endif
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label fw-bold small">Thay đổi danh sách ảnh (Có thể chọn nhiều lần):</label>
+                        <input type="file" name="images[]" id="editImagesInput{{ $post->id }}" class="form-control" accept="image/*" multiple>
+                        <div class="form-text text-danger small">* Lưu ý: Khi bạn bắt đầu chọn ảnh mới, toàn bộ ảnh cũ sẽ bị thay thế.</div>
+                    </div>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                     <button type="submit" class="btn btn-primary">Cập nhật</button>
@@ -647,5 +667,77 @@
                 }
             });
         });
+    });
+    document.addEventListener("DOMContentLoaded", function() {
+        const postId = "{{ $post->id }}";
+        const form = document.getElementById(`editPostForm${postId}`);
+        const textarea = document.getElementById(`editContent${postId}`);
+        const charCount = document.getElementById(`charCount${postId}`);
+        const imageInput = document.getElementById(`editImagesInput${postId}`);
+        const previewContainer = document.getElementById(`imagePreviewContainer${postId}`);
+
+        let accumulatedFiles = [];
+        let isFirstTimeSelecting = true;
+
+        // 1. Đếm ký tự
+        function updateCharCount() {
+            charCount.textContent = textarea.value.length;
+        }
+        textarea.addEventListener("input", updateCharCount);
+        updateCharCount();
+
+        // 2. Gom ảnh tích lũy
+        imageInput.addEventListener("change", function() {
+            if (!this.files || this.files.length === 0) return;
+
+            if (isFirstTimeSelecting) {
+                previewContainer.innerHTML = "";
+                isFirstTimeSelecting = false;
+            }
+
+            Array.from(this.files).forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+
+                const isDuplicate = accumulatedFiles.some(f => f.name === file.name && f.size === file.size);
+                if (!isDuplicate) {
+                    accumulatedFiles.push(file);
+                    renderPreviewCard(file);
+                }
+            });
+
+            // BƯỚC THAY ĐỔI: Đồng bộ mảng tích lũy NGAY LẬP TỨC vào chính input gốc
+            syncFilesToInput();
+        });
+
+        function renderPreviewCard(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement("div");
+                col.className = "col-4 position-relative";
+                col.innerHTML = `
+                <img src="${e.target.result}" class="w-100 rounded object-fit-cover" style="height: 120px;">
+                <span class="badge bg-success position-absolute top-0 start-0 m-1">Mới</span>
+                <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 p-0 rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; font-size: 10px;">✕</button>
+            `;
+
+                col.querySelector('button').addEventListener('click', function() {
+                    accumulatedFiles = accumulatedFiles.filter(f => f !== file);
+                    col.remove();
+                    syncFilesToInput(); // Cập nhật lại input gốc khi xóa ảnh preview
+                });
+
+                previewContainer.appendChild(col);
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // Hàm đồng bộ mảng tạm thời vào thẳng input gốc của Form để trình duyệt gửi đi thành công
+        function syncFilesToInput() {
+            const dataTransfer = new DataTransfer();
+            accumulatedFiles.forEach(file => {
+                dataTransfer.items.add(file);
+            });
+            imageInput.files = dataTransfer.files;
+        }
     });
 </script>

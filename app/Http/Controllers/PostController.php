@@ -158,10 +158,12 @@ class PostController extends Controller
     {
         $post = Post::findOrFail($id);
 
+        // Kiểm tra xung đột dữ liệu (Concurrency control)
         if ($request->has('last_updated_at') && $post->updated_at != $request->last_updated_at) {
             return response()->json(['message' => 'Conflict'], 409);
         }
 
+        // Kiểm tra quyền sở hữu bài viết
         if ($post->user_id != Auth::id()) {
             if ($request->wantsJson()) {
                 return response()->json(['message' => 'Forbidden'], 403);
@@ -169,14 +171,16 @@ class PostController extends Controller
             abort(403, 'Bạn không có quyền sửa bài viết này.');
         }
 
+        // 1. Validate mở rộng max:10240 và bỏ hẳn mimes giống phần store
         $request->validate([
-            'content' => 'required',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'content' => 'required|string|max:550',
+            'images.*' => 'nullable|image|max:10240', // Cho phép up ảnh tối đa 10MB trước khi nén
         ]);
 
         $post->content = $request->content;
         $post->save();
 
+        // 2. Xử lý cập nhật lại Hashtag
         $tagNames = $hashtagService->getHashtags($post->content);
         $tagIds = [];
 
@@ -185,27 +189,69 @@ class PostController extends Controller
                 $hashtag = \App\Models\Hashtag::firstOrCreate([
                     'name' => mb_strtolower($tagName, 'UTF-8')
                 ]);
-
                 $hashtag->increment('usage_count');
-
                 $tagIds[] = $hashtag->id;
             }
         }
         $post->hashtags()->sync($tagIds);
 
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/posts'), $fileName);
-
-            if ($post->media->count()) {
-                $post->media()->delete();
+        // 3. Xử lý NÉN ẢNH THUẦN (Chấp hết định dạng jfif, webp, png, jpg...)
+        if ($request->hasFile('images')) {
+            if (!file_exists(public_path('uploads/posts'))) {
+                mkdir(public_path('uploads/posts'), 0777, true);
             }
 
-            $post->media()->create([
-                'media_url' => 'uploads/posts/' . $fileName,
-                'media_type' => 'image',
-            ]);
+            // Bước A: Quét và dọn dẹp sạch sẽ các file ảnh cũ trên ổ đĩa vật lý để tránh rác server
+            foreach ($post->media as $oldMedia) {
+                $oldFilePath = public_path($oldMedia->media_url);
+                if (file_exists($oldFilePath) && is_file($oldFilePath)) {
+                    @unlink($oldFilePath);
+                }
+            }
+            // Xóa sạch các liên kết cũ trong bảng post_media
+            $post->media()->delete();
+
+            // Bước B: Lặp qua từng file ảnh mới gửi lên để nén
+            foreach ($request->file('images') as $file) {
+                $sourceImage = @imagecreatefromstring(file_get_contents($file->getRealPath()));
+
+                if ($sourceImage === false) {
+                    continue; // Nếu gặp tấm nào lỗi cấu trúc thì bỏ qua, xử lý tấm tiếp theo
+                }
+
+                // Đổi toàn bộ tên thành đuôi .jpg
+                $filename = time() . '_' . uniqid() . '.jpg';
+                $destinationPath = public_path('uploads/posts/' . $filename);
+
+                // Resize chiều rộng về 1000px nếu ảnh gốc quá to (như ảnh 5MB)
+                $origWidth = imagesx($sourceImage);
+                $origHeight = imagesy($sourceImage);
+                $maxWidth = 1000;
+
+                if ($origWidth > $maxWidth) {
+                    $ratio = $maxWidth / $origWidth;
+                    $newWidth = $maxWidth;
+                    $newHeight = (int)($origHeight * $ratio);
+
+                    $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+                    imagealphablending($resizedImage, false);
+                    imagesavealpha($resizedImage, true);
+
+                    imagecopyresampled($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+                    imagedestroy($sourceImage);
+                    $sourceImage = $resizedImage;
+                }
+
+                // Nén chất lượng 65% thành file siêu nhẹ
+                imagejpeg($sourceImage, $destinationPath, 65);
+                imagedestroy($sourceImage);
+
+                // Thêm mới từng dòng vào database
+                $post->media()->create([
+                    'media_url' => 'uploads/posts/' . $filename,
+                    'media_type' => 'photo',
+                ]);
+            }
         }
 
         if ($request->wantsJson()) {
