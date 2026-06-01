@@ -23,13 +23,7 @@ return (int) $user->id !== $myId;
             <img src="https://ui-avatars.com/api/?name={{ urlencode($chat->name) }}&background=0084ff&color=fff&size=100&bold=true" class="chat-avatar">
             @endif
             @else
-            <div class="avatar-online-wrap">
-                <img src="{{ $partner?->avatar_url ?? 'https://i.pravatar.cc/40' }}" class="chat-avatar">
-
-                @if($partner && $partner->canShowActivityTo(auth()->user()))
-                    <span class="online-dot"></span>
-                @endif
-            </div>
+            <img src="{{ $partner?->avatar_url ? asset($partner->avatar_url) : asset('images/default-avatar.png') }}" class="chat-avatar">
             @endif
         </div>
 

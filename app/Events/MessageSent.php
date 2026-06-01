@@ -34,7 +34,9 @@ class MessageSent implements ShouldBroadcastNow
 
         // 2. Kênh cá nhân (Dành cho Sidebar list_chat.js nghe)
         if (!empty($this->receiverIds)) {
+            // Nếu có mảng ID người nhận, phát về kênh của từng người nhận
             foreach ($this->receiverIds as $id) {
+                // Đảm bảo ID là số nguyên để tránh lỗi
                 $channels[] = new PrivateChannel('user.' . $id);
             }
         } else {

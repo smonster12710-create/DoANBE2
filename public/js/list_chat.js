@@ -252,8 +252,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- CHẶN SUBMIT TRANG VÀ BẮN AJAX LÊN SERVER ---
+    // --- CHẶN SUBMIT TRANG VÀ BẮN AJAX LÊN SERVER (CÓ TÍCH HỢP NÉN ẢNH NHÓM LỚN) ---
     if (formCreateGroup) {
-        formCreateGroup.addEventListener('submit', function (e) {
+        formCreateGroup.addEventListener('submit', async function (e) { // 🌟 Thêm chữ async ở đây để dùng await
             e.preventDefault();
 
             // Kiểm tra tên nhóm lại lần cuối
@@ -271,7 +272,42 @@ document.addEventListener('DOMContentLoaded', function () {
             // Gom toàn bộ dữ liệu từ Form (bao gồm chữ, ảnh và mảng checkbox thành viên)
             const formData = new FormData(this);
 
-            // Gửi dữ liệu bằng Fetch API lên Route Laravel đã chỉnh lúc nãy
+            // 🔥 LOGIC KIỂM TRA VÀ NÉN ẢNH ĐẠI DIỆN NHÓM TẠI TRÌNH DUYỆT
+            if (avatarInput && avatarInput.files.length > 0) {
+                const avatarFile = avatarInput.files[0];
+
+                // Chỉ nén nếu dung lượng file lớn hơn 1.5 MB để tiết kiệm thời gian
+                if (avatarFile.size > 1.5 * 1024 * 1024) {
+                    console.log('⚡ Ảnh đại diện nhóm > 1.5MB, tiến hành nén...');
+
+                    const options = {
+                        maxSizeMB: 0.8,          // Đưa dung lượng về dưới 0.8 MB
+                        maxWidthOrHeight: 800,   // Ảnh nhóm chỉ cần tối đa 800px là siêu nét rồi
+                        useWebWorker: true
+                    };
+
+                    try {
+                        // Gọi hàm nén an toàn qua đối tượng window toàn cục
+                        const compressor = window.imageCompression || imageCompression;
+
+                        if (typeof compressor === 'function') {
+                            const compressedAvatar = await compressor(avatarFile, options);
+
+                            console.log('✅ Nén ảnh nhóm thành công! Cũ:', (avatarFile.size / 1024 / 1024).toFixed(2), 'MB');
+                            console.log('🎉 Mới gửi lên server:', (compressedAvatar.size / 1024 / 1024).toFixed(2), 'MB');
+
+                            // Ghi đè file ảnh đã nén vào FormData (trùng tên với name="group_avatar" ở input)
+                            formData.set('group_avatar', compressedAvatar, avatarFile.name);
+                        } else {
+                            console.warn('⚠️ Thư viện nén ảnh chưa sẵn sàng, giữ nguyên file gốc.');
+                        }
+                    } catch (error) {
+                        console.error('❌ Lỗi nén ảnh nhóm bằng JS:', error);
+                    }
+                }
+            }
+
+            // Gửi dữ liệu bằng Fetch API lên Route Laravel
             fetch('/chat/group/create', {
                 method: 'POST',
                 body: formData,
@@ -305,7 +341,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         });
     }
-
     // --- HỆ THỐNG TÌM KIẾM THÀNH VIÊN ---
     if (searchInput) {
         searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
