@@ -605,6 +605,9 @@
         const reloadModal = new bootstrap.Modal(reloadModalEl);
 
         actionForms.forEach(form => {
+            if (!form.querySelector("input[name='last_updated_at']")) {
+                return;
+            }
             form.addEventListener("submit", async function(e) {
                 e.preventDefault();
 

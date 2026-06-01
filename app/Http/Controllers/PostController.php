@@ -40,57 +40,91 @@ class PostController extends Controller
      */
     public function store(Request $request, TextProcessorService $hashtagService)
     {
-        // 1. Cập nhật validate, thêm nullable cho expires_in
+        // Cần cho phép tối đa 10MB ở đây để máy nhận được file lớn trước khi đem đi nén
         $request->validate([
-            'content' => 'required|string',
-            'images.*' => 'nullable|image|mimes:jpg,jpeg,png,gif,jfif,webp|max:2048',
+            'content' => 'required|string|max:550',
+            'images.*' => 'nullable|image|max:10240',
             'expires_in' => 'nullable|integer',
         ]);
 
-        // 2. Tính toán thời gian hết hạn nếu người dùng có chọn
         $expiresAt = null;
         if ($request->filled('expires_in')) {
-            // Thêm (int) vào trước để ép kiểu dữ liệu chuỗi "1" thành số nguyên 1
             $expiresAt = now()->addMinutes((int) $request->expires_in);
         }
 
-        // 3. Tạo bài viết
         $post = new Post();
         $post->user_id = Auth::id();
         $post->content = $request->content;
         $post->privacy = 0;
-        $post->expires_at = $expiresAt; // Lưu thời gian hết hạn vào DB
+        $post->expires_at = $expiresAt;
         $post->save();
 
-        // ===========================================================================
-        // 4. Xử lý hashtag
+        // Xử lý hashtag
         $tagNames = $hashtagService->getHashtags($post->content);
         $tagIds = [];
-
         if (!empty($tagNames)) {
             foreach ($tagNames as $tagName) {
                 $hashtag = \App\Models\Hashtag::firstOrCreate([
                     'name' => mb_strtolower($tagName, 'UTF-8')
                 ]);
-                // Tăng count lên 1 nhịp
                 $hashtag->increment('usage_count');
-                // Nhét cái ID (số nguyên) vô mảng
                 $tagIds[] = $hashtag->id;
             }
         }
-
-        // Đồng bộ ID hashtag vô bảng trung gian post_hashtags 
-        // (Mình đã xóa 1 đoạn code bị trùng lặp của bạn ở đây để code chạy tối ưu hơn)
         if (!empty($tagIds)) {
             $post->hashtags()->sync($tagIds);
         }
 
-        // 5. Nếu có ảnh thì lưu vào post_media
+        // ================= XỬ LÝ NÉN ẢNH THUẦN CHẤP HẾT CÁC ĐỊNH DẠNG =================
+        // 5. Xử lý ảnh nâng cao (Không cần mimes, tự lọc file lỗi/file lạ)
         if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $file) {
-                $filename = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('uploads/posts'), $filename);
+            if (!file_exists(public_path('uploads/posts'))) {
+                mkdir(public_path('uploads/posts'), 0777, true);
+            }
 
+            foreach ($request->file('images') as $file) {
+                // Tự động đọc nội dung để kiểm tra cấu trúc ảnh (jfif, webp, png, jpg... chấp hết)
+                $sourceImage = @imagecreatefromstring(file_get_contents($file->getRealPath()));
+
+                // 🔥 NẾU LÀ FILE LỖI HOẶC ĐUÔI ĐỘC LẠ (NHƯ HEIC) KHÔNG ĐỌC ĐƯỢC:
+                if ($sourceImage === false) {
+                    // Trả về lỗi luôn cho client mà không thèm lưu, đỡ phiền phức!
+                    return response()->json([
+                        'message' => 'Một trong số các file bạn tải lên không đúng định dạng ảnh hiển thị được!'
+                    ], 422);
+                    // Nếu bạn dùng form submit thường (không phải AJAX) thì thay dòng trên bằng:
+                    // return back()->withErrors(['images' => 'Định dạng ảnh không hỗ trợ!']);
+                }
+
+                // Tên file và đường dẫn lưu (Đồng bộ đuôi .jpg)
+                $filename = time() . '_' . uniqid() . '.jpg';
+                $destinationPath = public_path('uploads/posts/' . $filename);
+
+                // Thu nhỏ kích thước nếu ảnh quá to (Ví dụ ảnh 5MB)
+                $origWidth = imagesx($sourceImage);
+                $origHeight = imagesy($sourceImage);
+                $maxWidth = 1000;
+
+                if ($origWidth > $maxWidth) {
+                    $ratio = $maxWidth / $origWidth;
+                    $newWidth = $maxWidth;
+                    $newHeight = (int)($origHeight * $ratio);
+
+                    $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+
+                    imagealphablending($resizedImage, false);
+                    imagesavealpha($resizedImage, true);
+
+                    imagecopyresampled($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+                    imagedestroy($sourceImage);
+                    $sourceImage = $resizedImage;
+                }
+
+                // Nén chất lượng xuống 65% thành file JPG siêu nhẹ
+                imagejpeg($sourceImage, $destinationPath, 65);
+                imagedestroy($sourceImage); // Giải phóng RAM
+
+                // Lưu vào database
                 $media = new PostMedia();
                 $media->post_id = $post->id;
                 $media->media_url = 'uploads/posts/' . $filename;

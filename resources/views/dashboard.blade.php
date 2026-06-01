@@ -856,8 +856,13 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
                     @csrf
                     <div class="modal-body">
                         <div class="mb-3">
-                            <textarea name="content" class="form-control" rows="4" placeholder="Bạn đang nghĩ gì?" required
+                            <textarea name="content" id="postContent" class="form-control" rows="4"
+                                placeholder="Bạn đang nghĩ gì?" required maxlength="500"
                                 style="border: none; resize: none;"></textarea>
+
+                            <div class="text-end text-muted small mt-1">
+                                <span id="charCount">0</span>/500 ký tự
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="expires_in" class="form-label" style="font-weight: bold; color: #555;">Tự động xóa
@@ -886,7 +891,22 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)
             </div>
         </div>
     </div>
-
+    <div class="modal fade" id="errorPostModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-danger text-white py-2">
+                    <h5 class="modal-title fs-6"><i class="fa-solid fa-circle-exclamation me-2"></i>Lỗi đăng bài</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-3">
+                    <p class="mb-0 text-dark fw-bold" id="errorMessageText">Đã xảy ra lỗi, vui lòng thử lại!</p>
+                </div>
+                <div class="modal-footer py-1 justify-content-center border-0">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 @include('partials.toast')
 @vite(['resources/js/echo.js'])
