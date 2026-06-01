@@ -28,7 +28,7 @@ Route::get('/', function () {
 
     // Chưa đăng nhập thì mới cho đứng ngoài cửa dòm trang welcome
     return view('welcome');
-});
+})->name('social');
 
 // ==========================================
 // KHU VỰC KHÁCH (CHƯA ĐĂNG NHẬP)
@@ -152,6 +152,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/users', [SearchController::class, 'searchUsers']);
         Route::get('/hashtags', [SearchController::class, 'searchHashtags']);
     });
+    // --- 2. Cụm Giao diện cho người dùng (View) ---
+    Route::get('/hashtag', [SearchController::class, 'searchHashtag'])->name('hashtag.search');
+    Route::get('/hashtag/{name}', [SearchController::class, 'showHashtag'])->name('hashtags.show');
+    //==================================================================================================
     Route::get('/ajax/posts', [PostController::class, 'searchPosts']);
     //----Lưu bài viết
     Route::post('/posts/{post}/save', [PostController::class, 'save'])
@@ -159,8 +163,6 @@ Route::middleware('auth')->group(function () {
         ->middleware('auth');
     Route::get('/saved', [PostController::class, 'saved'])
         ->name('posts.saved');
-    // --- 2. Cụm Giao diện cho người dùng (View) ---
-    Route::get('/hashtag', [SearchController::class, 'searchHashtag'])->name('hashtag.search');
 
     // ============================== TIN NHẮN ================================
     Route::controller(MessageController::class)->group(function () {
