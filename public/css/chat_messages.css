@@ -632,7 +632,7 @@ body {
 /* --- 5. HỘP THOẠI MENU (DROPDOWN) --- */
 .message-menu {
     position: absolute;
-  
+
     /* Đẩy menu hiển thị phía trên nút 3 chấm một chút */
     min-width: 160px;
     background: white;
@@ -1201,4 +1201,112 @@ label[for="image-input"]:active {
 
 .btn-chat-primary:hover {
     background: #006bde;
+}
+
+/* Layout tổng thể cho cụm tin nhắn đối phương */
+.group-chat-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Tên người gửi nằm độc lập phía trên */
+.group-chat-sender-name {
+    font-size: 11px;
+    color: #8a8d91;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 3px;
+    /* Cách lề trái 40px = 32px avatar + 8px khoảng cách gap */
+    margin-left: 40px;
+}
+
+/* Dòng ngang chứa Avatar và Bong bóng chat */
+.group-chat-row {
+    display: flex;
+    align-items: flex-end;
+    /* Căn đáy avatar bằng đáy bong bóng chat */
+    gap: 8px;
+    width: 100%;
+}
+
+/* Đảm bảo khung avatar không bị méo khi thu nhỏ màn hình */
+.chat-avatar-wrapper {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+}
+
+.chat-group-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Định dạng riêng biệt cho khối tin nhắn đối phương - không ảnh hưởng tới class .message-container cũ */
+.message-container-them {
+    display: inline-block;
+    max-width: 80%;
+    position: relative;
+}
+
+/* Nếu class .message-container-them cần dùng lại style hover hiển thị nút 3 chấm giống của cậu cũ */
+.message-container-them:hover .message-actions {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 1. Đảm bảo hàng chứa avatar và bóng chat xếp ngang và không ép ép các phần tử con */
+.group-chat-row {
+    display: flex;
+    align-items: flex-end;
+    /* Hoặc flex-start tùy cậu muốn avatar canh trên hay dưới */
+    gap: 8px;
+    width: 100%;
+}
+
+/* 2. Container chứa nội dung (Cực kỳ quan trọng) */
+.message-container-them {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    /* Ép các phần tử con bên trong thu gọn lại theo kích thước gốc của chúng */
+    max-width: 70%;
+    /* Giới hạn độ rộng tối đa của toàn bộ khối tin nhắn */
+    width: auto;
+}
+
+/* 3. Định dạng phần hiển thị ảnh */
+.message-media {
+    max-width: 100%;
+    /* Không được vượt quá container cha */
+    margin-bottom: 4px;
+}
+
+.chat-image {
+    max-width: 250px;
+    /* Đặt một chiều rộng cố định hợp lý cho ảnh hiển thị trong chat */
+    height: auto;
+    border-radius: 12px;
+    object-fit: cover;
+    display: block;
+}
+
+/* 4. Định dạng bong bóng chat chứa TEXT */
+.message-container-them .message-bubble {
+    display: inline-block;
+    /* Ép bóng chat co lại vừa khít với chữ bên trong */
+    width: fit-content;
+    /* Trình duyệt tự tính toán độ rộng chuẩn theo text */
+    max-width: 100%;
+    /* Không tràn quá khung ảnh/khung container */
+    background-color: #e4e6eb;
+    /* Màu xám đặc trưng của đối phương */
+    color: #050505;
+    padding: 8px 12px;
+    border-radius: 18px;
+    word-break: break-word;
+    /* Tránh text quá dài làm vỡ layout */
 }

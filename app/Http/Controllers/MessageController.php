@@ -345,12 +345,14 @@ class MessageController extends Controller
 
         // BƯỚC 4: TẠO BẢN GHI TIN NHẮN TRONG DATABASE
         // Lưu các thông tin: ID cuộc trò chuyện, ID người gửi, nội dung chữ và đường dẫn ảnh (.png đã nén)
+
         $message = Message::create([
             'conversation_id' => $request->conversation_id,
             'sender_id' => Auth::id(),
             'content' => $request->content,
             'image_url' => $imagePath
         ]);
+        $message->load('sender');
 
         // BƯỚC 5: KÍCH HOẠT WEBSOCKET PHÁT TIN NHẮN REAL-TIME
         // Lấy thông tin cuộc trò chuyện kèm theo danh sách những người tham gia (participants)
@@ -448,8 +450,14 @@ class MessageController extends Controller
 
         $message->is_deleted = 1;
         $message->save();
+
+        // 🔥 SỬA TẠI ĐÂY: Nạp thông tin người gửi (sender) vào tin nhắn trước khi phát đi
+        // Để khi bên kia nhận được realtime, họ vẫn có thông tin Avatar và Tên của cậu để vẽ lại giao diện
+        $message->load('sender');
+
         $conversation = Conversation::with('participants')->find($message->conversation_id);
-        $broadcastIds = $conversation->participants->pluck('id')->toArray(); // ĐÃ SỬA: pluck('id') thay vì user_id
+        $broadcastIds = $conversation->participants->pluck('id')->toArray();
+
         broadcast(new MessageSent($message, $broadcastIds))->toOthers();
 
         return response()->json([
