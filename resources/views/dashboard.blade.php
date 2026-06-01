@@ -1003,6 +1003,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->where('rol
 <script src="{{ asset('js/chat_dashboard.js') }}"></script>
 <script src="{{ asset('js/like.js') }}"></script>
 <script src="{{ asset('js/dashboard.js') }}"></script>
+<script src="{{ asset('js/profile.js') }}"></script>
 
 @stack('modals')
 
