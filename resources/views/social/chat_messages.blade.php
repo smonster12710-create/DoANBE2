@@ -4,6 +4,7 @@
     {{ session('error') }}
 </div>
 @endif
+
 @section('content')
 <div class="topbar" style="display: flex; gap: 15px; align-items: center;">
     <div style="position: relative; flex: 1;">
@@ -63,12 +64,13 @@
 
                 @elseif($activePartner)
 
+
                 <div class="avatar-online-wrap">
-                    <img src="{{ $activePartner->avatar_url ?? 'https://i.pravatar.cc/45' }}"
+                    <img src="{{ $activePartner->avatar_url ? asset($activePartner->avatar_url) : asset('images/default-avatar.png') }}"
                         style="width:45px;height:45px;border-radius:50%;">
 
                     @if($activePartner->canShowActivityTo(auth()->user()))
-                        <span class="online-dot"></span>
+                    <span class="online-dot"></span>
                     @endif
                 </div>
 
@@ -274,7 +276,7 @@
                                     <img src="{{ $friend->avatar_url ?? 'https://i.pravatar.cc/40' }}" class="friend-avatar">
 
                                     @if($friend->canShowActivityTo(auth()->user()))
-                                        <span class="online-dot"></span>
+                                    <span class="online-dot"></span>
                                     @endif
                                 </div>
                                 <span class="friend-name">{{ $friend->fullname ?? $friend->username }}</span>
@@ -371,6 +373,9 @@
     <script src="/js/chat.js?v={{ time() }}"></script>
     <script src="/js/list_chat.js?v={{ time() }}"></script>
 
+
+    <!-- Thư viện nén ảnh trước khi upload lên server -->
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.min.js"></script>
     <!-- Thêm thư viện emoji-mart từ CDN -->
     <script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js"></script>
     @endsection

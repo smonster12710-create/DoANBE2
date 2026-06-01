@@ -224,18 +224,22 @@ class MessageController extends Controller
     }
 
     /**
-     * Xử lý hành động bấm nút GỬI TIN NHẮN (Gọi qua AJAX API)
+     * Xử lý hành động bấm nút GỬI TIN NHẮN (Gọi qua AJAX API từ giao diện Chat)
      */
     public function send(Request $request)
     {
-        // Kiểm tra dữ liệu đầu vào
+        // BƯỚC 1: KIỂM TRA DỮ LIỆU ĐẦU VÀO (VALIDATION)
+        // - nới rộng dung lượng tối đa lên 20MB (20480 KB) để nhận được ảnh gốc dung lượng lớn từ điện thoại.
+        // - Bổ sung thêm các định dạng ảnh: jfif, webp và các đuôi viết hoa như JPG, PNG để tránh lỗi chặn file.
         $request->validate([
             'content' => 'nullable|string',
-            'image' => 'nullable|image|max:2048', // Ảnh không quá 2MB
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,jfif,webp,svg,JPG,PNG|max:20480',
             'conversation_id' => 'required|exists:conversations,id'
         ]);
 
-        // Chặn không cho phép bấm gửi một tin nhắn rỗng (không chữ, không ảnh)
+        // BƯỚC 2: CHẶN TIN NHẮN RỖNG
+        // Nếu người dùng không gõ chữ nào (sau khi đã cắt khoảng trắng bằng trim) 
+        // ĐỒNG THỜI cũng không bấm chọn tải ảnh lên, thì trả về lỗi 422 ngay lập tức.
         if (
             empty(trim($request->content ?? ''))
             && !$request->hasFile('image')
@@ -245,16 +249,102 @@ class MessageController extends Controller
             ], 422);
         }
 
+        // Biến lưu trữ đường dẫn ảnh sau khi xử lý thành công để lưu vào Database
+        // Biến lưu trữ đường dẫn ảnh sau khi xử lý thành công để lưu vào Database
         $imagePath = null;
 
-        // Xử lý upload ảnh vào thư mục storage/chat_images nếu có đính kèm ảnh
+        // BƯỚC 3: XỬ LÝ NÉN VÀ ĐỔI ĐUÔI THÀNH PNG (BẢO HIỂM CHỐNG LỖI HTML CHO ẢNH LỚN)
         if ($request->hasFile('image')) {
-            $imagePath = $request
-                ->file('image')
-                ->store('chat_images', 'public');
+            $file = $request->file('image');
+
+            // Cách 1: Nếu server có thư viện GD, tiến hành co nhỏ + nén ảnh lớn
+            if (extension_loaded('gd')) {
+                try {
+                    $realPath = $file->getRealPath();
+                    $extension = strtolower($file->getClientOriginalExtension());
+                    $sourceImage = false;
+
+                    switch ($extension) {
+                        case 'jpg':
+                        case 'jpeg':
+                        case 'jfif':
+                            $sourceImage = @imagecreatefromjpeg($realPath);
+                            break;
+                        case 'png':
+                            $sourceImage = @imagecreatefrompng($realPath);
+                            break;
+                        case 'webp':
+                            $sourceImage = @imagecreatefromwebp($realPath);
+                            break;
+                        case 'gif':
+                            $sourceImage = @imagecreatefromgif($realPath);
+                            break;
+                    }
+
+                    if ($sourceImage !== false) {
+                        // Tự động xoay ảnh lớn đúng góc nếu có dữ liệu EXIF
+                        if (extension_loaded('exif') && function_exists('exif_read_data')) {
+                            $exif = @exif_read_data($realPath);
+                            if (!empty($exif['Orientation'])) {
+                                switch ($exif['Orientation']) {
+                                    case 8:
+                                        $sourceImage = imagerotate($sourceImage, 90, 0);
+                                        break;
+                                    case 3:
+                                        $sourceImage = imagerotate($sourceImage, 180, 0);
+                                        break;
+                                    case 6:
+                                        $sourceImage = imagerotate($sourceImage, -90, 0);
+                                        break;
+                                }
+                            }
+                        }
+
+                        // 🌟 ÉP KÍCH THƯỚC: Ảnh to mấy cũng bóp về chiều rộng tối đa 1000px để giảm dung lượng
+                        $origWidth  = imagesx($sourceImage);
+                        $origHeight = imagesy($sourceImage);
+                        $maxWidth   = 1000;
+
+                        if ($origWidth > $maxWidth) {
+                            $newWidth  = $maxWidth;
+                            $newHeight = floor($origHeight * ($maxWidth / $origWidth));
+                            $tmpImage = imagecreatetruecolor($newWidth, $newHeight);
+                            imagealphablending($tmpImage, false);
+                            imagesavealpha($tmpImage, true);
+                            imagecopyresampled($tmpImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+                            imagedestroy($sourceImage);
+                            $sourceImage = $tmpImage;
+                        }
+
+                        // Đặt tên file và tạo thư mục lưu trữ
+                        $filename = time() . '_' . uniqid() . '.png';
+                        $destinationPath = storage_path('app/public/chat_images');
+
+                        if (!file_exists($destinationPath)) {
+                            Mkdir($destinationPath, 0755, true);
+                        }
+
+                        // Nén ảnh PNG ở mức 6 (Mức tối ưu dung lượng)
+                        imagepng($sourceImage, $destinationPath . '/' . $filename, 6);
+                        imagedestroy($sourceImage);
+
+                        $imagePath = 'chat_images/' . $filename;
+                    } else {
+                        // Nếu không đọc được ảnh bằng GD, lưu file gốc để chống sập tính năng
+                        $imagePath = $file->store('chat_images', 'public');
+                    }
+                } catch (\Exception $e) {
+                    // Nếu quá trình xử lý ảnh lớn bị lỗi bộ nhớ, lập tức cứu nguy bằng cách lưu file gốc
+                    $imagePath = $file->store('chat_images', 'public');
+                }
+            } else {
+                // Server không bật GD -> Dùng luôn hàm store gốc của Laravel
+                $imagePath = $file->store('chat_images', 'public');
+            }
         }
 
-        // Tạo bản ghi tin nhắn mới trong Database và gán vào biến $message
+        // BƯỚC 4: TẠO BẢN GHI TIN NHẮN TRONG DATABASE
+        // Lưu các thông tin: ID cuộc trò chuyện, ID người gửi, nội dung chữ và đường dẫn ảnh (.png đã nén)
         $message = Message::create([
             'conversation_id' => $request->conversation_id,
             'sender_id' => Auth::id(),
@@ -262,20 +352,26 @@ class MessageController extends Controller
             'image_url' => $imagePath
         ]);
 
-        // KÍCH HOẠT WEBSOCKET REAL-TIME:
+        // BƯỚC 5: KÍCH HOẠT WEBSOCKET PHÁT TIN NHẮN REAL-TIME
+        // Lấy thông tin cuộc trò chuyện kèm theo danh sách những người tham gia (participants)
         $conversation = Conversation::with('participants')->find($request->conversation_id);
 
-        // lấy người nhận
+        // Lọc ra danh sách ID của những người nhận (loại trừ chính bản thân mình ra)
         $receiverIds = $conversation
             ->participants
-            ->where('id', '!=', Auth::id()) // ĐÃ SỬA: Đối chiếu cột id trực tiếp của User
-            ->values() // reset lại key sau khi lọc để đảm bảo không bị lỗi khi pluck
-            ->pluck('id')
-            ->toArray();
+            ->where('id', '!=', Auth::id()) // So sánh trực tiếp với ID của User đang đăng nhập
+            ->values()                      // Reset lại các key index của mảng sau khi dùng filter
+            ->pluck('id')                   // Chỉ lấy duy nhất cột 'id'
+            ->toArray();                    // Chuyển kết quả từ Collection về mảng PHP thuần
+
+        // Gộp ID người nhận và ID chính mình thành mảng danh sách cần truyền tin qua WebSocket
         $broadcastIds = array_merge($receiverIds, [Auth::id()]);
+
+        // Kích hoạt Event bắn dữ liệu qua kênh WebSocket (.toOthers() giúp người gửi không bị nhận lại sự kiện này)
         broadcast(new MessageSent($message, $broadcastIds))->toOthers();
 
-        // Trả phản hồi thành công về cho Javascript xử lý giao diện người gửi
+        // BƯỚC 6: TRẢ PHẢN HỒI THÀNH CÔNG VỀ CHO CLIENT
+        // Frontend (Javascript/AJAX) nhận được trạng thái này sẽ lập tức vẽ tin nhắn mới lên màn hình người gửi.
         return response()->json([
             'status' => 'ok',
             'message' => $message

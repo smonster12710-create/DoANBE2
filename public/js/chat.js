@@ -137,23 +137,57 @@ function loadOlderMessages() {
 }
 
 // =========================================================================
-// 4. GỬI TIN NHẮN MỚI
+// 4. GỬI TIN NHẮN MỚI (CÓ TÍCH HỢP NÉN ẢNH Ở FRONTEND CHỐNG CHẶN SERVER)
 // =========================================================================
 const chatInputForm = document.querySelector('.chat-input');
 if (chatInputForm) {
-    chatInputForm.addEventListener('submit', function (e) {
+    chatInputForm.addEventListener('submit', async function (e) { // Thêm chữ async ở đây để dùng await
         e.preventDefault();
 
         if (isSending) return;
         isSending = true;
 
-        let formData = new FormData(this);
         let input = this.querySelector('input[name="content"]');
         let submitBtn = this.querySelector('button[type="submit"]');
+        let imageInput = document.getElementById('image-input');
 
         submitBtn.disabled = true;
         input.disabled = true;
 
+        // Khởi tạo FormData để chuẩn bị gửi dữ liệu
+        let formData = new FormData(this);
+
+        // 🔥 LOGIC NÉN ẢNH TẠI TRÌNH DUYỆT ĐÂY CẬU NÈ:
+        if (imageInput && imageInput.files.length > 0) {
+            const imageFile = imageInput.files[0];
+
+            // Chỉ nén nếu dung lượng file lớn hơn 1.5 MB để tiết kiệm thời gian xử lý
+            if (imageFile.size > 1.5 * 1024 * 1024) {
+                console.log('⚡ Ảnh lớn hơn 1.5MB, bắt đầu nén tại trình duyệt...');
+
+                // Cấu hình nén: Ép dung lượng tối đa về dưới 1MB, chiều rộng tối đa 1000px
+                const options = {
+                    maxSizeMB: 0.8,          // Dung lượng tối đa mong muốn sau nén (0.8 MB)
+                    maxWidthOrHeight: 1000,   // Chiều rộng hoặc cao tối đa 1000px
+                    useWebWorker: true       // Dùng luồng ngầm để web không bị đơ
+                };
+
+                try {
+                    // Tiến hành nén ảnh bằng thư viện
+                    const compressedFile = await imageCompression(imageFile, options);
+
+                    console.log('✅ Nén thành công! Dung lượng cũ:', (imageFile.size / 1024 / 1024).toFixed(2), 'MB');
+                    console.log('🎉 Dung lượng mới gửi lên server:', (compressedFile.size / 1024 / 1024).toFixed(2), 'MB');
+
+                    // Ghi đè file đã nén vào FormData để gửi lên Server thay cho file gốc ban đầu
+                    formData.set('image', compressedFile, imageFile.name);
+                } catch (error) {
+                    console.error('❌ Lỗi nén ảnh JS, giữ nguyên file gốc:', error);
+                }
+            }
+        }
+
+        // Bắn request lên Server như cũ
         fetch('/messages/send', {
             method: 'POST',
             headers: {
@@ -171,7 +205,7 @@ if (chatInputForm) {
                 }
 
                 input.value = '';
-                document.getElementById('image-input').value = '';
+                imageInput.value = '';
 
                 const previewContainer = document.getElementById('image-preview-container');
                 if (previewContainer) {
@@ -191,7 +225,6 @@ if (chatInputForm) {
             });
     });
 }
-
 // =========================================================================
 // 5. HÀM TẠO GIAO DIỆN TIN NHẮN (RENDER HELPERS)
 // =========================================================================
@@ -290,7 +323,7 @@ document.addEventListener('click', function (e) {
             if (menu.classList.contains('show')) {
                 // Lấy tọa độ của nút 3 chấm
                 let rect = e.target.getBoundingClientRect();
-                
+
                 // Nếu nút nằm ở nửa dưới màn hình -> Ép menu bay lên trên
                 // Nếu nút nằm ở nửa trên màn hình -> Ép menu đổ xuống dưới
                 if (rect.top > (window.innerHeight / 2)) {
