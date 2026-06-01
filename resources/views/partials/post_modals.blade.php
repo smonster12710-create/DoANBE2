@@ -9,6 +9,7 @@
             </div>
             <form action="{{ route('posts.update', $post->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf @method('PUT')
+                <input type="hidden" name="last_updated_at" value="{{ $post->updated_at }}">
                 <div class="modal-body">
                     <textarea name="content" class="form-control" rows="5" required>{{ $post->content }}</textarea>
                     @if ($post->media->count())
@@ -38,13 +39,27 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                 <form action="{{ route('posts.destroy', $post->id) }}" method="POST">
                     @csrf @method('DELETE')
+                    <input type="hidden" name="last_updated_at" value="{{ $post->updated_at }}">
                     <button type="submit" class="btn btn-danger">Xóa</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
-
+{{-- MODAL YÊU CẦU TẢI LẠI TRANG --}}
+<div class="modal fade" id="reloadPageModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center py-4">
+            <div class="modal-body">
+                <h5 class="text-success mb-3">Thao tác đang được xử lý!</h5>
+                <p>Hệ thống đang cập nhật dữ liệu. Vui lòng tải lại trang để xem thay đổi và thực hiện thao tác mới.</p>
+                <button type="button" class="btn btn-primary mt-2" onclick="window.location.reload();">
+                    Tải lại trang ngay
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {{-- MODAL CHI TIẾT (INSTAGRAM STYLE) --}}
 <div class="modal fade" id="instagramModal{{ $post->id }}" tabindex="-1" aria-hidden="true">
     @php
@@ -582,6 +597,52 @@
                     modalInstance.hide();
                 }
             }
+        });
+    });
+    document.addEventListener("DOMContentLoaded", function() {
+        const actionForms = document.querySelectorAll("form[action*='posts']");
+        const reloadModalEl = document.getElementById('reloadPageModal');
+        const reloadModal = new bootstrap.Modal(reloadModalEl);
+
+        actionForms.forEach(form => {
+            form.addEventListener("submit", async function(e) {
+                e.preventDefault();
+
+                const submitBtns = form.querySelectorAll("button[type='submit']");
+                submitBtns.forEach(btn => btn.disabled = true);
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: form.method,
+                        body: new FormData(form),
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        const currentModalEl = form.closest('.modal');
+                        if (currentModalEl) {
+                            const modalInstance = bootstrap.Modal.getInstance(currentModalEl);
+                            if (modalInstance) {
+                                currentModalEl.addEventListener('hidden.bs.modal', function() {
+                                    reloadModal.show();
+                                }, {
+                                    once: true
+                                });
+                                modalInstance.hide();
+                            }
+                        } else {
+                            reloadModal.show();
+                        }
+                    } else {
+                        window.location.reload();
+                    }
+                } catch (error) {
+                    window.location.reload();
+                }
+            });
         });
     });
 </script>

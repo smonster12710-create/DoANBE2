@@ -124,8 +124,14 @@ class PostController extends Controller
     {
         $post = Post::findOrFail($id);
 
-        // CHỈ CHỦ BÀI VIẾT MỚI ĐƯỢC SỬA
+        if ($request->has('last_updated_at') && $post->updated_at != $request->last_updated_at) {
+            return response()->json(['message' => 'Conflict'], 409);
+        }
+
         if ($post->user_id != Auth::id()) {
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'Forbidden'], 403);
+            }
             abort(403, 'Bạn không có quyền sửa bài viết này.');
         }
 
@@ -134,13 +140,9 @@ class PostController extends Controller
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
         ]);
 
-        // Cập nhật nội dung chữ trước
         $post->content = $request->content;
         $post->save();
 
-        // =========================================================
-        // LOGIC LỌC VÀ CẬP NHẬT HASHTAG 
-        // =========================================================
         $tagNames = $hashtagService->getHashtags($post->content);
         $tagIds = [];
 
@@ -150,23 +152,18 @@ class PostController extends Controller
                     'name' => mb_strtolower($tagName, 'UTF-8')
                 ]);
 
-                // Tăng count lên 1 
                 $hashtag->increment('usage_count');
 
-                // Đưa ID vô mảng
                 $tagIds[] = $hashtag->id;
             }
         }
         $post->hashtags()->sync($tagIds);
-        // =========================================================
 
-        // Xử lý hình ảnh 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $fileName = time() . '_' . $file->getClientOriginalName();
             $file->move(public_path('uploads/posts'), $fileName);
 
-            // xóa ảnh cũ
             if ($post->media->count()) {
                 $post->media()->delete();
             }
@@ -177,28 +174,27 @@ class PostController extends Controller
             ]);
         }
 
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Success'], 200);
+        }
+
         return redirect()->back()->with('success', 'Cập nhật bài viết thành công');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $post = Post::findOrFail($id);
 
-        // CHỈ CHỦ BÀI VIẾT MỚI ĐƯỢC XÓA
-        if ($post->user_id != Auth::id()) {
-            abort(403, 'Bạn không có quyền xóa bài viết này.');
+        if ($request->has('last_updated_at') && (string)$post->updated_at !== $request->last_updated_at) {
+            return response()->json(['error' => 'Dữ liệu không đồng bộ'], 409);
         }
 
-        // xóa media
-        $post->media()->delete();
-
-        // xóa bài viết
         $post->delete();
 
-        return redirect()->back()->with('success', 'Đã xóa bài viết thành công!');
+        return response()->json(['success' => 'Xóa thành công']);
     }
     public function toggleLike($postId)
     {
@@ -221,8 +217,6 @@ class PostController extends Controller
                 'user_id' => $userId
             ]);
             $isLiked = true;
-
-
         }
 
         // Đếm lại tổng số tim
@@ -296,7 +290,7 @@ class PostController extends Controller
 
         $posts->getCollection()->transform(function ($post) {
             if ($post->user) {
-                $post->user->can_show_activity = $post->user->canShowActivityTo(auth()->user());
+                $post->user->can_show_activity = $post->user->canShowActivityTo(Auth::user());
             }
 
             return $post;

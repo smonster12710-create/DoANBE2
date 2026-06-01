@@ -89,3 +89,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 });
+Echo.channel('posts')
+    .listen('PostUpdated', (e) => {
+        let contentEl = document.getElementById('post-content-' + e.post.id);
+
+        if (contentEl) {
+            // Dùng innerHTML thay cho innerText
+            contentEl.innerHTML = e.post.content;
+        }
+    });
