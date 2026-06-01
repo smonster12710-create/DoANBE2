@@ -98,3 +98,4 @@ Echo.channel('posts')
             contentEl.innerHTML = e.post.content;
         }
     });
+

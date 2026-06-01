@@ -388,7 +388,10 @@ class PostController extends Controller
         // Tạo bản ghi bài viết mới hoàn toàn
         $sharedPost = new Post();
         $sharedPost->user_id = Auth::id(); // Người share bài
-        $sharedPost->parent_id = $originalPost->id; // Gắn ID bài gốc vào đây!
+
+        // THAY ĐỔI Ở ĐÂY: Nếu bài được chọn đã là bài share, lấy luôn ID của bài gốc đầu tiên
+        $sharedPost->parent_id = $originalPost->parent_id ? $originalPost->parent_id : $originalPost->id;
+
         $sharedPost->content = $request->input('content'); // Lời bình luận khi share
         $sharedPost->privacy = 0; // Công khai mặc định
         $sharedPost->save();
