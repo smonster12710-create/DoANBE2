@@ -92,3 +92,64 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
+document.addEventListener("DOMContentLoaded", function () {
+    const textarea = document.getElementById("postContent");
+    const charCount = document.getElementById("charCount");
+    const maxLength = textarea.getAttribute("maxlength");
+
+    textarea.addEventListener("input", function () {
+        const currentLength = textarea.value.length;
+        charCount.textContent = currentLength;
+
+        // Đổi màu chữ sang đỏ nếu sắp hết dung lượng (ví dụ còn 20 ký tự)
+        if (maxLength - currentLength <= 20) {
+            charCount.parentElement.classList.replace("text-muted", "text-danger");
+        } else {
+            charCount.parentElement.classList.replace("text-danger", "text-muted");
+        }
+    });
+});
+document.addEventListener("DOMContentLoaded", function () {
+    const createForm = document.querySelector("#createPostModal form");
+    const errorModal = new bootstrap.Modal(document.getElementById('errorPostModal'));
+    const errorMessageText = document.getElementById('errorMessageText');
+
+    if (createForm) {
+        createForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const submitBtn = createForm.querySelector("button[type='submit']");
+            if (submitBtn) submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(createForm.action, {
+                    method: createForm.method,
+                    body: new FormData(createForm),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+
+                    if (result.errors && result.errors.content) {
+                        errorMessageText.textContent = "Nội dung bài viết vượt quá giới hạn ký tự thực tế cho phép!";
+                    } else {
+                        errorMessageText.textContent = "Không thể đăng bài. Vui lòng kiểm tra lại dữ liệu!";
+                    }
+
+                    errorModal.show();
+                    if (submitBtn) submitBtn.disabled = false;
+                } else {
+                    window.location.reload();
+                }
+            } catch (error) {
+                errorMessageText.textContent = "Kết nối máy chủ thất bại!";
+                errorModal.show();
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    }
+});
