@@ -12,6 +12,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\FriendController;
+use App\Http\Controllers\GroupController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -141,6 +142,7 @@ Route::middleware('auth')->group(function () {
     // --- BÌNH LUẬN ---
     Route::post('/posts/{id}/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->name('comments.destroy');
+    Route::put('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
     Route::post('/posts/{id}/toggle-comment', [PostController::class, 'toggleComment'])->name('post.toggleComment')->middleware('auth');
     // --- THEO DÕI ---
     Route::post('/follow/{user}', [FollowController::class, 'toggle'])->name('follow.toggle')->middleware('auth');
@@ -214,4 +216,24 @@ Route::middleware('auth')->group(function () {
             // Gọi ra /notifications/{id} (name: notifications.destroy)
             Route::delete('/{id}', 'destroySingle')->name('destroy');
         });
+});
+
+// HỆ THỐNG ROUTES ĐIỀU KHIỂN HỘI NHÓM (GROUPS)
+Route::middleware(['auth'])->prefix('groups')->name('groups.')->group(function () {
+    Route::get('/', [GroupController::class, 'index'])->name('index');                  // Trang chủ danh sách nhóm
+    Route::post('/store', [GroupController::class, 'store'])->name('store');             // Xử lý tạo nhóm mới
+    Route::get('/{slug}', [GroupController::class, 'show'])->name('show');               // Xem chi tiết một nhóm
+    Route::post('/{slug}/join', [GroupController::class, 'join'])->name('join');         // Bấm nút tham gia nhóm
+    Route::post('/{slug}/leave', [GroupController::class, 'leave'])->name('leave');       // Bấm nút rời nhóm
+
+    // Các tính năng quản trị nhóm dành riêng cho Admin
+    Route::get('/{slug}/requests', [GroupController::class, 'manageRequests'])->name('requests'); // Trang danh sách chờ duyệt
+    Route::post('/{slug}/approve/{userId}', [GroupController::class, 'approveMember'])->name('approve'); // Xử lý bấm duyệt thành viên
+    // ĐÃ SỬA: Bỏ bớt chữ "groups." dư thừa ở name() để Laravel tự nối thành "groups.destroy"
+    Route::delete('/{slug}/destroy', [GroupController::class, 'destroy'])->name('destroy');
+
+    // ĐÃ SỬA: Bỏ bớt chữ "groups." dư thừa ở name() để Laravel tự nối thành "groups.kick"
+    Route::delete('/{slug}/kick/{user_id}', [GroupController::class, 'kickMember'])->name('kick');
+    
+    Route::put('/{slug}/update', [GroupController::class, 'update'])->name('update');
 });
