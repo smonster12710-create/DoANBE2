@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
     markAsRead();
 
     // -----------------------------------------------------------------
-    // KẾT NỐI WEBSOCKET REALTIME QUA LARAVEL ECHO (ĐOẠN CHÍNH)
+    // KẾT NỐI WEBSOCKET REALTIME QUA LARAVEL ECHO
     // -----------------------------------------------------------------
     if (typeof window.Echo !== 'undefined' && conversationId) {
         const channelName = `chat-conversation.${conversationId}`;
@@ -34,26 +34,47 @@ document.addEventListener('DOMContentLoaded', function () {
             .error((error) => {
                 console.error('CHANNEL ERROR:', error);
             })
-            // Tìm đoạn .listen('.MessageSent'...) ở MỤC 11 và thay bằng đoạn này:
             .listen('.MessageSent', (e) => {
                 let msg = e.message;
                 if (!msg) return;
 
-                // Chỗ này xử lý realtime thu hồi cho đối phương nè cậu:
+                // Xử lý realtime khi tin nhắn bị thu hồi
                 if (msg.is_deleted == 1) {
                     let wrapper = document.querySelector(`.message-wrapper[data-id="${msg.id}"]`);
                     if (wrapper) {
-                        let wrapperClass = msg.sender_id == currentUserId ? 'me' : 'them';
-                        wrapper.className = `message-wrapper ${wrapperClass}`;
-                        wrapper.innerHTML = `<div class="message-recalled">Tin nhắn đã được thu hồi</div>`;
+                        // Bốc lại tên và avatar cũ trên màn hình để tái sử dụng, tránh bị lỗi mất ảnh
+                        let oldAvatar = wrapper.querySelector('.chat-group-avatar')?.getAttribute('src') || '';
+                        let oldName = wrapper.querySelector('.group-chat-sender-name')?.innerText || 'Thành viên';
+
+                        // Tạo object dữ liệu giả lập có đầy đủ thông tin để hàm render vẽ lại đúng cấu trúc
+                        let fakeMsg = {
+                            id: msg.id,
+                            sender_id: msg.sender_id,
+                            is_deleted: 1,
+                            sender: {
+                                avatar_url: oldAvatar,
+                                fullname: oldName
+                            }
+                        };
+
+                        // Gọi hàm tạo HTML chuẩn để thay thế khối cũ, bảo toàn tên và avatar bên trái
+                        let newHTML = createMessageHTML(fakeMsg);
+                        let parser = new DOMParser();
+                        let doc = parser.parseFromString(newHTML, 'text/html');
+                        let newElement = doc.body.firstElementChild;
+
+                        if (newElement) {
+                            wrapper.replaceWith(newElement);
+                        }
                     }
                 } else {
-                    // Tin nhắn bình thường thì giữ nguyên logic append cũ của cậu
+                    // Tin nhắn bình thường gửi đến
                     const existed = document.querySelector(`.message-wrapper[data-id="${msg.id}"]`);
                     if (!existed) {
                         appendMessageRealtime(msg);
                         scrollBottom();
 
+                        // SỬA LỖI: Nếu đang mở khung chat và tin nhắn tới là của đối phương -> Tự động đánh dấu đã xem realtime
                         if (msg.sender_id != currentUserId) {
                             markAsRead();
                         }
@@ -63,14 +84,114 @@ document.addEventListener('DOMContentLoaded', function () {
             .listen('.ChatReadStatusUpdated', (e) => {
                 console.log('🔥 ĐÃ THẤY TÍN HIỆU ĐÃ XEM VỀ REALTIME:', e);
 
-                // Quét sạch các chữ "Đã gửi" trên màn hình của mình và biến thành "Đã xem"
-                const allStatuses = document.querySelectorAll('.message-status');
-                allStatuses.forEach(status => {
-                    if (status.innerText.trim() === 'Đã gửi') {
-                        status.innerText = 'Đã xem';
-                    }
-                });
+                // Cập nhật trạng thái đã xem realtime theo mảng tin nhắn trả về
+                if (e.updatedMessages && e.updatedMessages.length > 0) {
+                    e.updatedMessages.forEach(msg => {
+                        let status = document.querySelector(`.message-status[data-id="${msg.id}"]`);
+                        if (status) {
+                            status.innerText = 'Đã xem';
+                        }
+                    });
+                } else {
+                    // Dự phòng quét sạch các chữ "Đã gửi" trên màn hình thành "Đã xem"
+                    const allStatuses = document.querySelectorAll('.message-status');
+                    allStatuses.forEach(status => {
+                        if (status.innerText.trim() === 'Đã gửi') {
+                            status.innerText = 'Đã xem';
+                        }
+                    });
+                }
             });
+    }
+
+    // Tự động cuộn xuống dưới khi load trang xong
+    setTimeout(() => { forceScrollBottom(); }, 100);
+    window.addEventListener('load', () => { forceScrollBottom(); });
+
+    // -----------------------------------------------------------------
+    // LOGIC XỬ LÝ PREVIEW ẢNH
+    // -----------------------------------------------------------------
+    const imageBtn = document.getElementById('image-btn');
+    const imageInput = document.getElementById('image-input');
+    const previewContainer = document.getElementById('image-preview-container');
+
+    if (imageBtn && imageInput) {
+        imageBtn.addEventListener('click', function () {
+            imageInput.click();
+        });
+    }
+
+    if (imageInput && previewContainer) {
+        imageInput.addEventListener('change', function () {
+            previewContainer.innerHTML = '';
+            const file = this.files[0];
+            if (!file) return;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'preview-wrapper';
+
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'preview-image';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.innerHTML = '✕';
+            removeBtn.className = 'remove-preview';
+
+            removeBtn.addEventListener('click', function () {
+                imageInput.value = '';
+                previewContainer.innerHTML = '';
+            });
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(removeBtn);
+            previewContainer.appendChild(wrapper);
+        });
+    }
+
+    // -----------------------------------------------------------------
+    // LOGIC EMOJI PICKER
+    // -----------------------------------------------------------------
+    const emojiTriggerBtn = document.getElementById('emoji-trigger-btn');
+    const emojiContainer = document.getElementById('emoji-picker-container');
+    const chatInput = document.getElementById('chat-input');
+
+    if (emojiTriggerBtn && emojiContainer && chatInput) {
+        const pickerOptions = {
+            onEmojiSelect: function (emoji) {
+                const startPos = chatInput.selectionStart;
+                const endPos = chatInput.selectionEnd;
+                const text = chatInput.value;
+
+                chatInput.value = text.substring(0, startPos) + emoji.native + text.substring(endPos);
+                chatInput.focus();
+                chatInput.selectionStart = chatInput.selectionEnd = startPos + emoji.native.length;
+                chatInput.dispatchEvent(new Event('input'));
+            },
+            theme: 'light',
+            set: 'facebook',
+            locale: 'vi'
+        };
+        const picker = new EmojiMart.Picker(pickerOptions);
+        emojiContainer.appendChild(picker);
+
+        emojiTriggerBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (emojiContainer.style.display === 'none' || emojiContainer.style.display === '') {
+                emojiContainer.style.display = 'block';
+            } else {
+                emojiContainer.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!emojiContainer.contains(e.target) && e.target !== emojiTriggerBtn) {
+                emojiContainer.style.display = 'none';
+            }
+        });
     }
 });
 
@@ -137,11 +258,11 @@ function loadOlderMessages() {
 }
 
 // =========================================================================
-// 4. GỬI TIN NHẮN MỚI (CÓ TÍCH HỢP NÉN ẢNH Ở FRONTEND CHỐNG CHẶN SERVER)
+// 4. GỬI TIN NHẮN MỚI (CÓ TÍCH HỢP NÉN ẢNH)
 // =========================================================================
 const chatInputForm = document.querySelector('.chat-input');
 if (chatInputForm) {
-    chatInputForm.addEventListener('submit', async function (e) { // Thêm chữ async để dùng await
+    chatInputForm.addEventListener('submit', async function (e) {
         e.preventDefault();
 
         if (isSending) return;
@@ -151,37 +272,29 @@ if (chatInputForm) {
         let submitBtn = this.querySelector('button[type="submit"]');
         let imageInput = document.getElementById('image-input');
 
-        // 🌟 BƯỚC 1: KHỞI TẠO FORMDATA TRƯỚC (Để bốc đầy đủ chữ trong input khi chưa bị disable)
         let formData = new FormData(this);
 
-        // BƯỚC 2: BÂY GIỜ MỚI KHÓA KHUNG CHAT ĐỂ CHỐNG SPAM
         submitBtn.disabled = true;
         input.disabled = true;
 
-        // 🔥 BƯỚC 3: XỬ LÝ NÉN ẢNH TẠI TRÌNH DUYỆT (NẾU CÓ ẢNH LỚN)
+        // XỬ LÝ NÉN ẢNH TẠI TRÌNH DUYỆT
         if (imageInput && imageInput.files.length > 0) {
             const imageFile = imageInput.files[0];
 
-            // Chỉ nén nếu dung lượng file lớn hơn 1.5 MB để tiết kiệm thời gian xử lý
             if (imageFile.size > 1.5 * 1024 * 1024) {
                 console.log('⚡ Ảnh lớn hơn 1.5MB, bắt đầu nén tại trình duyệt...');
 
                 const options = {
-                    maxSizeMB: 0.8,          // Dung lượng tối đa mong muốn sau nén (0.8 MB)
-                    maxWidthOrHeight: 1000,   // Chiều rộng hoặc cao tối đa 1000px
-                    useWebWorker: true       // Dùng luồng ngầm để web không bị đơ
+                    maxSizeMB: 0.8,
+                    maxWidthOrHeight: 1000,
+                    useWebWorker: true
                 };
 
                 try {
-                    // Gọi hàm nén an toàn từ cửa sổ window toàn cục
                     const compressor = window.imageCompression || imageCompression;
 
                     if (typeof compressor === 'function') {
                         const compressedFile = await compressor(imageFile, options);
-                        console.log('✅ Nén thành công! Dung lượng cũ:', (imageFile.size / 1024 / 1024).toFixed(2), 'MB');
-                        console.log('🎉 Dung lượng mới gửi lên server:', (compressedFile.size / 1024 / 1024).toFixed(2), 'MB');
-
-                        // Ghi đè file đã nén vào FormData để gửi lên Server thay cho file gốc
                         formData.set('image', compressedFile, imageFile.name);
                     } else {
                         console.warn('⚠️ Thư viện nén ảnh chưa sẵn sàng, giữ nguyên file gốc.');
@@ -192,7 +305,7 @@ if (chatInputForm) {
             }
         }
 
-        // BƯỚC 4: BẮN REQUEST LÊN SERVER
+        // BẮN REQUEST LÊN SERVER
         fetch('/messages/send', {
             method: 'POST',
             headers: {
@@ -209,7 +322,6 @@ if (chatInputForm) {
                     scrollBottom();
                 }
 
-                // Xóa sạch ô nhập liệu và input ảnh sau khi gửi thành công
                 input.value = '';
                 imageInput.value = '';
 
@@ -222,7 +334,6 @@ if (chatInputForm) {
                 console.log('Send error:', err);
             })
             .finally(() => {
-                // Mở khóa khung chat để người dùng nhập tin nhắn tiếp theo
                 setTimeout(() => {
                     isSending = false;
                     input.disabled = false;
@@ -232,58 +343,110 @@ if (chatInputForm) {
             });
     });
 }
+
 // =========================================================================
-// 5. HÀM TẠO GIAO DIỆN TIN NHẮN (RENDER HELPERS)
+// 5. HÀM TẠO GIAO DIỆN TIN NHẮN ĐỒNG BỘ 100% VỚI HTML BLADE
 // =========================================================================
 function createMessageHTML(msg) {
     let isMe = msg.sender_id == currentUserId;
     let wrapperClass = isMe ? 'me' : 'them';
 
-    if (msg.is_deleted == 1) {
-        return `
-            <div class="message-wrapper ${wrapperClass}" data-id="${msg.id}">
-                <div class="message-recalled">Tin nhắn đã được thu hồi</div>
-            </div>
-        `;
+    // XỬ LÝ ĐỒNG BỘ DỮ LIỆU NGƯỜI GỬI (LUÔN CHẠY KỂ CẢ KHI THU HỒI)
+    let userData = msg.sender || msg.user || null;
+
+    let senderName = 'Thành viên';
+    if (userData) {
+        senderName = userData.fullname || userData.username || 'Thành viên';
     }
 
-    return `
-        <div class="message-wrapper ${wrapperClass}" data-id="${msg.id}">
-            <div class="message-container">
-                
-                ${msg.image_url ? `
-                    <div class="message-media">
-                        <img src="/storage/${msg.image_url}" class="chat-image">
-                    </div>
-                ` : ''}
+    // Xử lý hiển thị ảnh đại diện chính xác từ thư mục uploads_profile
+    let senderAvatar = '';
+    if (userData && userData.avatar_url) {
+        if (userData.avatar_url.startsWith('http')) {
+            senderAvatar = userData.avatar_url;
+        } else {
+            senderAvatar = userData.avatar_url.startsWith('/') ? userData.avatar_url : `/${userData.avatar_url}`;
+        }
+    } else {
+        senderAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(senderName)}&background=0084ff&color=fff&size=100`;
+    }
 
-                ${msg.content && String(msg.content).trim() !== '' ? `
-                    <div class="message-bubble">
-                        <div class="message-content">${msg.content}</div>
-                    </div>
-                ` : ''}
+    // KHỞI TẠO NỘI DUNG BÊN TRONG BONG BÓNG CHAT
+    let chatContentHTML = '';
 
-                <div class="message-actions">
-                    <button type="button" class="dots-btn">⋯</button>
-                    <div class="message-menu">
-                        ${isMe ? `
-                            <button type="button" class="recall-btn" data-id="${msg.id}">Thu hồi</button>
-                        ` : ''}
-                        <button type="button" class="delete-btn" data-id="${msg.id}">Xoá ở phía bạn</button>
-                    </div>
-                </div>
-
+    if (msg.is_deleted == 1) {
+        // Nếu tin nhắn BỊ THU HỒI: Biến nội dung thành bong bóng màu xám mờ chứa thông báo
+        chatContentHTML = `
+            <div class="message-bubble" style="background: #f1f0f0; color: #999; font-style: italic; border: 1px dashed #ccc;">
+                <div class="message-content">Tin nhắn đã được thu hồi</div>
             </div>
+        `;
+    } else {
+        // Nếu tin nhắn BÌNH THƯỜNG: Hiện hình ảnh và chữ như cũ
+        let mediaHTML = msg.image_url ? `
+            <div class="message-media">
+                <img src="/storage/${msg.image_url}" class="chat-image">
+            </div>
+        ` : '';
 
-            ${isMe ? `
+        let bubbleHTML = msg.content && String(msg.content).trim() !== '' ? `
+            <div class="message-bubble">
+                <div class="message-content">${msg.content}</div>
+            </div>
+        ` : '';
+
+        chatContentHTML = mediaHTML + bubbleHTML;
+    }
+
+    // PHÂN CHIA LAYOUT THEO ĐỐI TƯỢNG GỬI (CẤU TRÚC AVATAR LUÔN GIỮ NGUYÊN)
+    if (isMe) {
+        return `
+            <div class="message-wrapper me" data-id="${msg.id}">
+                <div class="message-container">
+                    ${chatContentHTML}
+                    
+                    ${msg.is_deleted != 1 ? `
+                        <div class="message-actions">
+                            <button type="button" class="dots-btn">⋯</button>
+                            <div class="message-menu">
+                                <button type="button" class="recall-btn" data-id="${msg.id}">Thu hồi</button>
+                                <button type="button" class="delete-btn" data-id="${msg.id}">Xoá ở phía bạn</button>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
                 <div class="message-status-row">
                     <small class="message-status" data-id="${msg.id}">
                         ${msg.is_read ? 'Đã xem' : 'Đã gửi'}
                     </small>
                 </div>
-            ` : ''}
-        </div>
-    `;
+            </div>
+        `;
+    } else {
+        return `
+            <div class="message-wrapper them" data-id="${msg.id}">
+                <div class="group-chat-layout">
+                    <span class="group-chat-sender-name">${senderName}</span>
+                    <div class="group-chat-row">
+                        <div class="chat-avatar-wrapper">
+                            <img src="${senderAvatar}" class="chat-group-avatar" title="${senderName}">
+                        </div>
+                        <div class="message-container-them">
+                            ${chatContentHTML}
+                            ${msg.is_deleted != 1 ? `
+                                <div class="message-actions">
+                                    <button type="button" class="dots-btn">⋯</button>
+                                    <div class="message-menu">
+                                        <button type="button" class="delete-btn" data-id="${msg.id}">Xoá ở phía bạn</button>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 }
 
 // =========================================================================
@@ -328,17 +491,14 @@ document.addEventListener('click', function (e) {
             menu.classList.toggle('show');
 
             if (menu.classList.contains('show')) {
-                // Lấy tọa độ của nút 3 chấm
                 let rect = e.target.getBoundingClientRect();
 
-                // Nếu nút nằm ở nửa dưới màn hình -> Ép menu bay lên trên
-                // Nếu nút nằm ở nửa trên màn hình -> Ép menu đổ xuống dưới
                 if (rect.top > (window.innerHeight / 2)) {
                     menu.style.top = 'auto';
-                    menu.style.bottom = '36px'; // Bay lên
+                    menu.style.bottom = '36px';
                 } else {
                     menu.style.bottom = 'auto';
-                    menu.style.top = '36px';    // Đổ xuống
+                    menu.style.top = '36px';
                 }
             }
         }
@@ -348,8 +508,9 @@ document.addEventListener('click', function (e) {
         });
     }
 });
+
 // =========================================================================
-// 8. THU HỒI TIN NHẮN
+// 8. THU HỒI TIN NHẮN (ĐÃ SỬA ĐỂ KHÔNG LÀM MẤT AVATAR VÀ TÊN)
 // =========================================================================
 function recallMessage(messageId) {
     let tokenMeta = document.querySelector('meta[name="csrf-token"]');
@@ -365,8 +526,29 @@ function recallMessage(messageId) {
             if (data.success) {
                 let wrapper = document.querySelector(`.message-wrapper[data-id="${messageId}"]`);
                 if (wrapper) {
-                    wrapper.className = `message-wrapper me`;
-                    wrapper.innerHTML = `<div class="message-recalled">Tin nhắn đã được thu hồi</div>`;
+                    // Lấy lại thông tin avatar và tên đang hiện hữu
+                    let oldAvatar = wrapper.querySelector('.chat-group-avatar')?.getAttribute('src') || '';
+                    let oldName = wrapper.querySelector('.group-chat-sender-name')?.innerText || 'Thành viên';
+
+                    let fakeMsg = {
+                        id: messageId,
+                        sender_id: currentUserId, // Chắc chắn là của mình vì mình bấm thu hồi
+                        is_deleted: 1,
+                        sender: {
+                            avatar_url: oldAvatar,
+                            fullname: oldName
+                        }
+                    };
+
+                    // Vẽ lại giao diện qua hàm render để giữ trọn vẹn khung layout
+                    let newHTML = createMessageHTML(fakeMsg);
+                    let parser = new DOMParser();
+                    let doc = parser.parseFromString(newHTML, 'text/html');
+                    let newElement = doc.body.firstElementChild;
+
+                    if (newElement) {
+                        wrapper.replaceWith(newElement);
+                    }
                 }
             }
         })
@@ -381,7 +563,7 @@ document.addEventListener('click', function (e) {
 });
 
 // =========================================================================
-// 9. XOÁ TIN NHẮN 1 CHIỀU (ĐÃ LỌC BỎ LOGIC SIDEBAR)
+// 9. XOÁ TIN NHẮN 1 CHIỀU
 // =========================================================================
 document.addEventListener('click', function (e) {
     if (e.target.classList.contains('delete-btn')) {
@@ -409,7 +591,7 @@ document.addEventListener('click', function (e) {
 });
 
 // =========================================================================
-// 10. ĐÁNH DẤU ĐÃ XEM (CHỈ XỬ LÝ KHUNG CHAT CHI TIẾT)
+// 10. ĐÁNH DẤU ĐÃ XEM
 // =========================================================================
 function markAsRead() {
     if (!conversationId) return;
@@ -424,167 +606,7 @@ function markAsRead() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // Đã xử lý DB thành công
                 console.log('Đã cập nhật DB thành đã đọc');
             }
         });
 }
-
-// =========================================================================
-// 11. ĐOẠN ECHO THỨ 2 (GIỮ NGUYÊN CẤU TRÚC GỐC, KHÔNG CÓ SIDEBAR)
-// =========================================================================
-if (typeof window.Echo !== 'undefined' && chatBox) {
-    const channelName = `chat-conversation.${conversationId}`;
-
-    window.Echo.private(channelName)
-        .listen('.MessageSent', (e) => {
-            let msg = e.message;
-            if (!msg) return;
-
-            if (msg.is_deleted == 0) {
-                const existed = document.querySelector(`.message-wrapper[data-id="${msg.id}"]`);
-                if (!existed) {
-                    appendMessageRealtime(msg);
-                    scrollBottom();
-
-                    if (msg.sender_id != currentUserId) {
-                        markAsRead();
-                    }
-                }
-            } else {
-                let wrapper = document.querySelector(`.message-wrapper[data-id="${msg.id}"]`);
-                if (wrapper) {
-                    let wrapperClass = msg.sender_id == currentUserId ? 'me' : 'them';
-                    wrapper.className = `message-wrapper ${wrapperClass}`;
-                    wrapper.innerHTML = `<div class="message-recalled">Tin nhắn đã được thu hồi</div>`;
-                }
-            }
-        })
-        .listen('.ChatReadStatusUpdated', (e) => {
-            if (e.updatedMessages) {
-                e.updatedMessages.forEach(msg => {
-                    let status = document.querySelector(`.message-status[data-id="${msg.id}"]`);
-                    if (status) {
-                        status.innerText = 'Đã xem';
-                    }
-                });
-            }
-        });
-}
-
-// =========================================================================
-// 12. KHỞI CHẠY PHỤ (PREVIEW IMAGE)
-// =========================================================================
-document.addEventListener('DOMContentLoaded', function () {
-    const chatBox = document.getElementById('chat-box');
-    if (!chatBox) return;
-
-    setTimeout(() => { forceScrollBottom(); }, 100);
-    window.addEventListener('load', () => { forceScrollBottom(); });
-
-    const imageBtn = document.getElementById('image-btn');
-    const imageInput = document.getElementById('image-input');
-    const previewContainer = document.getElementById('image-preview-container');
-
-    if (imageBtn && imageInput) {
-        imageBtn.addEventListener('click', function () {
-            imageInput.click();
-        });
-    }
-
-    if (imageInput && previewContainer) {
-        imageInput.addEventListener('change', function () {
-            previewContainer.innerHTML = '';
-            const file = this.files[0];
-            if (!file) return;
-
-            const wrapper = document.createElement('div');
-            wrapper.className = 'preview-wrapper';
-
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(file);
-            img.className = 'preview-image';
-
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.innerHTML = '✕';
-            removeBtn.className = 'remove-preview';
-
-            removeBtn.addEventListener('click', function () {
-                imageInput.value = '';
-                previewContainer.innerHTML = '';
-            });
-
-            wrapper.appendChild(img);
-            wrapper.appendChild(removeBtn);
-            previewContainer.appendChild(wrapper);
-        });
-    }
-});
-
-/// --- LOGIC EMOJI PICKER CHUẨN FACEBOOK MESSENGER ---
-document.addEventListener('DOMContentLoaded', function () {
-    const emojiTriggerBtn = document.getElementById('emoji-trigger-btn');
-    const emojiContainer = document.getElementById('emoji-picker-container');
-    const chatInput = document.getElementById('chat-input');
-
-    if (emojiTriggerBtn && emojiContainer && chatInput) {
-
-        // 1. Khởi tạo bảng chọn Emoji Picker từ thư viện Emoji Mart
-        const pickerOptions = {
-            // Sự kiện tự động kích hoạt ngay khi cậu click chọn 1 icon emoji trên bảng
-            onEmojiSelect: function (emoji) {
-                // Lấy vị trí hiện tại của con trỏ chuột trong ô nhập tin nhắn (để chèn đúng chỗ)
-                const startPos = chatInput.selectionStart; // Vị trí đầu con trỏ
-                const endPos = chatInput.selectionEnd;     // Vị trí cuối con trỏ (nếu có bôi đen chữ)
-                const text = chatInput.value;              // Toàn bộ nội dung chữ hiện tại trong ô chat
-
-                // Thực hiện cắt chuỗi và chèn icon emoji (.native) vào ngay giữa vị trí con trỏ chuột
-                chatInput.value = text.substring(0, startPos) + emoji.native + text.substring(endPos);
-
-                // Ép ô chat phải Focus (nhấp nháy con trỏ) để người dùng gõ tiếp tục được luôn
-                chatInput.focus();
-
-                // Đẩy con trỏ chuột đứng ngay sau cái icon Emoji vừa mới được chèn vào
-                chatInput.selectionStart = chatInput.selectionEnd = startPos + emoji.native.length;
-
-                // Kích hoạt (bắn) ra một sự kiện 'input' giả lập. 
-                // Mục đích: Để các hàm khác (như hàm đổi icon nút gửi 🚀 thành 👍) tự nhận diện là ô chat vừa có thay đổi để chạy theo.
-                chatInput.dispatchEvent(new Event('input'));
-            },
-            theme: 'light',   // Cấu hình giao diện nền sáng sạch sẽ cho bảng chọn
-            set: 'facebook',  // Định dạng hiển thị bộ icon mập mập tròn tròn giống hệt Facebook Messenger
-            locale: 'vi'      // Cấu hình ngôn ngữ tiếng Việt (cậu gõ tìm kiếm chữ "cười", "khóc" trên ô tìm kiếm sẽ ra icon tương ứng)
-        };
-        //Tạo instance của Emoji Picker với các cấu hình đã định nghĩa
-        const picker = new EmojiMart.Picker(pickerOptions);
-
-        // Gắn bảng chọn emoji vào đúng container đã định sẵn trong HTML
-        emojiContainer.appendChild(picker);
-
-        // 🔥 BIỆN PHÁP DỨT ĐIỂM: ÉP CSS TRỰC TIẾP VÀO THÀNH PHẦN PICKER ĐỂ CĂN GIỮA TUYỆT ĐỐI
-        // Bảng Emoji Mart rộng chính xác 352px. Để căn giữa nút 😊 (rộng 40px):
-        // Ta lùi ngược bảng về bên trái một khoảng = (352px - 40px) / 2 = 156px.
-
-        // --- ÉP BẢNG CHỌN DỊCH HẲN SANG BÊN TRÁI KHÔNG BỊ VĂNG ---
-
-        // 2. Click nút mặt cười -> Ẩn hoặc Hiện bảng chọn emoji
-        emojiTriggerBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            if (emojiContainer.style.display === 'none' || emojiContainer.style.display === '') {
-                emojiContainer.style.display = 'block';
-            } else {
-                emojiContainer.style.display = 'none';
-            }
-        });
-
-        // 3. Đóng bảng Emoji thông minh khi bấm chuột ra vùng trống bên ngoài
-        document.addEventListener('click', function (e) {
-            if (!emojiContainer.contains(e.target) && e.target !== emojiTriggerBtn) {
-                emojiContainer.style.display = 'none';
-            }
-        });
-    }
-});

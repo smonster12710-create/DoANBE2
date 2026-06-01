@@ -30,9 +30,14 @@ class Message extends Model
     {
         return $this->belongsTo(Conversation::class);
     }
-    
+
     public function deletedMessages()
     {
         return $this->hasMany(DeletedMessage::class);
+    }
+    public function user()
+    {
+        // Khai báo Message thuộc về User thông qua khóa ngoại sender_id
+        return $this->belongsTo(User::class, 'sender_id');
     }
 }
