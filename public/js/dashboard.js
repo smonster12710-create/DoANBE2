@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     input.addEventListener("change", function (e) {
 
-        const newFiles = Array.from(e.target.files);d
+        const newFiles = Array.from(e.target.files);
 
         // thêm file mới vào mảng cũ
         selectedFiles = [...selectedFiles, ...newFiles];
