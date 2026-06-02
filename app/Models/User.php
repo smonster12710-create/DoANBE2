@@ -213,4 +213,16 @@ class User extends Authenticatable
             ->withPivot('role', 'status')
             ->withTimestamps();
     }
+
+    // Trong app/Models/User.php
+    public function blocks()
+    {
+        return $this->hasMany(Block::class, 'blocker_id');
+    }
+
+    // Kiểm tra xem user này đã chặn ai đó chưa
+    public function isBlocking($userId)
+    {
+        return $this->blocks()->where('blocked_id', $userId)->exists();
+    }
 }
