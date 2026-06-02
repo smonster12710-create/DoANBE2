@@ -1,8 +1,8 @@
 @php
-    $user = Auth::user();
+$user = Auth::user();
 
-    $avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/user/user.jpg');
-    $switchAccountIds = session('switch_accounts', []);
+$avatar = $user && $user->avatar_url ? asset($user->avatar_url) : asset('img/user/user.jpg');
+$switchAccountIds = session('switch_accounts', []);
 
 $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->where('role', '!=', 'admin')->get(); @endphp
 <!DOCTYPE html>
@@ -619,11 +619,11 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->where('rol
 
                                 {{-- Đếm thông báo chưa đọc --}}
                                 @php
-                                    $unreadCount = auth()->check()
-                                        ? \App\Models\Notification::where('user_id', auth()->id())
-                                            ->where('is_read', 0)
-                                            ->count()
-                                        : 0;
+$unreadCount = auth()->check()
+    ? \App\Models\Notification::where('user_id', auth()->id())
+        ->where('is_read', 0)
+        ->count()
+    : 0;
                                 @endphp
 
                                 {{-- Badge đỏ --}}
@@ -643,14 +643,14 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->where('rol
                     <div class="menu-item">
 
                         @php
-                            $isMessaging = request()->is('list_messages*') || request()->is('chat-messages*');
+$isMessaging = request()->is('list_messages*') || request()->is('chat-messages*');
 
-                            $unreadMessageCount = \App\Models\Message::where('is_read', 0)
-                                ->where('sender_id', '!=', auth()->id())
-                                ->whereHas('conversation.participants', function ($q) {
-                                    $q->where('user_id', auth()->id());
-                                })
-                                ->count();
+$unreadMessageCount = \App\Models\Message::where('is_read', 0)
+    ->where('sender_id', '!=', auth()->id())
+    ->whereHas('conversation.participants', function ($q) {
+        $q->where('user_id', auth()->id());
+    })
+    ->count();
                         @endphp
 
 
@@ -882,6 +882,12 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->where('rol
                                 accept="image/*" multiple>
                             <div id="preview-images" class="d-flex flex-wrap gap-2 mt-2"></div>
                         </div>
+                    </div>
+                    <div class="mb-3" style="margin-left: 20px;">
+                        <input class="form-check-input" type="checkbox" name="is_anonymous" id="anonymousCheck" value="1">
+                        <label class="form-check-label" for="anonymousCheck">
+                            Đăng bài ẩn danh (Sẽ không ai biết bạn là ai)
+                        </label>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>

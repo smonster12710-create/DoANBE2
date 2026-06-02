@@ -85,8 +85,8 @@
 {{-- MODAL CHI TIẾT (INSTAGRAM STYLE) --}}
 <div class="modal fade" id="instagramModal{{ $post->id }}" tabindex="-1" aria-hidden="true">
     @php
-    $displayMedia = $post->media ?? collect();
-    $hasMedia = $displayMedia->count() > 0;
+        $displayMedia = $post->media ?? collect();
+        $hasMedia = $displayMedia->count() > 0;
     @endphp
 
     <div class="modal-dialog modal-dialog-centered {{ $hasMedia ? 'modal-lg' : 'modal-md' }}">
@@ -144,8 +144,14 @@
 
                     {{-- 1. THÔNG TIN USER ĐĂNG BÀI (HEADER) --}}
                     <div class="p-3 d-flex align-items-center border-bottom">
-                        <img src="{{ $post->user->avatar_url ? asset($post->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->user_id }}" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
-                        <strong>{{ $post->user->fullname ?? 'Người dùng' }}</strong>
+                        @if($post->is_anonymous)
+                            <img class="avatar" src="{{ asset('img/user/user.jpg') }}" alt="Ẩn danh">
+                            <strong class="name d-block">Người dùng ẩn danh 🕵️</strong>
+                        @else
+                            <img src="{{ $post->user->avatar_url ? asset($post->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->user_id }}"
+                                class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
+                            <strong>{{ $post->user->fullname ?? 'Người dùng' }}</strong>
+                        @endif
                     </div>
 
                     {{-- KHOANG CHỨA NỘI DUNG VÀ CÁC BÌNH LUẬN (CÓ SCROLLY) --}}
@@ -156,52 +162,59 @@
                             </div>
 
                             @if($post->sharedPost)
-                            <div class="card mt-2 p-3 w-100 d-block"
-                                style="background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; cursor: pointer; min-width: 100%;"
-                                data-bs-toggle="modal"
-                                data-bs-target="#instagramModal{{ $post->sharedPost->id }}">
+                                <div class="card mt-2 p-3 w-100 d-block"
+                                    style="background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; cursor: pointer; min-width: 100%;"
+                                    data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->sharedPost->id }}">
 
                                 <div class="d-flex align-items-center mb-2">
-                                    <img src="{{ $post->sharedPost->user->avatar_url ? asset($post->sharedPost->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->sharedPost->user_id }}" class="rounded-circle me-2" width="24" height="24" style="object-fit: cover;">
-                                    <strong class="small" style="font-size: 13px;">{{ $post->sharedPost->user->fullname ?? 'Người dùng gốc' }}</strong>
+                                    @if($post->sharedPost->is_anonymous)
+                                        <img src="{{ asset('img/default-anonymous.png') }}" class="rounded-circle me-2" width="24" height="24"
+                                            style="object-fit: cover;" alt="Ẩn danh">
+                                        <strong class="small text-dark" style="font-size: 13px;">Người dùng ẩn danh 🕵️</strong>
+                                    @else
+                                        <img src="{{ $post->sharedPost->user->avatar_url ? asset($post->sharedPost->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->sharedPost->user_id }}"
+                                            class="rounded-circle me-2" width="24" height="24" style="object-fit: cover;">
+                                        <strong class="small" style="font-size: 13px;">{{ $post->sharedPost->user->fullname ?? 'Người dùng gốc' }}</strong>
+                                    @endif
                                 </div>
 
-                                @if($post->sharedPost->content)
-                                <div class="small text-secondary mb-2" style="font-size: 13px; line-height: 1.4; word-break: break-word;">
-                                    {{ $post->sharedPost->content }}
-                                </div>
-                                @endif
-
-                                @if($post->sharedPost->media && $post->sharedPost->media->count() > 0)
-                                @if($post->sharedPost->media->count() == 1)
-                                <div class="row mt-2 g-0">
-                                    <div class="col-12">
-                                        <div style="padding-top: 60%; position: relative; overflow: hidden; border-radius: 6px;">
-                                            <img src="{{ asset($post->sharedPost->media->first()->media_url) }}"
-                                                class="position-absolute top-0 start-0 w-100 h-100"
-                                                style="object-fit: cover;">
+                                    @if($post->sharedPost->content)
+                                        <div class="small text-secondary mb-2" style="font-size: 13px; line-height: 1.4; word-break: break-word;">
+                                            {{ $post->sharedPost->content }}
                                         </div>
-                                    </div>
-                                </div>
-                                @else
-                                <div class="row g-1 mt-2">
-                                    @foreach($post->sharedPost->media->take(4) as $innerIndex => $media)
-                                    <div class="col-3 position-relative">
-                                        <div style="padding-top: 100%; position: relative; overflow: hidden; border-radius: 4px;">
-                                            <img src="{{ asset($media->media_url) }}" class="position-absolute top-0 start-0 w-100 h-100" style="object-fit: cover;">
+                                    @endif
 
-                                            @if($loop->index == 3 && $post->sharedPost->media->count() > 4)
-                                            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold small" style="background: rgba(0,0,0,0.5);">
-                                                +{{ $post->sharedPost->media->count() - 4 }}
+                                    @if($post->sharedPost->media && $post->sharedPost->media->count() > 0)
+                                        @if($post->sharedPost->media->count() == 1)
+                                            <div class="row mt-2 g-0">
+                                                <div class="col-12">
+                                                    <div style="padding-top: 60%; position: relative; overflow: hidden; border-radius: 6px;">
+                                                        <img src="{{ asset($post->sharedPost->media->first()->media_url) }}"
+                                                            class="position-absolute top-0 start-0 w-100 h-100" style="object-fit: cover;">
+                                                    </div>
+                                                </div>
                                             </div>
-                                            @endif
-                                        </div>
+                                        @else
+                                            <div class="row g-1 mt-2">
+                                                @foreach($post->sharedPost->media->take(4) as $innerIndex => $media)
+                                                    <div class="col-3 position-relative">
+                                                        <div style="padding-top: 100%; position: relative; overflow: hidden; border-radius: 4px;">
+                                                            <img src="{{ asset($media->media_url) }}" class="position-absolute top-0 start-0 w-100 h-100"
+                                                                style="object-fit: cover;">
+
+                                                            @if($loop->index == 3 && $post->sharedPost->media->count() > 4)
+                                                                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold small"
+                                                                    style="background: rgba(0,0,0,0.5);">
+                                                                    +{{ $post->sharedPost->media->count() - 4 }}
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    @endif
                                     </div>
-                                    @endforeach
-                                </div>
-                                @endif
-                                @endif
-                            </div>
                             @endif
                         </div>
                         <hr>
