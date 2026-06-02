@@ -13,6 +13,7 @@ use App\Http\Controllers\FollowController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\BlockController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -237,3 +238,6 @@ Route::middleware(['auth'])->prefix('groups')->name('groups.')->group(function (
     
     Route::put('/{slug}/update', [GroupController::class, 'update'])->name('update');
 });
+// Blocks
+Route::post('/block/{userId}', [BlockController::class, 'toggleBlock'])->name('user.block');
+Route::get('/settings/blocked-users', [BlockController::class, 'index'])->name('settings.blocked');

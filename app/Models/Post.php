@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Block;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Prunable; // 1. Import Trait Prunable
@@ -128,5 +129,27 @@ class Post extends Model
     public function sharedPost()
     {
         return $this->belongsTo(Post::class, 'parent_id');
+    }
+
+    // Trong app/Models/Post.php
+    public static function boot()
+    {
+        parent::boot();
+
+        static::addGlobalScope('notBlocked', function ($builder) {
+            // Kiểm tra user đã đăng nhập chưa
+            if (auth()->check()) {
+                $userId = auth()->id();
+
+                // Lấy danh sách ID người mình chặn và mình đã chặn
+                $blockedIds = \App\Models\Block::where('blocker_id', $userId)->pluck('blocked_id');
+                $blockerIds = \App\Models\Block::where('blocked_id', $userId)->pluck('blocker_id');
+
+                $excluded = $blockedIds->merge($blockerIds)->unique();
+
+                // Dùng posts.user_id để tránh lỗi 'Ambiguous column'
+                $builder->whereNotIn('posts.user_id', $excluded);
+            }
+        });
     }
 }

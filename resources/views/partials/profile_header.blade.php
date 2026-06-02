@@ -116,7 +116,17 @@
                         <i class="fas fa-share"></i> Chia sẻ
                     </button>
                 @endif
-
+                
+                {{-- NÚT CHẶN --}}
+                @if (auth()->check() && auth()->id() !== $user->id)
+                    <form action="{{ route('user.block', $user->id) }}" method="POST" class="friend-action-form" 
+                          onsubmit="return confirm('Bạn có chắc muốn chặn người dùng này?')">
+                        @csrf
+                        <button type="submit" class="profile-action-btn secondary" style="color: #dc3545; border-color: #dc3545;">
+                            {{ auth()->user()->isBlocking($user->id) ? 'Bỏ chặn' : 'Chặn' }}
+                        </button>
+                    </form>
+                @endif
             </div>
         @endif
     </div>
