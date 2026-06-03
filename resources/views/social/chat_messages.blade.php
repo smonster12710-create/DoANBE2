@@ -58,9 +58,7 @@
                 {{-- ... Avatar người dùng ... --}}
                 <div class="avatar-online-wrap" style="position: relative;">
                     <img src="{{ $activePartner->avatar_url ? asset($activePartner->avatar_url) : asset('images/default-avatar.png') }}" style="width:45px;height:45px;border-radius:50%;">
-                    @if($activePartner->canShowActivityTo(auth()->user()))
-                    <span class="online-dot"></span>
-                    @endif
+                    @include('partials.activity_dot', ['user' => $activePartner])
                 </div>
                 <div>
                     <h4 style="margin:0;">{{ $activePartner->fullname }}</h4>
@@ -316,9 +314,7 @@
                             <label class="friend-select-item">
                                 <div class="avatar-online-wrap">
                                     <img src="{{ $friend->avatar_url ?? 'https://i.pravatar.cc/40' }}" class="friend-avatar">
-                                    @if($friend->canShowActivityTo(auth()->user()))
-                                    <span class="online-dot"></span>
-                                    @endif
+                                    @include('partials.activity_dot', ['user' => $friend])
                                 </div>
                                 <span class="friend-name">{{ $friend->fullname ?? $friend->username }}</span>
                                 <input type="checkbox" name="user_ids[]" value="{{ $friend->id }}" class="friend-checkbox">

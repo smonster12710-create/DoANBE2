@@ -83,7 +83,7 @@
             @include('partials.list_chat', ['conversations' => $conversations])
         </div>
     </div>
-    <link rel="stylesheet" href="{{ asset('css/social.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/social.css') }}?v={{ time() }}">
 
     <div class="grid">
         @foreach ($posts as $post)
@@ -120,9 +120,7 @@
                                 <div class="avatar-online-wrap">
                                     <img src="{{ $friend->avatar_url ?? 'https://i.pravatar.cc/40' }}" class="friend-avatar">
 
-                                    @if($friend->canShowActivityTo(auth()->user()))
-                                    <span class="online-dot"></span>
-                                    @endif
+                                    @include('partials.activity_dot', ['user' => $friend])
                                 </div>
                                 <span class="friend-name">{{ $friend->fullname ?? $friend->username }}</span>
                                 <input type="checkbox" name="user_ids[]" value="{{ $friend->id }}" class="friend-checkbox">
@@ -217,6 +215,5 @@
     </style>
     <script src="/js/chat.js?v={{ time() }}"></script>
     <script src="/js/list_chat.js?v={{ time() }}"></script>
-    <!-- Thư viện nén ảnh trước khi upload lên server -->
-    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.min.js"></script>
+
     @endsection

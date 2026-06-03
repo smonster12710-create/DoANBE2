@@ -4,8 +4,11 @@
         alt="cover">
 
     <div class="profile-info">
-        <img class="profile-avatar" src="{{ $user->avatar_src }}"
-            alt="avatar">
+        <div class="profile-avatar-wrap avatar-online-wrap">
+            <img class="profile-avatar" src="{{ $user->avatar_src }}"
+                alt="avatar">
+            @include('partials.activity_dot', ['user' => $user])
+        </div>
 
         <div class="profile-main">
             <h1 class="profile-name">{{ $user->fullname ?? 'Người dùng' }}</h1>

@@ -1,7 +1,7 @@
 @extends('dashboard')
 
 @section('content')
-<link rel="stylesheet" href="{{ asset('css/social.css') }}">
+<link rel="stylesheet" href="{{ asset('css/social.css') }}?v={{ time() }}">
 
 @include('partials.social_topbar')
 

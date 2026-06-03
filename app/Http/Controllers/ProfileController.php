@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\UploadedFile;
+use App\Services\UserActivityService;
 
 class ProfileController extends Controller
 {
@@ -281,12 +282,13 @@ class ProfileController extends Controller
         return view('social.activity_status', compact('user'));
     }
 
-    public function toggleActivityStatus()
+    public function toggleActivityStatus(UserActivityService $activityService)
     {
         $user = auth()->user();
 
         $user->show_activity_status = !$user->show_activity_status;
         $user->save();
+        $activityService->broadcastCurrentStatus($user);
 
         if ($user->show_activity_status) {
             return back()->with('success', 'Đã bật trạng thái hoạt động!');

@@ -410,6 +410,8 @@ class PostController extends Controller
         $posts->getCollection()->transform(function ($post) {
             if ($post->user) {
                 $post->user->can_show_activity = $post->user->canShowActivityTo(Auth::user());
+                $post->user->activity_status = $post->user->activityStatusFor(Auth::user());
+                $post->user->avatar_src = $post->user->avatar_src;
             }
 
             return $post;

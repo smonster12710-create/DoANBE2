@@ -16,6 +16,7 @@ use App\Http\Controllers\GroupController;
 use App\Http\Controllers\BlockController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\AdminReportController;
+use App\Http\Controllers\UserActivityController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -53,6 +54,9 @@ Route::middleware('guest')->group(function () {
 
         Route::post('forgot-password/update', 'updateForgotPassword')->name('forgot.password.update');
     });
+
+    Route::post('/activity/online', [UserActivityController::class, 'online'])->name('activity.online');
+    Route::post('/activity/offline', [UserActivityController::class, 'offline'])->name('activity.offline');
 });
 // ==========================================
 // KHU VỰC BẢO MẬT (BẮT BUỘC ĐĂNG NHẬP)
@@ -120,6 +124,7 @@ Route::middleware('auth')->group(function () {
 
             // chuyển tài khoản
             Route::post('/switch-account', [CrudUserController::class, 'switchAccount'])->name('account.switch');
+            Route::post('/account-switch/remove', [CrudUserController::class, 'removeSwitchAccount'])->name('account.switch.remove');
 
             // Khoá bảo vệ trang cá nhân
             Route::get('/profile-lock', [ProfileController::class, 'profileLock'])->name('profile.lock');

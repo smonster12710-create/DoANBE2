@@ -55,9 +55,7 @@
                             <div class="avatar-online-wrap">
                                 <img src="{{ $item->avatar_url ? asset($item->avatar_url) : asset('img/user/user.jpg') }}" alt="avatar">
 
-                                @if($item->canShowActivityTo(auth()->user()))
-                                    <span class="online-dot"></span>
-                                @endif
+                                @include('partials.activity_dot', ['user' => $item])
                             </div>
                             <div>
                                 <strong>{{ $item->fullname ?? 'Người dùng' }}</strong>
@@ -101,9 +99,7 @@
                                 <div class="avatar-online-wrap">
                                     <img src="{{ $item->avatar_url ? asset($item->avatar_url) : asset('img/user/user.jpg') }}" alt="avatar">
 
-                                    @if($item->canShowActivityTo(auth()->user()))
-                                        <span class="online-dot"></span>
-                                    @endif
+                                    @include('partials.activity_dot', ['user' => $item])
                                 </div>
                                 <div>
                                     <strong>{{ $item->fullname ?? 'Người dùng' }}</strong>
@@ -128,9 +124,7 @@
                                     <div class="avatar-online-wrap">
                                         <img src="{{ $item->avatar_url ? asset($item->avatar_url) : asset('img/user/user.jpg') }}" alt="avatar">
 
-                                        @if($item->canShowActivityTo(auth()->user()))
-                                            <span class="online-dot"></span>
-                                        @endif
+                                        @include('partials.activity_dot', ['user' => $item])
                                     </div>
                                     <div>
                                         <strong>{{ $item->fullname ?? 'Người dùng' }}</strong>
