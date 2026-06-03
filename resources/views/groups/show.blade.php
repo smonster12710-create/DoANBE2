@@ -51,17 +51,19 @@
                                     onsubmit="return confirm('CẢNH BÁO: Bạn có chắc chắn muốn GIẢI TÁN nhóm này? Tất cả bài viết và thành viên sẽ bị xóa vĩnh viễn!')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit"
-                                        style="background: #e51f28; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;">Giải
-                                        tán nhóm</button>
+                                    <button type="button" data-bs-toggle="modal" data-bs-target="#confirmDeleteGroupModal"
+                                        style="background: #e51f28; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;">
+                                        Giải tán nhóm
+                                    </button>
                                 </form>
                             @else
                                 <form action="{{ route('groups.leave', $group->slug) }}" method="POST"
                                     onsubmit="return confirm('Bạn có chắc chắn muốn rời nhóm?')">
                                     @csrf
-                                    <button type="submit"
-                                        style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">Rời
-                                        nhóm</button>
+                                    <button type="button" data-bs-toggle="modal" data-bs-target="#confirmLeaveGroupModal"
+                                        style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                                        Rời nhóm
+                                    </button>
                                 </form>
                             @endif
                         </div>
@@ -483,4 +485,48 @@
             </div>
         </div>
     @endif
+    <div class="modal fade" id="confirmDeleteGroupModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận giải tán nhóm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Bạn có chắc chắn muốn giải tán nhóm này không? Tất cả bài viết và dữ liệu sẽ bị xóa vĩnh viễn!
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <form id="deleteGroupForm" action="{{ route('groups.destroy', $group->slug) }}" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">Đồng ý giải tán</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="confirmLeaveGroupModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận rời nhóm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Bạn có chắc chắn muốn rời khỏi nhóm này không?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+
+                    {{-- Form thực hiện rời nhóm --}}
+                    <form action="{{ route('groups.leave', $group->slug) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-warning">Đồng ý rời nhóm</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
