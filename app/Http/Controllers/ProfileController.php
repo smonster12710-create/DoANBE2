@@ -26,8 +26,12 @@ class ProfileController extends Controller
         /** @var \App\Models\User $user */
         $user = User::where('username', $username)->firstOrFail();
 
+        // 🌟 SỬA LOGIC TRUY VẤN: Lấy bài do chủ nhà đăng HOẶC bài người khác đăng lên tường nhà này
         $posts = \App\Models\Post::with(['user', 'media', 'likes', 'comments'])
-            ->where('user_id', $user->id)
+            ->where(function ($query) use ($user) {
+                $query->where('posts.user_id', $user->id)          // Bài do chính họ đăng
+                    ->orWhere('posts.wall_user_id', $user->id);  // Bài do bạn bè đăng lên tường của họ
+            })
             ->orderBy('is_pinned', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();

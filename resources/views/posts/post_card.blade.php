@@ -38,14 +38,23 @@
                 </a>
 
                 <div class="info ms-2">
-                    <a href="{{ route('profile.show', $post->user->username) }}" onclick="event.stopPropagation()"
-                        class="post-user-link">
-                        <strong class="name d-block">{{ $post->user->fullname ?? 'Người dùng' }}</strong>
-                        @if($post->parent_id)
-                        <span class="text-muted small" style="font-size: 13px;">đã chia sẻ một bài viết</span>
+                    <div class="d-flex align-items-center flex-wrap" style="gap: 2px;">
+                        <a href="{{ route('profile.show', $post->user->username) }}" onclick="event.stopPropagation()" class="post-user-link text-decoration-none">
+                            <strong class="name text-dark hover-underline" style="font-size: 14.5px;">{{ $post->user->fullname ?? $post->user->name ?? 'Người dùng' }}</strong>
+                        </a>
+
+                        @if($post->wall_user_id && $post->wall_user_id !== $post->user_id && $post->wallUser)
+                        <span class="text-muted mx-1" style="font-size: 12px; opacity: 0.8;">➔</span>
+                        <a href="{{ route('profile.show', $post->wallUser->username) }}" onclick="event.stopPropagation()" class="post-user-link text-decoration-none">
+                            <strong class="name text-dark hover-underline" style="font-size: 14.5px;">{{ $post->wallUser->fullname ?? $post->wallUser->name }}</strong>
+                        </a>
                         @endif
-                    </a>
-                    <span class="time text-muted small">{{ $post->created_at->diffForHumans() }}</span>
+
+                        @if($post->parent_id && (!$post->wall_user_id || $post->wall_user_id === $post->user_id))
+                        <span class="text-muted small ms-1" style="font-size: 13px;">đã chia sẻ một bài viết</span>
+                        @endif
+                    </div>
+                    <span class="time text-muted small d-block" style="margin-top: 1px;">{{ $post->created_at->diffForHumans() }}</span>
                 </div>
 
                 {{-- NÚT THEO DÕI (Chỉ hiện khi bài CÔNG KHAI và không phải bài của mình) --}}
