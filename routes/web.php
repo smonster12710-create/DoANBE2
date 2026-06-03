@@ -14,6 +14,7 @@ use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\BlockController;
+use App\Http\Controllers\StoryController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -245,3 +246,7 @@ Route::middleware(['auth'])->prefix('groups')->name('groups.')->group(function (
 // Blocks
 Route::post('/block/{userId}', [BlockController::class, 'toggleBlock'])->name('user.block');
 Route::get('/settings/blocked-users', [BlockController::class, 'index'])->name('settings.blocked');
+
+// ============================== STORY ================================
+// Route nhận file đăng Story
+Route::post('/stories', [StoryController::class, 'store'])->name('stories.store');
