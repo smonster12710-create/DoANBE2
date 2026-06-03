@@ -744,6 +744,9 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                                 <a href="{{ route('admin.users.index') }}">
                                     Quản trị người dùng
                                 </a>
+                                <a href="{{ route('admin.reports.index') }}">
+                                    Quản lý báo cáo
+                                </a>
                             </div>
                         @endif
 

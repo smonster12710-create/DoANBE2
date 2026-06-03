@@ -15,6 +15,7 @@ use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\BlockController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\AdminReportController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -79,6 +80,10 @@ Route::middleware('auth')->group(function () {
             Route::post('/users/{id}', [AdminUserController::class, 'update'])->name('users.update');
             Route::post('/users/{id}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
             Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+            Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
+            Route::get('reports/{id}', [\App\Http\Controllers\AdminReportController::class, 'report_show'])->name('reports.report_show');
+            Route::post('reports/{id}/dismiss', [\App\Http\Controllers\AdminReportController::class, 'dismiss'])->name('reports.dismiss');
+            Route::delete('reports/{id}/delete-post', [\App\Http\Controllers\AdminReportController::class, 'delete_post'])->name('reports.delete_post');
         });
 
     // --- MẠNG XÃ HỘI & POSTS ---
