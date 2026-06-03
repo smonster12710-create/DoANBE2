@@ -85,7 +85,7 @@
                         Xem thành viên
                     </button>
                     <button class="menu-item" onclick="event.stopPropagation(); openAddMembersModal('{{ $conversation->id }}')">Thêm thành viên</button>
-                    <button class="menu-item" onclick="leaveGroup()" style="color: red;">Rời nhóm</button>
+                    <button class="menu-item" onclick="openConfirmLeaveModal({{ $conversation->id }})" style="color: red;">Rời nhóm</button>
                     @else
                     <button class="menu-item" onclick="viewProfile('{{ $activePartner->username ?? '' }}')">
                         Xem trang cá nhân
@@ -255,6 +255,23 @@
             </div>
         </div>
     </div>
+    {{-- MODAL XÁC NHẬN RỜI NHÓM --}}
+    <div id="confirmLeaveModal" class="add-members-modal-overlay">
+        <div class="add-members-modal-box" style="max-width: 400px;">
+            <div class="add-members-modal-header">
+                <h3>Xác nhận rời nhóm</h3>
+                <button class="add-members-modal-close" onclick="closeConfirmLeaveModal()">&times;</button>
+            </div>
+            <div class="add-members-modal-body" style="padding: 20px; text-align: center; color: #4b4b4b; font-size: 15px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 40px; color: #ff4d4f; margin-bottom: 15px; display: block;"></i>
+                Cậu có chắc chắn muốn rời khỏi nhóm chat này không? Bạn bè sẽ không thấy cậu trong cuộc trò chuyện này nữa đâu á.
+            </div>
+            <div class="add-members-modal-footer" style="background: #fff;">
+                <button class="btn-add-member-secondary" onclick="closeConfirmLeaveModal()">Hủy bỏ</button>
+                <button id="btn-confirm-leave-submit" class="btn-add-member-primary" style="background-color: #ff4d4f;">Rời nhóm</button>
+            </div>
+        </div>
+    </div>
     {{-- MODAL THÊM THÀNH VIÊN VÀO NHÓM --}}
     <div id="addMembersModal" class="add-members-modal-overlay">
         <div class="add-members-modal-box">
@@ -262,14 +279,14 @@
                 <h3>Thêm thành viên vào nhóm</h3>
                 <button type="button" class="add-members-modal-close" onclick="closeAddMembersModal()">&times;</button>
             </div>
-            
+
             <div style="padding: 12px 20px; border-bottom: 1px solid #eee;">
-                <input type="text" id="search-friend-input" placeholder="Tìm nhanh bạn bè..." 
-                       style="width: 100%; padding: 8px 15px; border: 1px solid #ddd; border-radius: 20px; outline: none; font-size: 14px;">
+                <input type="text" id="search-friend-input" placeholder="Tìm nhanh bạn bè..."
+                    style="width: 100%; padding: 8px 15px; border: 1px solid #ddd; border-radius: 20px; outline: none; font-size: 14px;">
             </div>
 
             <div class="add-members-modal-body" id="friends-list-container">
-                </div>
+            </div>
 
             <div class="add-members-modal-footer">
                 <button type="button" class="btn-add-member-secondary" onclick="closeAddMembersModal()">Hủy</button>
