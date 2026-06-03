@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\TextProcessorService;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Report;
 
 class PostController extends Controller
 {
@@ -459,5 +460,80 @@ class PostController extends Controller
         $post->save();
 
         return redirect()->back()->with('success', $message);
+    }
+    public function report(Request $request, $id)
+    {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'reason' => 'required|string',
+            'images.*' => 'nullable|image|max:10240'
+        ]);
+
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dữ liệu không hợp lệ!',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $savedImages = [];
+
+        if ($request->hasFile('images')) {
+            if (!file_exists(public_path('uploads/reports'))) {
+                mkdir(public_path('uploads/reports'), 0777, true);
+            }
+
+            foreach ($request->file('images') as $file) {
+                $sourceImage = @imagecreatefromstring(file_get_contents($file->getRealPath()));
+
+                if ($sourceImage !== false) {
+                    $filename = time() . '_' . uniqid() . '.jpg';
+                    $destinationPath = public_path('uploads/reports/' . $filename);
+
+                    $origWidth = imagesx($sourceImage);
+                    $origHeight = imagesy($sourceImage);
+                    $maxWidth = 1000;
+
+                    if ($origWidth > $maxWidth) {
+                        $ratio = $maxWidth / $origWidth;
+                        $newWidth = $maxWidth;
+                        $newHeight = (int)($origHeight * $ratio);
+
+                        $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+                        imagealphablending($resizedImage, false);
+                        imagesavealpha($resizedImage, true);
+
+                        imagecopyresampled($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+                        imagedestroy($sourceImage);
+                        $sourceImage = $resizedImage;
+                    }
+
+                    imagejpeg($sourceImage, $destinationPath, 65);
+                    imagedestroy($sourceImage);
+
+                    $savedImages[] = 'uploads/reports/' . $filename;
+                }
+            }
+        }
+
+        \App\Models\Report::create([
+            'user_id' => \Illuminate\Support\Facades\Auth::id(),
+            'post_id' => $id,
+            'reason' => $request->reason,
+            'image_url' => !empty($savedImages) ? json_encode($savedImages) : null,
+            'status' => 'pending',
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Gửi báo cáo thành công!'
+            ], 200);
+        }
+
+        return redirect()->back()->with('success', 'Gửi báo cáo thành công!');
     }
 }

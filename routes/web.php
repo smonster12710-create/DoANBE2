@@ -138,6 +138,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/post/{id}/like', [PostController::class, 'toggleLike'])->name('post.like');
         Route::get('/post/{id}/likers', [PostController::class, 'listLikers'])->name('post.likers');
         Route::post('/post/{id}/pin', [PostController::class, 'togglePin'])->name('post.pin');
+        Route::post('/posts/{id}/report', [App\Http\Controllers\PostController::class, 'report'])->name('post.report');
     });
 
     // --- BÌNH LUẬN ---
