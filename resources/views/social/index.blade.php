@@ -15,3 +15,7 @@
 @include('partials.post_modals', ['post' => $post])
 @endforeach
 @endsection
+
+@push('scripts')
+<script src="{{ asset('js/index.js') }}?v={{ time() }}"></script>
+@endpush

@@ -312,6 +312,12 @@
                 </button>
             </form>
             @endif
+            {{-- Report --}}
+            <button type="button" class="btn-action border-0 bg-transparent p-0 d-flex align-items-center text-black hover-text-danger" data-bs-toggle="modal" data-bs-target="#reportPostModal{{ $post->id }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-flag" viewBox="0 0 16 16">
+                    <path d="M14.778.085A.5.5 0 0 1 15 .5V8a.5.5 0 0 1-.314.464L14.5 8l.186.464-.003.001-.006.003-.023.009a12 12 0 0 1-.397.15c-.264.095-.631.223-1.047.35-.816.252-1.879.523-2.71.523-.847 0-1.548-.28-2.158-.525l-.028-.01C7.68 8.71 7.14 8.5 6.5 8.5c-.7 0-1.638.23-2.437.477A20 20 0 0 0 3 9.342V15.5a.5.5 0 0 1-1 0V.5a.5.5 0 0 1 1 0v.282c.226-.079.496-.17.79-.26C4.606.272 5.67 0 6.5 0c.84 0 1.524.277 2.121.519l.043.018C9.286.788 9.828 1 10.5 1c.7 0 1.638-.23 2.437-.477a20 20 0 0 0 1.349-.476l.019-.007.004-.002h.001M14 1.221c-.22.078-.48.167-.766.255-.81.252-1.872.523-2.734.523-.886 0-1.592-.286-2.203-.534l-.008-.003C7.662 1.21 7.139 1 6.5 1c-.669 0-1.606.229-2.415.478A21 21 0 0 0 3 1.845v6.433c.22-.078.48-.167.766-.255C4.576 7.77 5.638 7.5 6.5 7.5c.847 0 1.548.28 2.158.525l.028.01C9.32 8.29 9.86 8.5 10.5 8.5c.668 0 1.606-.229 2.415-.478A21 21 0 0 0 14 7.655V1.222z" />
+                </svg>
+            </button>
         </div>
 
         {{-- SHARE --}}
@@ -366,6 +372,45 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary shadow-none" data-bs-dismiss="modal">Hủy</button>
                             <button type="submit" class="btn btn-primary shadow-none">Chia sẻ ngay</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn btn-link text-secondary p-0 m-0" data-bs-toggle="modal" data-bs-target="#reportPostModal{{ $post->id }}">
+            Báo cáo
+        </button>
+
+        <div class="modal fade" id="reportPostModal{{ $post->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Báo cáo bài viết</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form action="{{ route('post.report', $post->id) }}" method="POST" enctype="multipart/form-data" class="report-form">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Lý do báo cáo</label>
+                                <select name="reason" class="form-select shadow-none" required>
+                                    <option value="">-- Chọn lý do --</option>
+                                    <option value="Spam hoặc nội dung rác">Spam hoặc nội dung rác</option>
+                                    <option value="Quấy rối hoặc xúc phạm">Quấy rối hoặc xúc phạm</option>
+                                    <option value="Ngôn từ kích động thù hận">Ngôn từ kích động thù hận</option>
+                                    <option value="Bạo lực hoặc nhạy cảm">Bạo lực hoặc nhạy cảm</option>
+                                    <option value="Lý do khác">Lý do khác</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Thêm ảnh minh chứng</label>
+                                <input type="file" name="images[]" class="form-control report-file-input" accept="image/*" multiple>
+                                <div class="report-preview d-flex flex-wrap gap-2 mt-2"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-danger">Gửi báo cáo</button>
                         </div>
                     </form>
                 </div>

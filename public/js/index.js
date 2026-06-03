@@ -89,13 +89,113 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 });
-Echo.channel('posts')
-    .listen('PostUpdated', (e) => {
-        let contentEl = document.getElementById('post-content-' + e.post.id);
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof Echo !== 'undefined') {
+        Echo.channel('posts')
+            .listen('PostUpdated', (e) => {
+                let contentEl = document.getElementById('post-content-' + e.post.id);
+                if (contentEl) {
+                    contentEl.innerHTML = e.post.content;
+                }
+            });
+    }
+});
 
-        if (contentEl) {
-            // Dùng innerHTML thay cho innerText
-            contentEl.innerHTML = e.post.content;
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".report-form").forEach(form => {
+        if (form.dataset.executed) return;
+        form.dataset.executed = "true";
+
+        const input = form.querySelector(".report-file-input");
+        const preview = form.querySelector(".report-preview");
+
+        if (!input || !preview) return;
+
+        let reportFiles = [];
+
+        input.addEventListener("change", function (e) {
+            const newFiles = Array.from(e.target.files);
+            reportFiles = [...reportFiles, ...newFiles];
+            renderReportPreview();
+            updateReportInputFiles();
+        });
+
+        function renderReportPreview() {
+            preview.innerHTML = "";
+            reportFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const wrapper = document.createElement("div");
+                    wrapper.style.position = "relative";
+
+                    const img = document.createElement("img");
+                    img.src = event.target.result;
+                    img.style.width = "100px";
+                    img.style.height = "100px";
+                    img.style.objectFit = "cover";
+                    img.style.borderRadius = "10px";
+
+                    const removeBtn = document.createElement("button");
+                    removeBtn.innerHTML = "×";
+                    removeBtn.style.position = "absolute";
+                    removeBtn.style.top = "0";
+                    removeBtn.style.right = "0";
+                    removeBtn.style.background = "red";
+                    removeBtn.style.color = "white";
+                    removeBtn.style.border = "none";
+                    removeBtn.style.borderRadius = "50%";
+                    removeBtn.style.width = "22px";
+                    removeBtn.style.height = "22px";
+                    removeBtn.style.cursor = "pointer";
+
+                    removeBtn.addEventListener("click", function () {
+                        reportFiles.splice(index, 1);
+                        renderReportPreview();
+                        updateReportInputFiles();
+                    });
+
+                    wrapper.appendChild(img);
+                    wrapper.appendChild(removeBtn);
+                    preview.appendChild(wrapper);
+                };
+                reader.readAsDataURL(file);
+            });
         }
-    });
 
+        function updateReportInputFiles() {
+            const dataTransfer = new DataTransfer();
+            reportFiles.forEach(file => {
+                dataTransfer.items.add(file);
+            });
+            input.files = dataTransfer.files;
+        }
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const submitBtn = form.querySelector("button[type='submit']");
+            if (submitBtn) submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    body: new FormData(form),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    alert(result.message || "Không thể gửi báo cáo!");
+                    if (submitBtn) submitBtn.disabled = false;
+                } else {
+                    window.location.reload();
+                }
+            } catch (error) {
+                alert("Kết nối máy chủ thất bại!");
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    });
+});
