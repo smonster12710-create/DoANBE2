@@ -14,7 +14,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->where('rol
 
     <script>
         window.currentUserId = "{{ auth()->id() }}";
-        console.log("Blade Ä‘Ã£ Ã©p ID vÃ o window thÃ nh cÃ´ng:", window.currentUserId);
+        console.log("Blade đã ép ID vào window thành công:", window.currentUserId);
     </script>
     <title>ESPACE</title>
     <link rel="stylesheet" href="{{ asset('css/account-privacy.css') }}">
@@ -193,7 +193,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->where('rol
             text-overflow: ellipsis;
         }
 
-        /*css chuyá»ƒn tÃ i khoáº£n*/
+        /*css chuyển tài khoản*/
         .switch-toggle-btn {
             position: absolute;
             right: 12px;
@@ -639,7 +639,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->where('rol
                                         d="M304 70.1C313.1 61.9 326.9 61.9 336 70.1L568 278.1C577.9 286.9 578.7 302.1 569.8 312C560.9 321.9 545.8 322.7 535.9 313.8L527.9 306.6L527.9 511.9C527.9 547.2 499.2 575.9 463.9 575.9L175.9 575.9C140.6 575.9 111.9 547.2 111.9 511.9L111.9 306.6L103.9 313.8C94 322.6 78.9 321.8 70 312C61.1 302.2 62 287 71.8 278.1L304 70.1zM320 120.2L160 263.7L160 512C160 520.8 167.2 528 176 528L224 528L224 424C224 384.2 256.2 352 296 352L344 352C383.8 352 416 384.2 416 424L416 528L464 528C472.8 528 480 520.8 480 512L480 263.7L320 120.3zM272 528L368 528L368 424C368 410.7 357.3 400 344 400L296 400C282.7 400 272 410.7 272 424L272 528z" />
                                 </svg>
                             @endif
-                            <span>Trang chá»§</span>
+                            <span>Trang chủ</span>
                         </a>
                     </div>
 
@@ -650,23 +650,23 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->where('rol
                                 <path fill="rgb(0, 0, 0)"
                                     d="M160 144C151.2 144 144 151.2 144 160L144 480C144 488.8 151.2 496 160 496L480 496C488.8 496 496 488.8 496 480L496 160C496 151.2 488.8 144 480 144L160 144zM96 160C96 124.7 124.7 96 160 96L480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160zM296 408L296 344L232 344C218.7 344 208 333.3 208 320C208 306.7 218.7 296 232 296L296 296L296 232C296 218.7 306.7 208 320 208C333.3 208 344 218.7 344 232L344 296L408 296C421.3 296 432 306.7 432 320C432 333.3 421.3 344 408 344L344 344L344 408C344 421.3 333.3 432 320 432C306.7 432 296 421.3 296 408z" />
                             </svg>
-                            <span>ÄÄƒng bÃ i</span>
+                            <span>Đăng bài</span>
                         </a>
                     </div>
 
-                    {{-- MENU Há»˜I NHÃ“M Má»šI THÃŠM --}}
+                    {{-- MENU HỘI NHÓM MỚI THÊM --}}
                     <div class="menu-item">
                         <a class="danh_muc {{ request()->is('groups*') ? 'active' : '' }}"
                             href="{{ route('groups.index') }}">
                             @if (request()->is('groups*'))
-                                {{-- ICON ACTIVE (Khi Ä‘ang á»Ÿ trong trang nhÃ³m) --}}
+                                {{-- ICON ACTIVE (Khi đang ở trong trang nhóm) --}}
                                 <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 640 512" fill="currentColor">
                                     <path
                                         d="M144 160c-44.2 0-80-35.8-80-80S99.8 0 144 0s80 35.8 80 80s-35.8 80-80 80zm368 0c-44.2 0-80-35.8-80-80s35.8-80 80-80s80 35.8 80 80s-35.8 80-80 80zM0 298.6C0 244.1 44.1 200 98.6 200h90.8c12 0 23.4 4.8 31.9 13.3l32.4 32.4c11.1 11.1 29.1 11.1 40.2 0l32.4-32.4c8.5-8.5 19.9-13.3 31.9-13.3h90.8c54.5 0 98.6 44.1 98.6 98.6C547.6 376.1 502 448 441.4 448H106.2C45.6 448 0 376.1 0 298.6zm571.4 34.7c-17.5-24-33-51.5-44-80.8c34.8 11.5 60 44.8 60 84.1c0 10.9-1.9 21.4-5.4 31.1c11.2-1.7 21.9-5.9 31.3-12.2c1.9-1.3 3.7-2.7 5.5-4.1c-15.6-1.9-32.1-7.8-47.4-18.1zM74 252.6c-11 29.3-26.5 56.8-44 80.8c-15.3 10.3-31.8 16.2-47.4 18.1c1.8 1.4 3.6 2.8 5.5 4.1c9.4 6.3 20.2 10.5 31.3 12.2c-3.5-9.7-5.4-20.2-5.4-31.1c0-39.3 25.2-72.6 60-84.1zM368 128a80 80 0 1 0 0-160 80 80 0 1 0 0 160z" />
                                 </svg>
                             @else
-                                {{-- ICON NORMAL (Khi á»Ÿ trang khÃ¡c) --}}
+                                {{-- ICON NORMAL (Khi ở trang khác) --}}
                                 <svg style="width: 30px; height: 30px;" xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 640 512" fill="none" stroke="currentColor" stroke-width="35"
                                     stroke-linecap="round" stroke-linejoin="round">
@@ -674,7 +674,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->where('rol
                                         d="M144 160c-44.2 0-80-35.8-80-80S99.8 0 144 0s80 35.8 80 80s-35.8 80-80 80zm368 0c-44.2 0-80-35.8-80-80s35.8-80 80-80s80 35.8 80 80s-35.8 80-80 80zM0 298.6C0 244.1 44.1 200 98.6 200h90.8c12 0 23.4 4.8 31.9 13.3l32.4 32.4c11.1 11.1 29.1 11.1 40.2 0l32.4-32.4c8.5-8.5 19.9-13.3 31.9-13.3h90.8c54.5 0 98.6 44.1 98.6 98.6C547.6 376.1 502 448 441.4 448H106.2C45.6 448 0 376.1 0 298.6zm368-170.6a80 80 0 1 0 0-160 80 80 0 1 0 0 160z" />
                                 </svg>
                             @endif
-                            <span>Há»™i nhÃ³m</span>
+                            <span>Hội nhóm</span>
                         </a>
                     </div>
 
@@ -683,7 +683,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->where('rol
                             class="danh_muc {{ request()->is('notifications*') ? 'active' : '' }}"
                             style="position: relative;">
 
-                            {{-- Bá»c icon Ä‘á»ƒ gáº¯n badge --}}
+                            {{-- Bọc icon để gắn badge --}}
                             <div style="position: relative; display:inline-block;">
 
                                 @if (request()->is('notifications*'))
@@ -703,7 +703,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->where('rol
                                     </svg>
                                 @endif
 
-                                {{-- Äáº¿m thÃ´ng bÃ¡o chÆ°a Ä‘á»c --}}
+                                {{-- Đếm thông báo chưa đọc --}}
                                 @php
 $unreadCount = auth()->check()
     ? \App\Models\Notification::where('user_id', auth()->id())
@@ -712,8 +712,8 @@ $unreadCount = auth()->check()
     : 0;
                                 @endphp
 
-                                {{-- Badge Ä‘á» --}}
-                                {{-- Sá»­a class thÃ nh ID Ä‘á»ƒ JS tÃ¬m cho chuáº©n --}}
+                                {{-- Badge đỏ --}}
+                                {{-- Sửa class thành ID để JS tìm cho chuẩn --}}
                                 <span id="notification-badge"
                                     class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ $unreadCount > 0 ? 'd-inline-block' : 'd-none' }}"
                                     style="font-size: 10px;">
@@ -721,7 +721,7 @@ $unreadCount = auth()->check()
                                 </span>
                             </div>
 
-                            <span>ThÃ´ng bÃ¡o</span>
+                            <span>Thông báo</span>
 
                         </a>
                     </div>
@@ -743,7 +743,7 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                         <a class="danh_muc {{ $isMessaging ? 'active' : '' }}" href="{{ url('/list_messages') }}"
                             style="position: relative;">
 
-                            {{-- Bá»c icon Ä‘á»ƒ gáº¯n badge --}}
+                            {{-- Bọc icon để gắn badge --}}
                             <div style="position: relative; display:inline-block;">
 
                                 @if ($isMessaging)
@@ -762,7 +762,7 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                                     </svg>
                                 @endif
 
-                                {{-- Badge Ä‘á» --}}
+                                {{-- Badge đỏ --}}
                                 <span id="message-badge"
                                     class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
                                     style="font-size:10px; @if ($unreadMessageCount <= 0) display: none; @endif">
@@ -775,7 +775,7 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
 
                             </div>
 
-                            <span>Tin nháº¯n</span>
+                            <span>Tin nhắn</span>
 
                         </a>
                     </div>
@@ -797,7 +797,7 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                                     <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-5-7 5V4a1 1 0 0 1 1-1z" />
                                 </svg>
                             @endif
-                            <span>ÄÃ£ lÆ°u</span>
+                            <span>Đã lưu</span>
                         </a>
                     </div>
 
@@ -809,7 +809,7 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
                             </svg>
-                            <span>ÄÃ£ cháº·n</span>
+                            <span>Đã chặn</span>
                         </a>
                     </div>
 
@@ -822,16 +822,16 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                                     d="M12 21a8.985 8.985 0 0 1-1.755-.173 1 1 0 0 1-.791-.813l-.273-1.606a6.933 6.933 0 0 1-1.32-.762l-1.527.566a1 1 0 0 1-1.1-.278 8.977 8.977 0 0 1-1.756-3.041 1 1 0 0 1 .31-1.092l1.254-1.04a6.979 6.979 0 0 1 0-1.524L3.787 10.2a1 1 0 0 1-.31-1.092 8.977 8.977 0 0 1 1.756-3.042 1 1 0 0 1 1.1-.278l1.527.566a6.933 6.933 0 0 1 1.32-.762l.274-1.606a1 1 0 0 1 .791-.813 8.957 8.957 0 0 1 3.51 0 1 1 0 0 1 .791.813l.273 1.606a6.933 6.933 0 0 1 1.32.762l1.527-.566a1 1 0 0 1 1.1.278 8.977 8.977 0 0 1 1.756 3.041 1 1 0 0 1-.31 1.092l-1.254 1.04a6.979 6.979 0 0 1 0 1.524l1.254 1.04a1 1 0 0 1 .31 1.092 8.977 8.977 0 0 1-1.756 3.041 1 1 0 0 1-1.1.278l-1.527-.566a6.933 6.933 0 0 1-1.32.762l-.273 1.606a1 1 0 0 1-.791.813A8.985 8.985 0 0 1 12 21zm-.7-2.035a6.913 6.913 0 0 0 1.393 0l.247-1.451a1 1 0 0 1 .664-.779 4.974 4.974 0 0 0 1.696-.975 1 1 0 0 1 1.008-.186l1.381.512a7.012 7.012 0 0 0 .7-1.206l-1.133-.939a1 1 0 0 1-.343-.964 5.018 5.018 0 0 0 0-1.953 1 1 0 0 1 .343-.964l1.124-.94a7.012 7.012 0 0 0-.7-1.206l-1.38.512a1 1 0 0 1-1-.186 4.974 4.974 0 0 0-1.688-.976 1 1 0 0 1-.664-.779l-.248-1.45a6.913 6.913 0 0 0-1.393 0l-.25 1.45a1 1 0 0 1-.664.779A4.974 4.974 0 0 0 8.7 8.24a1 1 0 0 1-1 .186l-1.385-.512a7.012 7.012 0 0 0-.7 1.206l1.133.939a1 1 0 0 1 .343.964 5.018 5.018 0 0 0 0 1.953 1 1 0 0 1-.343.964l-1.128.94a7.012 7.012 0 0 0 .7 1.206l1.38-.512a1 1 0 0 1 1 .186 4.974 4.974 0 0 0 1.688.976 1 1 0 0 1 .664.779zm.7-3.725a3.24 3.24 0 0 1 0-6.48 3.24 3.24 0 0 1 0 6.48zm0-4.48A1.24 1.24 0 1 0 13.24 12 1.244 1.244 0 0 0 12 10.76z" />
                             </svg>
 
-                            <span>CÃ i Ä‘áº·t</span>
+                            <span>Cài đặt</span>
                         </a>
 
                         @if (auth()->check() && auth()->user()->role === 'admin')
                             <div id="settingsDropdown" class="settings-dropdown">
                                 <a href="{{ route('admin.users.index') }}">
-                                    Quáº£n trá»‹ ngÆ°á»i dÃ¹ng
+                                    Quản trị người dùng
                                 </a>
                                 <a href="{{ route('admin.reports.index') }}">
-                                    Quáº£n lÃ½ bÃ¡o cÃ¡o
+                                    Quản lý báo cáo
                                 </a>
                             </div>
                         @endif
@@ -847,7 +847,7 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                     <button type="button" class="profile-btn" onclick="toggleAvatarMenu()">
                         <img src="{{ $avatar }}" alt="avatar">
                         <div>
-                            <strong class="text-truncate-custom">{{ $user->fullname ?? 'NgÆ°á»i dÃ¹ng' }}</strong>
+                            <strong class="text-truncate-custom">{{ $user->fullname ?? 'Người dùng' }}</strong>
                             <small class="text-truncate-custom">{{ '@' . ($user->username ?? 'user') }}</small>
                         </div>
                     </button>
@@ -857,14 +857,14 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                             <img src="{{ $avatar }}" alt="avatar">
 
                             <div>
-                                <strong>{{ $user->fullname ?? 'NgÆ°á»i dÃ¹ng' }}</strong>
+                                <strong>{{ $user->fullname ?? 'Người dùng' }}</strong>
                                 <small title="{{ $user->email }}">{{ $user->email ?? '' }}</small>
                             </div>
 
                             @if (auth()->check() && auth()->user()->role !== 'admin')
                                 <button type="button" id="switchToggleBtn" class="switch-toggle-btn"
                                     onclick="toggleSwitchAccount(event)">
-                                    â–¾
+                                    ▾
                                 </button>
                             @endif
                         </div>
@@ -875,9 +875,9 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
 
                                 <div class="switch-header">
                                     <button type="button" class="switch-back-btn" onclick="closeSwitchPanel(event)">
-                                        â†
+                                        ←
                                     </button>
-                                    <h3>Chá»n trang cÃ¡ nhÃ¢n</h3>
+                                    <h3>Chọn trang cá nhân</h3>
                                 </div>
 
                                 <div class="switch-list">
@@ -927,36 +927,36 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                                     @endforeach
                                 </div>
                                 <a href="{{ route('signout') }}" class="create-page-row">
-                                    <span class="add-account-icon">ï¼‹</span>
+                                    <span class="add-account-icon">＋</span>
 
                                     <div>
-                                        <strong>ThÃªm tÃ i khoáº£n</strong>
-                                        <small>ÄÄƒng nháº­p tÃ i khoáº£n khÃ¡c</small>
+                                        <strong>Thêm tài khoản</strong>
+                                        <small>Đăng nhập tài khoản khác</small>
                                     </div>
                                 </a>
                             </div>
 
                         @endif
-                        <a href="{{ route('profile') }}">Xem trang cÃ¡ nhÃ¢n</a>
+                        <a href="{{ route('profile') }}">Xem trang cá nhân</a>
                         <div class="account-setting-wrapper">
 
                             <a href="javascript:void(0)" onclick="togglePrivacyDropdown(event)">
-                                CÃ i Ä‘áº·t vÃ  quyá»n riÃªng tÆ°
+                                Cài đặt và quyền riêng tư
                             </a>
 
                             <div id="privacyDropdown" class="privacy-dropdown">
                                 <a href="{{ route('profile.lock') }}">
-                                    KhÃ³a báº£o vá»‡ tÃ i khoáº£n cÃ¡ nhÃ¢n
+                                    Khóa bảo vệ tài khoản cá nhân
                                 </a>
                                 <a href="{{ route('activity.status') }}">
-                                    Tráº¡ng thÃ¡i hoáº¡t Ä‘á»™ng
+                                    Trạng thái hoạt động
                                 </a>
                             </div>
 
-                        </div> <a href="#">Trá»£ giÃºp vÃ  há»— trá»£</a>
-                        <a href="#">MÃ n hÃ¬nh vÃ  trá»£ nÄƒng</a>
-                        <a href="#">ÄÃ³ng gÃ³p Ã½ kiáº¿n</a>
-                        <a href="{{ route('signout') }}" class="logout-link">ÄÄƒng xuáº¥t</a>
+                        </div> <a href="#">Trợ giúp và hỗ trợ</a>
+                        <a href="#">Màn hình và trợ năng</a>
+                        <a href="#">Đóng góp ý kiến</a>
+                        <a href="{{ route('signout') }}" class="logout-link">Đăng xuất</a>
                     </div>
                 </div>
             </div>
@@ -973,23 +973,23 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel" style="color: black;">Táº¡o bÃ i viáº¿t má»›i</h5>
+                    <h5 class="modal-title" id="exampleModalLabel" style="color: black;">Tạo bài viết mới</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
                         <div class="mb-3">
-                            <textarea name="content" id="postContent" class="form-control" rows="4" placeholder="Báº¡n Ä‘ang nghÄ© gÃ¬?"
+                            <textarea name="content" id="postContent" class="form-control" rows="4" placeholder="Bạn đang nghĩ gì?"
                                 required maxlength="500" style="border: none; resize: none;"></textarea>
 
                             <div class="text-end text-muted small mt-1">
-                                <span id="charCount">0</span>/500 kÃ½ tá»±
+                                <span id="charCount">0</span>/500 ký tự
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="formFile" class="form-label" style="font-weight: bold; color: #555;">ThÃªm áº£nh
-                                vÃ o bÃ i viáº¿t</label>
+                            <label for="formFile" class="form-label" style="font-weight: bold; color: #555;">Thêm ảnh
+                                vào bài viết</label>
                             <input class="form-control" type="file" name="images[]" id="postImages"
                                 accept="image/*" multiple>
                             <div id="preview-images" class="d-flex flex-wrap gap-2 mt-2"></div>
@@ -999,13 +999,13 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                         <input class="form-check-input" type="checkbox" name="is_anonymous" id="anonymousCheck"
                             value="1">
                         <label class="form-check-label" for="anonymousCheck">
-                            ÄÄƒng bÃ i áº©n danh (Sáº½ khÃ´ng ai biáº¿t báº¡n lÃ  ai)
+                            Đăng bài ẩn danh (Sẽ không ai biết bạn là ai)
                         </label>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Há»§y</button>
-                        <button type="submit" class="btn btn-primary" style="background-color: #007bff;">ÄÄƒng
-                            bÃ i</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary" style="background-color: #007bff;">Đăng
+                            bài</button>
                     </div>
                 </form>
             </div>
@@ -1015,15 +1015,15 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-danger text-white py-2">
-                    <h5 class="modal-title fs-6"><i class="fa-solid fa-circle-exclamation me-2"></i>Lá»—i Ä‘Äƒng bÃ i</h5>
+                    <h5 class="modal-title fs-6"><i class="fa-solid fa-circle-exclamation me-2"></i>Lỗi đăng bài</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center py-3">
-                    <p class="mb-0 text-dark fw-bold" id="errorMessageText">ÄÃ£ xáº£y ra lá»—i, vui lÃ²ng thá»­ láº¡i!</p>
+                    <p class="mb-0 text-dark fw-bold" id="errorMessageText">Đã xảy ra lỗi, vui lòng thử lại!</p>
                 </div>
                 <div class="modal-footer py-1 justify-content-center border-0">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ÄÃ³ng</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
                 </div>
             </div>
         </div>
@@ -1162,6 +1162,7 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
 @stack('modals')
 @stack('scripts')
 </html>
+
 
 
 

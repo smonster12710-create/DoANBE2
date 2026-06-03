@@ -257,7 +257,7 @@ class User extends Authenticatable
                 'visible' => true,
                 'status' => 'online',
                 'last_activity_at' => $lastActivity->toIso8601String(),
-                'label' => 'Dang hoat dong',
+                'label' => 'Đang hoạt động',
                 'short_label' => 'Online',
             ];
         }
@@ -268,7 +268,7 @@ class User extends Authenticatable
                 'visible' => true,
                 'status' => 'away',
                 'last_activity_at' => $lastActivity->toIso8601String(),
-                'label' => 'Hoat dong ' . $this->shortActivityTime($secondsSinceActivity) . ' truoc',
+                'label' => 'Hoạt động ' . $this->shortActivityTime($secondsSinceActivity) . ' trước',
                 'short_label' => $this->shortActivityTime($secondsSinceActivity),
             ];
         }
@@ -291,7 +291,7 @@ class User extends Authenticatable
     private function shortActivityTime(int $seconds): string
     {
         if ($seconds < 60) {
-            return 'vua xong';
+            return 'vừa xong';
         }
 
         if ($seconds < 3600) {
@@ -301,5 +301,4 @@ class User extends Authenticatable
         return floor($seconds / 3600) . 'h';
     }
 }
-
 
