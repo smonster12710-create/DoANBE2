@@ -11,6 +11,8 @@
                 
                 <form action="{{ route('user.block', $user->id) }}" method="POST">
                     @csrf
+                    {{-- Thêm dòng này để khớp với logic kiểm tra trong Controller --}}
+                    <input type="hidden" name="expected_status" value="blocked">
                     <button type="submit" class="btn btn-sm btn-outline-danger">Bỏ chặn</button>
                 </form>
             </li>

@@ -8,8 +8,8 @@
             {{-- ĐÃ SỬA: Đổi màu nền cố định thành ảnh nền động nếu Admin có upload hình --}}
             <div
                 style="height: 180px; 
-                            background: {{ $group->cover ? 'url(' . asset('storage/' . $group->cover) . ') no-repeat center center / cover' : 'linear-gradient(135deg, #e51f28, #222)' }}; 
-                            padding: 20px; color: #fff; display: flex; align-items: flex-end; justify-content: space-between; position: relative;">
+                                    background: {{ $group->cover ? 'url(' . asset('storage/' . $group->cover) . ') no-repeat center center / cover' : 'linear-gradient(135deg, #e51f28, #222)' }}; 
+                                    padding: 20px; color: #fff; display: flex; align-items: flex-end; justify-content: space-between; position: relative;">
 
                 {{-- Lớp phủ tối mờ để chữ luôn nổi bật khi ảnh nền quá sáng --}}
                 <div style="position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.3); z-index: 1;">
@@ -51,17 +51,19 @@
                                     onsubmit="return confirm('CẢNH BÁO: Bạn có chắc chắn muốn GIẢI TÁN nhóm này? Tất cả bài viết và thành viên sẽ bị xóa vĩnh viễn!')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit"
-                                        style="background: #e51f28; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;">Giải
-                                        tán nhóm</button>
+                                    <button type="button" data-bs-toggle="modal" data-bs-target="#confirmDeleteGroupModal"
+                                        style="background: #e51f28; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;">
+                                        Giải tán nhóm
+                                    </button>
                                 </form>
                             @else
                                 <form action="{{ route('groups.leave', $group->slug) }}" method="POST"
                                     onsubmit="return confirm('Bạn có chắc chắn muốn rời nhóm?')">
                                     @csrf
-                                    <button type="submit"
-                                        style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">Rời
-                                        nhóm</button>
+                                    <button type="button" data-bs-toggle="modal" data-bs-target="#confirmLeaveGroupModal"
+                                        style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                                        Rời nhóm
+                                    </button>
                                 </form>
                             @endif
                         </div>
@@ -429,78 +431,121 @@
                 có bài viết nào trong nhóm này.</div>
         @endif
     </div>{{-- ✨ ĐÃ THÊM: TOÀN BỘ POPUP MODAL CHỈNH SỬA THÔNG TIN NHÓM & UPDATE COVER --}}
-        @if ($group->creator_id === auth()->id())
-            <div class="modal fade" id="editGroupModal" tabindex="-1" aria-labelledby="editGroupModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content"
-                        style="border-radius: 12px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
-                        <div class="modal-header" style="border-bottom: 1px solid #e4e6eb;">
-                            <h5 class="modal-title fw-bold" id="editGroupModalLabel" style="color: #050505;">Cài đặt & Sửa
-                                thông tin nhóm</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    @if ($group->creator_id === auth()->id())
+        <div class="modal fade" id="editGroupModal" tabindex="-1" aria-labelledby="editGroupModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+                    <div class="modal-header" style="border-bottom: 1px solid #e4e6eb;">
+                        <h5 class="modal-title fw-bold" id="editGroupModalLabel" style="color: #050505;">Cài đặt & Sửa
+                            thông tin nhóm</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <form action="{{ route('groups.update', $group->slug) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="modal-body" style="padding: 20px;">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="font-size: 14px; color: #050505;">Tên
+                                    nhóm</label>
+                                <input type="text" name="name" class="form-control" value="{{ old('name', $group->name) }}"
+                                    required style="border-radius: 6px;">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="font-size: 14px; color: #050505;">Giới thiệu / Mô
+                                    tả</label>
+                                <textarea name="description" class="form-control" rows="3"
+                                    style="border-radius: 6px; resize: none;">{{ old('description', $group->description) }}</textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="font-size: 14px; color: #050505;">Quyền riêng
+                                    tư</label>
+                                <select name="privacy" class="form-select" style="border-radius: 6px;">
+                                    <option value="public" {{ $group->privacy === 'public' ? 'selected' : '' }}>Công khai
+                                        (Public)</option>
+                                    <option value="private" {{ $group->privacy === 'private' ? 'selected' : '' }}>Riêng tư
+                                        (Private)</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="font-size: 14px; color: #050505;">Thay đổi ảnh
+                                    nền (Cover)</label>
+                                <input type="file" name="cover" class="form-control" accept="image/*"
+                                    style="border-radius: 6px;">
+                                <div style="font-size: 12px; color: #65676b; margin-top: 4px;">Hỗ trợ định dạng JPG, PNG,
+                                    GIF (Tối đa 2MB).</div>
+
+                                @if ($group->cover)
+                                    <div class="mt-3">
+                                        <span style="font-size: 12px; color: #65676b; display: block; margin-bottom: 5px;">Ảnh
+                                            nền hiện tại:</span>
+                                        <img src="{{ asset('storage/' . $group->cover) }}"
+                                            style="max-height: 100px; width: 100%; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">
+                                    </div>
+                                @endif
+                            </div>
                         </div>
 
-                        <form action="{{ route('groups.update', $group->slug) }}" method="POST"
-                            enctype="multipart/form-data">
-                            @csrf
-                            @method('PUT')
-
-                            <div class="modal-body" style="padding: 20px;">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold" style="font-size: 14px; color: #050505;">Tên
-                                        nhóm</label>
-                                    <input type="text" name="name" class="form-control"
-                                        value="{{ old('name', $group->name) }}" required style="border-radius: 6px;">
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold" style="font-size: 14px; color: #050505;">Giới thiệu / Mô
-                                        tả</label>
-                                    <textarea name="description" class="form-control" rows="3" style="border-radius: 6px; resize: none;">{{ old('description', $group->description) }}</textarea>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold" style="font-size: 14px; color: #050505;">Quyền riêng
-                                        tư</label>
-                                    <select name="privacy" class="form-select" style="border-radius: 6px;">
-                                        <option value="public" {{ $group->privacy === 'public' ? 'selected' : '' }}>Công khai
-                                            (Public)</option>
-                                        <option value="private" {{ $group->privacy === 'private' ? 'selected' : '' }}>Riêng tư
-                                            (Private)</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold" style="font-size: 14px; color: #050505;">Thay đổi ảnh
-                                        nền (Cover)</label>
-                                    <input type="file" name="cover" class="form-control" accept="image/*"
-                                        style="border-radius: 6px;">
-                                    <div style="font-size: 12px; color: #65676b; margin-top: 4px;">Hỗ trợ định dạng JPG, PNG,
-                                        GIF (Tối đa 2MB).</div>
-
-                                    @if ($group->cover)
-                                        <div class="mt-3">
-                                            <span
-                                                style="font-size: 12px; color: #65676b; display: block; margin-bottom: 5px;">Ảnh
-                                                nền hiện tại:</span>
-                                            <img src="{{ asset('storage/' . $group->cover) }}"
-                                                style="max-height: 100px; width: 100%; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <div class="modal-footer" style="border-top: 1px solid #e4e6eb;">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
-                                    style="border-radius: 6px; font-weight: bold;">Hủy</button>
-                                <button type="submit" class="btn btn-success"
-                                    style="background: #e51f28; border: none; border-radius: 6px; font-weight: bold; padding: 6px 20px;">Lưu
-                                    thay đổi</button>
-                            </div>
-                        </form>
-                    </div>
+                        <div class="modal-footer" style="border-top: 1px solid #e4e6eb;">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                                style="border-radius: 6px; font-weight: bold;">Hủy</button>
+                            <button type="submit" class="btn btn-success"
+                                style="background: #e51f28; border: none; border-radius: 6px; font-weight: bold; padding: 6px 20px;">Lưu
+                                thay đổi</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        @endif
+        </div>
+
+        </div>
+    @endif
+    <div class="modal fade" id="confirmDeleteGroupModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận giải tán nhóm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Bạn có chắc chắn muốn giải tán nhóm này không? Tất cả bài viết và dữ liệu sẽ bị xóa vĩnh viễn!
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <form id="deleteGroupForm" action="{{ route('groups.destroy', $group->slug) }}" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">Đồng ý giải tán</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="confirmLeaveGroupModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận rời nhóm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Bạn có chắc chắn muốn rời khỏi nhóm này không?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+
+                    {{-- Form thực hiện rời nhóm --}}
+                    <form action="{{ route('groups.leave', $group->slug) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-warning">Đồng ý rời nhóm</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
