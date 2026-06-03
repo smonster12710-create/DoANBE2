@@ -44,7 +44,7 @@ class CrudUserController extends Controller
     /**
      * User submit form login
      */
-    public function authUser(Request $request)
+    public function authUser(Request $request, UserActivityService $activityService)
     {
         // 1. Validate dữ liệu đầu vào cho chắc cú
         $request->validate([
@@ -64,6 +64,7 @@ class CrudUserController extends Controller
         if (Auth::attempt($credentials)) {
             // Đăng nhập thành công thì tạo lại session để chống lỗi Fixation
             $request->session()->regenerate();
+            $activityService->markOnline(Auth::user());
 
             // Đẩy thẳng vô trang đích
             if (Auth::user()->role !== 'admin') {
@@ -222,7 +223,7 @@ class CrudUserController extends Controller
      * Chuyen doi giua cac tai khoan da dang nhap tren cung trinh duyet.
      * Admin khong tham gia luong switch account de tranh nham quyen.
      */
-    public function switchAccount(Request $request)
+    public function switchAccount(Request $request, UserActivityService $activityService)
     {
         $request->validate([
             'user_id' => 'required|integer',
@@ -247,9 +248,12 @@ class CrudUserController extends Controller
             return back()->with('error', 'Không thể chuyển sang tài khoản admin!');
         }
 
+        $activityService->markOffline(Auth::user());
+
         Auth::login($user);
 
         $request->session()->regenerate();
+        $activityService->markOnline($user);
 
         session(['switch_accounts' => $accounts]);
 

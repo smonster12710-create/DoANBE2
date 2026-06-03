@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const onlineGraceMs = 90000;
     const maxAwayMs = 24 * 60 * 60 * 1000;
     const tabId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const openTabsKey = `activity_open_tabs_${currentUserId}`;
     let isInternalNavigation = false;
 
     if (!currentUserId || !csrfToken) {
@@ -103,13 +104,13 @@ document.addEventListener('DOMContentLoaded', function () {
     function registerOpenTab() {
         const tabs = openTabs();
         tabs[tabId] = Date.now();
-        localStorage.setItem('activity_open_tabs', JSON.stringify(cleanOpenTabs(tabs)));
+        localStorage.setItem(openTabsKey, JSON.stringify(cleanOpenTabs(tabs)));
     }
 
     function unregisterOpenTab() {
         const tabs = openTabs();
         delete tabs[tabId];
-        localStorage.setItem('activity_open_tabs', JSON.stringify(cleanOpenTabs(tabs)));
+        localStorage.setItem(openTabsKey, JSON.stringify(cleanOpenTabs(tabs)));
     }
 
     function hasOtherOpenTabs() {
@@ -118,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function openTabs() {
         try {
-            return JSON.parse(localStorage.getItem('activity_open_tabs') || '{}');
+            return JSON.parse(localStorage.getItem(openTabsKey) || '{}');
         } catch (error) {
             return {};
         }
@@ -212,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     visible: true,
                     status: 'away',
                     last_activity_at: lastActivityAt,
-                    label: `Hoat dong ${shortLabel} truoc`,
+                    label: `Hoạt động ${shortLabel} trước`,
                     short_label: shortLabel
                 });
             }
@@ -223,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const seconds = Math.floor(elapsedMs / 1000);
 
         if (seconds < 60) {
-            return 'vua xong';
+            return 'vừa xong';
         }
 
         if (seconds < 3600) {
