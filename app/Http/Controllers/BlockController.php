@@ -9,19 +9,30 @@ use Illuminate\Support\Facades\Auth;
 
 class BlockController extends Controller
 {
-    public function toggleBlock($userId)
+    public function toggleBlock(Request $request, $userId)
     {
         $blocker = Auth::user();
+        $target = \App\Models\User::findOrFail($userId); // Lấy thông tin đối tượng để hiển thị tên
+        // --- [MỚI] KIỂM TRA ĐỒNG BỘ ---
+        // So sánh trạng thái thực tế trong DB với trạng thái mà form tin rằng đang xảy ra
+        $isActuallyBlocked = $blocker->isBlocking($userId);
+        $expectedStatus = $request->input('expected_status'); // Giá trị từ input hidden
 
-        // 1. Kiểm tra xem đã chặn chưa
-        $isBlocked = $blocker->isBlocking($userId);
+        if (($isActuallyBlocked && $expectedStatus === 'not_blocked') ||
+            (!$isActuallyBlocked && $expectedStatus === 'blocked')
+        ) {
+            return back()->with('error', 'Trạng thái đã thay đổi, trang sẽ tự tải lại.');
+        }
+        $isBlocked = $isActuallyBlocked;
 
         if ($isBlocked) {
             // BỎ CHẶN
             Block::where('blocker_id', $blocker->id)
                 ->where('blocked_id', $userId)
                 ->delete();
-            return back()->with('success', 'Đã bỏ chặn.');
+
+            // Trả về thông báo "Đã bỏ chặn..."
+            return back()->with('success', 'Đã bỏ chặn ' . $target->fullname);
         } else {
             // CHẶN
             Block::create([
@@ -29,21 +40,21 @@ class BlockController extends Controller
                 'blocked_id' => $userId
             ]);
 
-            // 2. TỰ ĐỘNG XÓA KẾT BẠN (Dựa trên bảng 'friendships' trong Model User)
+            // [Giữ nguyên logic xóa friend/follow của bạn...]
             DB::table('friendships')->where(function ($q) use ($blocker, $userId) {
                 $q->where('user_id', $blocker->id)->where('friend_id', $userId);
             })->orWhere(function ($q) use ($blocker, $userId) {
                 $q->where('user_id', $userId)->where('friend_id', $blocker->id);
             })->delete();
 
-            // 3. TỰ ĐỘNG XÓA THEO DÕI (Dựa trên bảng 'follows' trong Model User)
             DB::table('follows')->where(function ($q) use ($blocker, $userId) {
                 $q->where('follower_id', $blocker->id)->where('following_id', $userId);
             })->orWhere(function ($q) use ($blocker, $userId) {
                 $q->where('follower_id', $userId)->where('following_id', $blocker->id);
             })->delete();
 
-            return back()->with('success', 'Đã chặn người dùng.');
+            // Trả về thông báo "Đã chặn..."
+            return back()->with('success', 'Đã chặn ' . $target->fullname);
         }
     }
 
