@@ -163,10 +163,9 @@
                 <div class="group-chat-layout">
 
                     {{-- 1. Tên người gửi ở trên cùng (Chỉ hiện ở Group và không quan trọng thu hồi hay chưa) --}}
-                    @if($conversation->type === 'group')
+ 
                     <span class="group-chat-sender-name">{{ $senderName }}</span>
-                    @endif
-
+               
                     {{-- Hàng ngang chứa Avatar + Bóng chat --}}
                     <div class="group-chat-row">
 
