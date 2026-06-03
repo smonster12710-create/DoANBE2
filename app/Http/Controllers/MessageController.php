@@ -865,4 +865,47 @@ class MessageController extends Controller
             ], 500);
         }
     }
+    public function leaveGroup($id)
+    {
+        $myId = auth()->id();
+
+        try {
+            // 1. Tìm cuộc trò chuyện dựa theo ID truyền lên
+            $conversation = Conversation::findOrFail($id);
+
+            // 2. Bảo mật: Phải là nhóm chat (group) thì mới cho out
+            if ($conversation->type !== 'group') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cuộc trò chuyện này không phải nhóm chat cậu ơi!'
+                ], 400);
+            }
+
+            // 3. Xóa bản ghi của chính mình trong bảng trung gian conversation_participants
+            if (method_exists($conversation, 'participants')) {
+                // Nếu Model đã cấu hình quan hệ participants() thì dùng detach cho chuyên nghiệp
+                $conversation->participants()->detach($myId);
+            } else {
+                // Nếu chưa cấu hình Relationship thì dùng DB Query Builder xóa trực tiếp cho chắc cú
+                DB::table('conversation_participants')
+                    ->where('conversation_id', $id)
+                    ->where('user_id', $myId)
+                    ->delete();
+            }
+
+            // 4. Trả về phản hồi JSON báo thành công rực rỡ
+            return response()->json([
+                'success' => true,
+                'message' => 'Cậu đã rời khỏi nhóm chat này thành công! 👋'
+            ]);
+        } catch (\Exception $e) {
+            // Ghi log lỗi để dễ debug nếu hệ thống trục trặc
+            \Log::error('Lỗi rời nhóm chat: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Đã có lỗi xảy ra từ máy chủ, thử lại sau cậu nhé!'
+            ], 500);
+        }
+    }
 }

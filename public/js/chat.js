@@ -890,4 +890,82 @@ document.getElementById('addMembersModal')?.addEventListener('click', function (
     if (e.target === this) {
         closeAddMembersModal();
     }
-}); x
+});
+/* ==========================================================================
+   LOGIC MODAL XÁC NHẬN RỜI NHÓM (KIPEEDA)
+   ========================================================================== */
+
+let currentLeaveConversationId = null; // Lưu ID nhóm đang muốn rời
+
+// 1. Hàm mở modal xác nhận rời nhóm
+function openConfirmLeaveModal(conversationId) {
+    currentLeaveConversationId = conversationId;
+    const modal = document.getElementById('confirmLeaveModal');
+    if (modal) {
+        modal.classList.add('show'); // Hiện modal lên mượt mà
+    }
+
+    // Gán sự kiện click cho nút "Rời nhóm" màu đỏ bên trong modal
+    const btnSubmit = document.getElementById('btn-confirm-leave-submit');
+    if (btnSubmit) {
+        btnSubmit.onclick = function () {
+            executeLeaveGroup();
+        };
+    }
+}
+
+// 2. Hàm đóng modal xác nhận
+function closeConfirmLeaveModal() {
+    document.getElementById('confirmLeaveModal')?.classList.remove('show');
+    currentLeaveConversationId = null;
+}
+
+// 3. Hàm chính thức gọi API gửi lên Laravel để out nhóm
+function executeLeaveGroup() {
+    if (!currentLeaveConversationId) return;
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    const btnSubmit = document.getElementById('btn-confirm-leave-submit');
+
+    if (btnSubmit) btnSubmit.disabled = true; // Chống spam click
+
+    fetch(`/conversations/${currentLeaveConversationId}/leave`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+        .then(res => {
+            if (!res.ok) throw new Error('Lỗi hệ thống');
+            return res.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Hiện Toast xanh lá xịn sò của cậu
+                showToast(data.message || 'Đã rời nhóm thành công!', 'success');
+                closeConfirmLeaveModal();
+
+                // Đợi 1.5 giây nhìn Toast rồi đá về trang list tin nhắn
+                setTimeout(() => {
+                    window.location.href = '/list_messages';
+                }, 1500);
+            } else {
+                showToast(data.message || 'Úi, không thể rời nhóm lúc này cậu ơi!', 'error');
+                if (btnSubmit) btnSubmit.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error('Lỗi khi rời nhóm:', err);
+            showToast('Không thể kết nối tới máy chủ, vui lòng thử lại sau.', 'error');
+            if (btnSubmit) btnSubmit.disabled = false;
+        });
+}
+
+// Click ra ngoài rìa nền đen thì tự đóng modal xác nhận luôn cho tiện
+document.getElementById('confirmLeaveModal')?.addEventListener('click', function (e) {
+    if (e.target === this) {
+        closeConfirmLeaveModal();
+    }
+});

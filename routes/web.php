@@ -197,6 +197,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/chat/group/create', 'createGroup')->name('chat.group.create');
         Route::get('/conversations/{id}/friends-to-add', 'getFriendsToAdd');
         Route::post('/conversations/{id}/add-members', 'storeMembers');
+        Route::post('/conversations/{id}/leave', 'leaveGroup');
     });
     // ============================== THÔNG BÁO ================================
     Route::prefix('notifications')
