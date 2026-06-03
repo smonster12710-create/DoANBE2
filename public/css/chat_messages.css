@@ -854,6 +854,12 @@ label[for="image-input"]:active {
     transition: all 0.3s ease;
 }
 
+/* Giữ nguyên thuộc tính của cậu và thêm đoạn này ngay phía dưới */
+.custom-modal-overlay.show {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
 /* 1. Div lớn bọc toàn bộ nội dung Modal */
 .custom-modal-content {
     background: #fff;
@@ -1310,3 +1316,247 @@ label[for="image-input"]:active {
     word-break: break-word;
     /* Tránh text quá dài làm vỡ layout */
 }
+
+.menu-item {
+    display: block;
+    width: 100%;
+    padding: 10px 15px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.menu-item:hover {
+    background-color: #f5f5f5;
+}
+
+/* Lớp nền đen mờ độc lập */
+.members-modal-overlay {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99999 !important;
+    /* Đảm bảo nổi lên trên cùng */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Ẩn mượt mà mặc định */
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+/* Khi kích hoạt hiện modal */
+.members-modal-overlay.show {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Khung bọc nội dung Modal */
+.members-modal-box {
+    background: #fff;
+    width: 100%;
+    max-width: 450px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Tiêu đề modal */
+.members-modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.members-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.members-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #888;
+}
+
+/* Thân modal - NƠI BẬT CUỘN ĐÂY CẬU ƠI */
+.members-modal-body {
+    padding: 10px 20px;
+    max-height: 350px;
+    /* Giới hạn chiều cao thân modal */
+    overflow-y: auto;
+    /* Bật cuộn đứng tự động nếu quá 5 người */
+}
+
+/* Định dạng thanh cuộn cho đẹp */
+.members-modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.members-modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.members-modal-body::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+/* ==========================================================================
+   CSS ĐỘC LẬP DÀNH RIÊNG CHO MODAL THÊM THÀNH VIÊN 
+   ========================================================================== */
+
+/* 1. Lớp nền đen mờ bao phủ toàn màn hình */
+.add-members-modal-overlay {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99999 !important; /* Luôn nổi trên tất cả các layer khác */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Hiệu ứng ẩn mượt mà ẩn/hiện */
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s ease-in-out;
+}
+
+/* Kích hoạt hiển thị modal */
+.add-members-modal-overlay.show {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* 2. Khung hộp thoại chính */
+.add-members-modal-box {
+    background: #ffffff;
+    width: 100%;
+    max-width: 460px;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modalBounce 0.3s ease;
+}
+
+/* Hiệu ứng nảy nhẹ khi mở modal lên */
+@keyframes modalBounce {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* 3. Tiêu đề Modal */
+.add-members-modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f2f2f2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.add-members-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1c1e21;
+}
+.add-members-modal-close {
+    background: none;
+    border: none;
+    font-size: 26px;
+    cursor: pointer;
+    color: #bcc0c4;
+    line-height: 1;
+    transition: color 0.2s;
+}
+.add-members-modal-close:hover {
+    color: #65676b;
+}
+
+/* 4. Thân Modal - Nơi bọc danh sách cuộn */
+.add-members-modal-body {
+    padding: 8px 15px;
+    max-height: 330px; /* Giới hạn chiều cao vừa vặn tầm 4-5 người */
+    overflow-y: auto;   /* Tự động hiện thanh cuộn đứng */
+}
+
+/* Tùy biến thanh cuộn thanh mảnh phong cách hiện đại */
+.add-members-modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+.add-members-modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+.add-members-modal-body::-webkit-scrollbar-thumb {
+    background: #bcc0c4;
+    border-radius: 10px;
+}
+.add-members-modal-body::-webkit-scrollbar-thumb:hover {
+    background: #939598;
+}
+
+/* 5. Phần chân (Footer) chứa các nút bấm hành động */
+.add-members-modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #f2f2f2;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: #fcfcfc;
+}
+
+/* Nút Hủy bỏ */
+.btn-add-member-secondary {
+    padding: 9px 18px;
+    background-color: #e4e6eb;
+    color: #050505;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.btn-add-member-secondary:hover {
+    background-color: #d8dadf;
+}
+
+/* Nút Xác nhận thêm */
+.btn-add-member-primary {
+    padding: 9px 18px;
+    background-color: #0084ff;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.btn-add-member-primary:hover {
+    background-color: #0073e6;
+}
+
+/* 6. Các Toast thông báo cũ giữ lại bên dưới */
+.custom-toast { background: #333; color: #fff; padding: 12px 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 10px; min-width: 250px; transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s; opacity: 0; }
+.custom-toast.show { transform: translateX(0); opacity: 1; }
+.custom-toast.toast-error { background: #ff4d4f; }
+.custom-toast.toast-success { background: #52c41a; }
+.custom-toast.toast-warning { background: #faad14; }

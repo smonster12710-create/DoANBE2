@@ -40,9 +40,11 @@
     {{-- KHUNG CHAT --}}
     <div class="chat-main-area">
 
-        <div class="chat-header">
-            <div class="header-info">
+        <div class="chat-header" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee;">
+
+            <div class="header-info" style="display: flex; align-items: center; gap: 10px;">
                 @if($conversation->type === 'group')
+                {{-- ... Avatar nhóm ... --}}
                 @if(!empty($conversation->image_url))
                 <img src="{{ asset('storage/' . $conversation->image_url) }}" style="width:45px; height:45px; border-radius:50%; object-fit: cover;">
                 @else
@@ -53,7 +55,8 @@
                     <small style="color:gray;">{{ $conversation->participants->count() }} thành viên</small>
                 </div>
                 @elseif($activePartner)
-                <div class="avatar-online-wrap">
+                {{-- ... Avatar người dùng ... --}}
+                <div class="avatar-online-wrap" style="position: relative;">
                     <img src="{{ $activePartner->avatar_url ? asset($activePartner->avatar_url) : asset('images/default-avatar.png') }}" style="width:45px;height:45px;border-radius:50%;">
                     @if($activePartner->canShowActivityTo(auth()->user()))
                     <span class="online-dot"></span>
@@ -64,12 +67,32 @@
                     <small style="color:gray;">@ {{ $activePartner->username }}</small>
                 </div>
                 @else
+                {{-- ... Tin nhắn đã lưu ... --}}
                 <img src="https://i.pravatar.cc/45" style="width:45px;height:45px;border-radius:50%;">
                 <div>
                     <h4 style="margin:0;">Tin nhắn đã lưu</h4>
                     <small style="color:gray;">Ghi chú cá nhân</small>
                 </div>
                 @endif
+            </div>
+
+            <div class="header-menu-container" style="position: relative;">
+                <button type="button" class="btn-menu-dots" style="background:none; border:none; font-size: 20px; cursor:pointer; padding: 0 10px;">⋯</button>
+                <div class="dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; min-width: 150px;">
+                    @if($conversation->type === 'group')
+                    <button class="menu-item"
+                        onclick="event.stopPropagation(); showMembersModal('{{ route('conversations.members', $conversation->id) }}')">
+                        Xem thành viên
+                    </button>
+                    <button class="menu-item" onclick="event.stopPropagation(); openAddMembersModal('{{ $conversation->id }}')">Thêm thành viên</button>
+                    <button class="menu-item" onclick="leaveGroup()" style="color: red;">Rời nhóm</button>
+                    @else
+                    <button class="menu-item" onclick="viewProfile('{{ $activePartner->username ?? '' }}')">
+                        Xem trang cá nhân
+                    </button>
+                    <button class="menu-item" onclick="blockUser('{{ $activePartner->id ?? '' }}')">Chặn</button>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -220,7 +243,40 @@
             </form>
         </div>
     </div>
+    <!-- MODAL XEM THÀNH VIÊN NHÓM -->
+    <div id="viewMembersModal" class="members-modal-overlay">
+        <div class="members-modal-box">
+            <div class="members-modal-header">
+                <h3>Thành viên nhóm</h3>
+                <button type="button" class="members-modal-close" onclick="closeMembersModal()">&times;</button>
+            </div>
+            <div class="members-modal-body">
+                <div id="members-list-container"></div>
+            </div>
+        </div>
+    </div>
+    {{-- MODAL THÊM THÀNH VIÊN VÀO NHÓM --}}
+    <div id="addMembersModal" class="add-members-modal-overlay">
+        <div class="add-members-modal-box">
+            <div class="add-members-modal-header">
+                <h3>Thêm thành viên vào nhóm</h3>
+                <button type="button" class="add-members-modal-close" onclick="closeAddMembersModal()">&times;</button>
+            </div>
+            
+            <div style="padding: 12px 20px; border-bottom: 1px solid #eee;">
+                <input type="text" id="search-friend-input" placeholder="Tìm nhanh bạn bè..." 
+                       style="width: 100%; padding: 8px 15px; border: 1px solid #ddd; border-radius: 20px; outline: none; font-size: 14px;">
+            </div>
 
+            <div class="add-members-modal-body" id="friends-list-container">
+                </div>
+
+            <div class="add-members-modal-footer">
+                <button type="button" class="btn-add-member-secondary" onclick="closeAddMembersModal()">Hủy</button>
+                <button type="button" class="btn-add-member-primary" onclick="submitAddMembers()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
     {{-- MODAL TẠO NHÓM --}}
     <div id="createGroupModal" class="custom-modal-overlay">
         <div class="custom-modal-content">

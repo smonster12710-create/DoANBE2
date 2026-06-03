@@ -169,7 +169,7 @@ Route::middleware('auth')->group(function () {
 
     // ============================== TIN NHẮN ================================
     Route::controller(MessageController::class)->group(function () {
-
+        Route::get('/conversations/{id}/members', 'getMembers')->name('conversations.members');
         Route::get('/list_messages', 'index')->name('messages.index');
 
         Route::get('/messages/unread-count', 'unreadCount');
@@ -195,6 +195,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/messages/start/{username}', 'startChat')->name('messages.start');
 
         Route::post('/chat/group/create', 'createGroup')->name('chat.group.create');
+        Route::get('/conversations/{id}/friends-to-add', 'getFriendsToAdd');
+        Route::post('/conversations/{id}/add-members', 'storeMembers');
     });
     // ============================== THÔNG BÁO ================================
     Route::prefix('notifications')
@@ -235,7 +237,7 @@ Route::middleware(['auth'])->prefix('groups')->name('groups.')->group(function (
 
     // ĐÃ SỬA: Bỏ bớt chữ "groups." dư thừa ở name() để Laravel tự nối thành "groups.kick"
     Route::delete('/{slug}/kick/{user_id}', [GroupController::class, 'kickMember'])->name('kick');
-    
+
     Route::put('/{slug}/update', [GroupController::class, 'update'])->name('update');
 });
 // Blocks

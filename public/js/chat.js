@@ -610,3 +610,284 @@ function markAsRead() {
             }
         });
 }
+
+
+// Xử lý mở/đóng dropdown menu khi bấm vào dấu ...
+document.querySelector('.btn-menu-dots').addEventListener('click', function (e) {
+    e.stopPropagation();
+    const dropdown = document.querySelector('.dropdown-content');
+    dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
+});
+
+window.addEventListener('click', function (e) {
+    const dropdown = document.querySelector('.dropdown-content');
+    // Chỉ đóng dropdown nếu người dùng không click vào chính nó hoặc nút mở
+    if (dropdown && !e.target.classList.contains('btn-menu-dots')) {
+        dropdown.style.display = 'none';
+    }
+});
+// Hàm mẫu cho các nút
+function viewProfile(username) {
+    if (username) {
+        // Chuyển hướng tới route profile.show với tham số username
+        window.location.href = `/profile/${username}`;
+    } else {
+        // Thay thế alert thô sơ bằng Toast xịn sò của Kipeeda
+        showToast("Không tìm thấy thông tin người dùng cậu ơi!", "error");
+    }
+}
+
+function leaveGroup() {
+    if (confirm('Bạn có chắc muốn rời nhóm này?')) {
+        // Gọi API rời nhóm ở đây
+    }
+}
+
+
+function showMembersModal(url) {
+    console.log("Hàm đã được gọi với URL:", url);
+    const modal = document.getElementById('viewMembersModal');
+    const container = document.getElementById('members-list-container');
+    if (!modal || !container) return;
+
+    container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;"><i class="fas fa-spinner fa-spin"></i> Đang tải thành viên...</div>';
+
+    // BẬT CLASS SHOW ĐỂ HIỆN MODAL
+    modal.classList.add('show');
+
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            container.innerHTML = '';
+            if (!Array.isArray(data) || data.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:15px; color:#999;">Không có thành viên nào.</p>';
+                return;
+            }
+
+            let htmlContent = '';
+            data.forEach(member => {
+                const name = member.fullname ? member.fullname : member.username;
+                let cleanAvatarUrl = member.avatar_url;
+                if (cleanAvatarUrl && cleanAvatarUrl.includes('chat-messages/uploads_profile')) {
+                    cleanAvatarUrl = cleanAvatarUrl.replace('chat-messages/', '');
+                }
+                if (cleanAvatarUrl && !cleanAvatarUrl.startsWith('http') && !cleanAvatarUrl.startsWith('/')) {
+                    cleanAvatarUrl = '/' + cleanAvatarUrl;
+                }
+                const defaultAvatar = '/images/default-avatar.png';
+
+                htmlContent += `
+                <div class="member-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f5f5f5;">
+                    <img src="${cleanAvatarUrl ? cleanAvatarUrl : defaultAvatar}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover;" onerror="this.onerror=null; this.src='${defaultAvatar}';">
+                    <div style="flex: 1;">
+                        <h5 style="margin: 0; font-size: 14px; color: #333; font-weight: 600;">${name}</h5>
+                        <small style="color: #888;">@${member.username}</small>
+                    </div>
+                </div>
+            `;
+            });
+            container.innerHTML = htmlContent;
+        })
+        .catch(error => {
+            console.error('Lỗi Fetch:', error);
+            container.innerHTML = '<p style="text-align:center; padding:15px; color:red;">Có lỗi xảy ra.</p>';
+        });
+}
+
+function closeMembersModal() {
+    const modal = document.getElementById('viewMembersModal');
+    if (modal) {
+        // XÓA CLASS SHOW ĐỂ ẨN MODAL
+        modal.classList.remove('show');
+    }
+}
+// Hàm đóng modal xem thành viên
+
+// Click ra ngoài vùng nội dung modal thì tự động đóng
+window.addEventListener('click', function (e) {
+    const membersModal = document.getElementById('viewMembersModal');
+    if (e.target === membersModal) {
+        closeMembersModal();
+    }
+});
+
+/* ==========================================================================
+   LOGIC XỬ LÝ MODAL THÊM THÀNH VIÊN (KIPEEDA)
+   ========================================================================== */
+
+let currentAddGroupConversationId = null; // Lưu ID nhóm đang cần thêm người
+let originalFriendsList = []; // Lưu danh sách bạn bè gốc để tìm kiếm không cần gọi lại API
+
+// 1. Hàm mở Modal và lấy danh sách bạn bè chưa vào nhóm
+function openAddMembersModal(conversationId) {
+    currentAddGroupConversationId = conversationId;
+    const modal = document.getElementById('addMembersModal');
+    const container = document.getElementById('friends-list-container');
+
+    if (!modal || !container) return;
+
+    // Hiển thị modal lên bằng cách thêm class .show độc lập
+    modal.classList.add('show');
+
+    // Hiện hiệu ứng đang tải cho đẹp mắt
+    container.innerHTML = `
+        <div style="text-align:center; padding:30px; color:#999;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 20px; margin-bottom: 10px;"></i>
+            <div>Đang tải danh sách bạn bè...</div>
+        </div>
+    `;
+
+    // Gọi API lấy những user hệ thống chưa nằm trong nhóm này
+    fetch(`/conversations/${conversationId}/friends-to-add`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(res => {
+            if (!res.ok) throw new Error('Lỗi mạng hoặc server');
+            return res.json();
+        })
+        .then(data => {
+            originalFriendsList = data; // Lưu lại mảng dữ liệu thô phục vụ ô tìm kiếm
+            renderFriendsToSelect(originalFriendsList);
+        })
+        .catch(err => {
+            console.error('Lỗi tải bạn bè:', err);
+            container.innerHTML = '<p style="text-align:center; padding:20px; color:#ff4d4f;">Không thể tải danh sách lúc này. Thử lại sau cậu nhé!</p>';
+        });
+}
+
+// 2. Hàm vẽ danh sách bạn bè kèm ô Checkbox ra giao diện
+function renderFriendsToSelect(friends) {
+    const container = document.getElementById('friends-list-container');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (friends.length === 0) {
+        container.innerHTML = '<p style="text-align:center; padding:30px; color:#999; font-size: 14px;">Tất cả bạn bè đều đã có mặt trong nhóm này rồi!</p>';
+        return;
+    }
+
+    // Lặp qua từng người để render
+    friends.forEach(friend => {
+        const displayName = friend.fullname ? friend.fullname : friend.username;
+
+        container.innerHTML += `
+            <label style="display: flex; align-items: center; gap: 15px; padding: 12px 10px; border-bottom: 1px solid #f8f9fa; cursor: pointer; transition: background 0.2s; border-radius: 8px;" 
+                   onmouseover="this.style.background='#f0f2f5'" onmouseout="this.style.background='transparent'">
+                
+                <img src="${friend.avatar_url}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;">
+                
+                <div style="flex: 1;">
+                    <h5 style="margin: 0; font-size: 14px; color: #333; font-weight: 600;">${displayName}</h5>
+                    <small style="color: #777;">@${friend.username}</small>
+                </div>
+                
+                <input type="checkbox" name="selected_friends_to_add[]" value="${friend.id}" 
+                       style="width: 18px; height: 18px; cursor: pointer; accent-color: #0084ff;">
+            </label>
+        `;
+    });
+}
+
+// 3. Xử lý sự kiện tìm kiếm nhanh (gõ chữ lọc luôn không load lại trang)
+document.getElementById('search-friend-input')?.addEventListener('input', function (e) {
+    const keyword = e.target.value.toLowerCase().trim();
+
+    // Lọc mảng bạn bè dựa trên tên hiển thị hoặc username
+    const filteredFriends = originalFriendsList.filter(friend => {
+        const fullname = (friend.fullname ?? '').toLowerCase();
+        const username = friend.username.toLowerCase();
+        return fullname.includes(keyword) || username.includes(keyword);
+    });
+
+    renderFriendsToSelect(filteredFriends);
+});
+
+// 4. Hàm đóng modal và dọn dẹp ô tìm kiếm
+function closeAddMembersModal() {
+    document.getElementById('addMembersModal')?.classList.remove('show');
+    const inputSearch = document.getElementById('search-friend-input');
+    if (inputSearch) inputSearch.value = '';
+    currentAddGroupConversationId = null;
+    originalFriendsList = [];
+}
+
+// 5. Hàm thu thập dữ liệu checkbox và gửi lên Laravel bằng phương thức POST
+// 5. Hàm thu thập dữ liệu checkbox và gửi lên Laravel bằng phương thức POST
+function submitAddMembers() {
+    // Tìm tất cả các checkbox đang được tích chọn
+    const checkedCheckboxes = document.querySelectorAll('input[name="selected_friends_to_add[]"]:checked');
+
+    if (checkedCheckboxes.length === 0) {
+        // Áp dụng đúng cách xài chuẩn của cậu nè 🎉
+        showToast('Cậu vui lòng tích chọn ít nhất một người để thêm vào nhóm nhé!', 'error');
+        return;
+    }
+
+    // Đẩy toàn bộ ID của user được chọn vào một mảng []
+    const userIdsArray = Array.from(checkedCheckboxes).map(cb => cb.value);
+
+    // Lấy token bảo mật CSRF từ thẻ meta trên header trang web
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    // Vô hiệu hóa nút xác nhận tạm thời để tránh người dùng click liên tục (Spam request)
+    const btnSubmit = document.querySelector('.btn-add-member-primary');
+    if (btnSubmit) btnSubmit.disabled = true;
+
+    // Tiến hành đẩy API dạng POST lên Server
+    fetch(`/conversations/${currentAddGroupConversationId}/add-members`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({ user_ids: userIdsArray })
+    })
+        .then(res => {
+            if (!res.ok) throw new Error('Lỗi từ phía server');
+            return res.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Hiện Toast thành công màu xanh lá cực đẹp
+                showToast(data.message || 'Thêm thành viên thành công!', 'success');
+                closeAddMembersModal();
+
+                // Đợi 1.5 giây cho người ta kịp nhìn thấy cái Toast trượt ra rồi mới reload trang
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                // Hiện Toast lỗi màu đỏ
+                showToast(data.message || 'Úi, có lỗi gì đó xảy ra từ server rồi cậu ơi!', 'error');
+                if (btnSubmit) btnSubmit.disabled = false; // Mở lại nút bấm để họ chọn lại
+            }
+        })
+        .catch(err => {
+            console.error('Lỗi khi gửi dữ liệu POST thêm thành viên:', err);
+            // Hiện Toast lỗi kết nối
+            showToast('Không thể kết nối tới máy chủ, vui lòng kiểm tra lại đường truyền.', 'error');
+            if (btnSubmit) btnSubmit.disabled = false; // Mở lại nút bấm khi sập mạng
+        });
+
+}
+
+// Sự kiện bấm click ra rìa ngoài màn hình (nền đen mờ) thì tự đóng modal
+// SỬA TẠI ĐÂY: Lắng nghe trực tiếp trên modal thay vì window để chống lỗi "vừa mở đã đóng" do nổi bọt sự kiện
+document.getElementById('addMembersModal')?.addEventListener('click', function (e) {
+    // Chỉ đóng khi click chính xác vào vùng nền mờ bên ngoài hộp thoại box
+    if (e.target === this) {
+        closeAddMembersModal();
+    }
+}); x
