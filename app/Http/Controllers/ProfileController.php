@@ -189,18 +189,26 @@ class ProfileController extends Controller
      * Hien thi danh sach nguoi dang theo doi user.
      */
     public function followers($username)
-    {
-        $user = User::where('username', $username)->firstOrFail();
+{
+    // Tìm user, không dùng firstOrFail để tránh lỗi 404 mặc định
+    $user = User::where('username', $username)->first();
 
-        $ids = DB::table('follows')
-            ->where('following_id', $user->id)
-            ->pluck('follower_id');
-
-        $users = User::whereIn('id', $ids)->get();
-
-        $title = 'Người theo dõi của bạn';
-        return view('social.profile_list', compact('user', 'users', 'title'));
+    // Nếu không tồn tại user, trả về view thông báo lỗi
+    if (!$user) {
+        return view('social.custom_message', [
+            'message' => 'Người dùng này không tồn tại.'
+        ]);
     }
+
+    $ids = DB::table('follows')
+        ->where('following_id', $user->id)
+        ->pluck('follower_id');
+
+    $users = User::whereIn('id', $ids)->get();
+
+    $title = 'Người theo dõi của bạn';
+    return view('social.profile_list', compact('user', 'users', 'title'));
+}
 
     /*
     |--------------------------------------------------------------------------
