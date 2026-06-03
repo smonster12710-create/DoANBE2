@@ -17,8 +17,10 @@ class Post extends Model
         'content',
         'image_url',
         'video_url',
-        'expires_at', // 3. Thêm cột này vào fillable để cho phép lưu dữ liệu
-        'group_id' // ✨ THÊM DÒNG NÀY: Cho phép lưu ID của nhóm vào bài viết
+        'expires_at',
+        'group_id',
+        'wall_user_id',
+        'is_anonymous'
     ];
 
     protected $with = ['user'];
@@ -151,5 +153,12 @@ class Post extends Model
                 $builder->whereNotIn('posts.user_id', $excluded);
             }
         });
+    }
+    /**
+     * Mối quan hệ lấy thông tin của người được đăng lên tường (Chủ tường nhà)
+     */
+    public function wallUser()
+    {
+        return $this->belongsTo(User::class, 'wall_user_id');
     }
 }

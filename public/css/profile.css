@@ -6,8 +6,10 @@
 }
 
 .profile-container {
-    width: 860px;
+    width: 100%;
+    max-width: 1050px;
     margin: auto;
+    padding: 0 15px;
 }
 
 .profile-card {
@@ -60,6 +62,18 @@
     display: flex;
     flex-direction: column;
     gap: 22px;
+    width: 100%;
+    max-width: 100%;
+}
+
+.wall-post-card,
+.profile-right .card,
+.profile-right .post-card {
+    width: 100% !important;
+    max-width: 550px;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box;
 }
 
 .profile-name {
@@ -158,7 +172,7 @@
 .profile-body {
     margin-top: 22px;
     display: grid;
-    grid-template-columns: 40% 60%;
+    grid-template-columns: 35% 65%;
     gap: 20px;
     align-items: flex-start;
 }
@@ -529,7 +543,7 @@
     align-items: center;
     gap: 10px;
     /* Loại bỏ giới hạn dòng để các form không tự ý xuống hàng */
-    flex-wrap: nowrap; 
+    flex-wrap: nowrap;
 }
 
 /* Ép các thẻ form bọc ngoài nút bấm hoạt động như block ngang, triệt tiêu margin thừa */
@@ -542,14 +556,91 @@
 .requested-actions {
     display: flex;
     align-items: center;
-    gap: 8px; /* Khoảng cách nhỏ giữa 2 nút đứng cạnh nhau */
+    gap: 8px;
+    /* Khoảng cách nhỏ giữa 2 nút đứng cạnh nhau */
 }
 
 /* 🌟 BỔ SUNG MỚI: Định hình riêng cho nút bấm khi nằm trong cụm Chấp nhận/Từ chối */
 .requested-actions .profile-action-btn {
-    min-width: 105px;       /* Ép 2 nút có độ rộng bằng chằn chặn nhau */
-    padding: 11px 14px;     /* Thu nhỏ padding ngang một chút để không chiếm quá nhiều diện tích */
+    min-width: 105px;
+    /* Ép 2 nút có độ rộng bằng chằn chặn nhau */
+    padding: 11px 14px;
+    /* Thu nhỏ padding ngang một chút để không chiếm quá nhiều diện tích */
     text-align: center;
     justify-content: center;
-    white-space: nowrap;    /* Tuyệt đối không cho chữ tự xuống dòng */
+    white-space: nowrap;
+    /* Tuyệt đối không cho chữ tự xuống dòng */
+}
+
+/* Khung kích hoạt đăng bài nhanh */
+.wall-post-card {
+    border-radius: 12px;
+    background: #fff;
+    padding: 15px;
+    box-sizing: border-box;
+
+    /* --- THAY ĐỔI Ở ĐÂY ĐỂ ÉP NÓ DÀI RA --- */
+    width: 1000px !important;
+    /* Thay vì max-width, ép trực tiếp width cố định */
+    max-width: 100%;
+    /* Giữ cái này để tránh bị tràn màn hình khi thu nhỏ */
+}
+
+.wall-avatar {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+}
+
+.wall-fake-input {
+    background-color: #f0f2f5;
+    border: none;
+    font-size: 15px;
+}
+
+/* Giao diện bên trong Modal Đăng bài */
+.wall-modal-title {
+    color: #000000;
+}
+
+.wall-textarea {
+    border: none;
+    resize: none;
+}
+
+.wall-anonymous-wrapper {
+    margin-left: 20px;
+}
+
+.wall-btn-submit {
+    background-color: #007bff;
+}
+
+/* CSS cho phần xem trước ảnh (được tạo động từ JS) */
+.wall-preview-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.wall-preview-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.wall-preview-remove {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

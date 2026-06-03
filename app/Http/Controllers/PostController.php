@@ -8,6 +8,7 @@ use App\Models\Like;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\TextProcessorService;
+use Illuminate\Support\Facades\Validator;
 
 class PostController extends Controller
 {
@@ -17,10 +18,9 @@ class PostController extends Controller
      */
     public function index()
     {
-        // Lấy bài viết kèm theo user, media và cả likes (để hiển thị số lượt like)
-        $posts = Post::with(['user', 'media', 'likes'])
-            ->whereNull('group_id') // 🔥 THÊM DÒNG NÀY: Chỉ lấy bài viết công cộng không thuộc nhóm nào
-            // ->orderByDesc('is_pinned') // 🔥 XÓA HOẶC COMMENT DÒNG NÀY ĐI
+        // Lấy bài viết kèm theo user, wallUser (người nhận), media và likes
+        $posts = Post::with(['user', 'wallUser', 'media', 'likes']) // ✨ ĐÃ THÊM 'wallUser'
+            ->whereNull('group_id') // Chỉ lấy bài viết công cộng không thuộc nhóm nào
             ->latest()
             ->get();
 
@@ -39,14 +39,25 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, TextProcessorService $hashtagService)
+    public function store(Request $request, \App\Services\TextProcessorService $hashtagService)
     {
-        // Cần cho phép tối đa 10MB ở đây để máy nhận được file lớn trước khi đem đi nén
-        $request->validate([
+        // 1. CHỦ ĐỘNG VALIDATE ĐỂ TRÁNH LỖI HTML FALLBACK CỦA LARAVEL KHI DÙNG AJAX
+        $validator = Validator::make($request->all(), [
             'content' => 'required|string|max:550',
             'images.*' => 'nullable|image|max:10240',
             'expires_in' => 'nullable|integer',
         ]);
+
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dữ liệu không hợp lệ!',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            return back()->withErrors($validator)->withInput();
+        }
 
         $expiresAt = null;
         if ($request->filled('expires_in')) {
@@ -58,8 +69,13 @@ class PostController extends Controller
         $post->content = $request->content;
         $post->privacy = 0;
         $post->expires_at = $expiresAt;
-        // Thêm dòng này để lưu bài viết vào nhóm (nếu có, không có thì tự động là null)
         $post->group_id = $request->input('group_id', null);
+
+        // Thêm logic lưu thông tin tường nhà bạn bè nếu có gửi lên database (ví dụ trường wall_user_id)
+        if ($request->filled('wall_user_id')) {
+            $post->wall_user_id = $request->wall_user_id; // Đảm bảo bảng posts của bạn có trường này
+        }
+
         $post->save();
 
         // Xử lý hashtag
@@ -78,32 +94,28 @@ class PostController extends Controller
             $post->hashtags()->sync($tagIds);
         }
 
-        // ================= XỬ LÝ NÉN ẢNH THUẦN CHẤP HẾT CÁC ĐỊNH DẠNG =================
-        // 5. Xử lý ảnh nâng cao (Không cần mimes, tự lọc file lỗi/file lạ)
+        // ================= XỬ LÝ NÉN ẢNH THUẦN =================
         if ($request->hasFile('images')) {
             if (!file_exists(public_path('uploads/posts'))) {
                 mkdir(public_path('uploads/posts'), 0777, true);
             }
 
             foreach ($request->file('images') as $file) {
-                // Tự động đọc nội dung để kiểm tra cấu trúc ảnh (jfif, webp, png, jpg... chấp hết)
                 $sourceImage = @imagecreatefromstring(file_get_contents($file->getRealPath()));
 
-                // 🔥 NẾU LÀ FILE LỖI HOẶC ĐUÔI ĐỘC LẠ (NHƯ HEIC) KHÔNG ĐỌC ĐƯỢC:
                 if ($sourceImage === false) {
-                    // Trả về lỗi luôn cho client mà không thèm lưu, đỡ phiền phức!
-                    return response()->json([
-                        'message' => 'Một trong số các file bạn tải lên không đúng định dạng ảnh hiển thị được!'
-                    ], 422);
-                    // Nếu bạn dùng form submit thường (không phải AJAX) thì thay dòng trên bằng:
-                    // return back()->withErrors(['images' => 'Định dạng ảnh không hỗ trợ!']);
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Một trong số các file bạn tải lên không đúng định dạng ảnh hiển thị được!'
+                        ], 422);
+                    }
+                    return back()->withErrors(['images' => 'Định dạng ảnh không hỗ trợ!']);
                 }
 
-                // Tên file và đường dẫn lưu (Đồng bộ đuôi .jpg)
                 $filename = time() . '_' . uniqid() . '.jpg';
                 $destinationPath = public_path('uploads/posts/' . $filename);
 
-                // Thu nhỏ kích thước nếu ảnh quá to (Ví dụ ảnh 5MB)
                 $origWidth = imagesx($sourceImage);
                 $origHeight = imagesy($sourceImage);
                 $maxWidth = 1000;
@@ -114,7 +126,6 @@ class PostController extends Controller
                     $newHeight = (int)($origHeight * $ratio);
 
                     $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
-
                     imagealphablending($resizedImage, false);
                     imagesavealpha($resizedImage, true);
 
@@ -123,11 +134,9 @@ class PostController extends Controller
                     $sourceImage = $resizedImage;
                 }
 
-                // Nén chất lượng xuống 65% thành file JPG siêu nhẹ
                 imagejpeg($sourceImage, $destinationPath, 65);
-                imagedestroy($sourceImage); // Giải phóng RAM
+                imagedestroy($sourceImage);
 
-                // Lưu vào database
                 $media = new PostMedia();
                 $media->post_id = $post->id;
                 $media->media_url = 'uploads/posts/' . $filename;
@@ -136,15 +145,41 @@ class PostController extends Controller
             }
         }
 
+        // ================= PHẢN HỒI THÀNH CÔNG CHO CẢ INDEX VÀ PROFILE =================
+        if ($request->ajax() || $request->wantsJson()) {
+
+            // Tự động tìm username từ wall_user_id gửi lên để làm link chuyển hướng
+            $redirectUrl = route('posts.index'); // Mặc định là trang chủ
+
+            if ($request->filled('wall_user_id')) {
+                $wallUser = \App\Models\User::find($request->wall_user_id);
+                if ($wallUser) {
+                    // Sửa tham số truyền vào đúng với biến {username} trong route của bạn
+                    $redirectUrl = route('profile.show', ['username' => $wallUser->username ?? $wallUser->name]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Đăng bài thành công!',
+                'redirect_url' => $redirectUrl // Trả về link trang cá nhân chính xác vừa tìm được
+            ], 200);
+        }
+
         return back()->with('success', 'Đăng bài thành công!');
     }
 
+
+    /**
+     * Display the specified resource.
+     */
     /**
      * Display the specified resource.
      */
     public function show($id)
     {
-        $post = Post::with(['user', 'media', 'likes'])->findOrFail($id);
+        // Thêm wallUser vào chi tiết bài viết
+        $post = Post::with(['user', 'wallUser', 'media', 'likes'])->findOrFail($id); // ✨ ĐÃ THÊM 'wallUser'
         return view('social.show', compact('post'));
     }
     public function edit(Post $post)
