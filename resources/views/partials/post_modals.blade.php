@@ -7,13 +7,15 @@
                 <h5 class="modal-title">Sửa bài viết</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('posts.update', $post->id) }}" method="POST" enctype="multipart/form-data" id="editPostForm{{ $post->id }}">
+            <form action="{{ route('posts.update', $post->id) }}" method="POST" enctype="multipart/form-data"
+                id="editPostForm{{ $post->id }}">
                 @csrf @method('PUT')
                 <input type="hidden" name="last_updated_at" value="{{ $post->updated_at }}">
 
                 <div class="modal-body">
                     <div class="position-relative">
-                        <textarea name="content" id="editContent{{ $post->id }}" class="form-control" rows="5" maxlength="500" required>{{ $post->content }}</textarea>
+                        <textarea name="content" id="editContent{{ $post->id }}" class="form-control" rows="5" maxlength="500"
+                            required>{{ $post->content }}</textarea>
                         <div class="text-end text-muted small mt-1">
                             <span id="charCount{{ $post->id }}">0</span>/500 ký tự
                         </div>
@@ -21,19 +23,22 @@
 
                     <div class="row g-2 mt-2" id="imagePreviewContainer{{ $post->id }}">
                         @if ($post->media->count())
-                        @foreach($post->media as $media)
-                        <div class="col-4 position-relative old-image-item">
-                            <img src="{{ asset($media->media_url) }}" class="w-100 rounded object-fit-cover" style="height: 120px;">
-                            <span class="badge bg-secondary position-absolute top-0 start-0 m-1">Ảnh cũ</span>
-                        </div>
-                        @endforeach
+                            @foreach ($post->media as $media)
+                                <div class="col-4 position-relative old-image-item">
+                                    <img src="{{ asset($media->media_url) }}" class="w-100 rounded object-fit-cover"
+                                        style="height: 120px;">
+                                    <span class="badge bg-secondary position-absolute top-0 start-0 m-1">Ảnh cũ</span>
+                                </div>
+                            @endforeach
                         @endif
                     </div>
 
                     <div class="mt-3">
                         <label class="form-label fw-bold small">Thay đổi danh sách ảnh (Có thể chọn nhiều lần):</label>
-                        <input type="file" name="images[]" id="editImagesInput{{ $post->id }}" class="form-control" accept="image/*" multiple>
-                        <div class="form-text text-danger small">* Lưu ý: Khi bạn bắt đầu chọn ảnh mới, toàn bộ ảnh cũ sẽ bị thay thế.</div>
+                        <input type="file" name="images[]" id="editImagesInput{{ $post->id }}"
+                            class="form-control" accept="image/*" multiple>
+                        <div class="form-text text-danger small">* Lưu ý: Khi bạn bắt đầu chọn ảnh mới, toàn bộ ảnh cũ
+                            sẽ bị thay thế.</div>
                     </div>
                 </div>
 
@@ -68,7 +73,8 @@
 </div>
 
 {{-- MODAL YÊU CẦU TẢI LẠI TRANG --}}
-<div class="modal fade" id="reloadPageModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="reloadPageModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content text-center py-4">
             <div class="modal-body">
@@ -95,61 +101,67 @@
 
                 {{-- CỘT TRÁI: HIỂN THỊ TRÌNH CHIẾU ẢNH LỚN --}}
                 @if ($hasMedia)
-                <div style="flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; height: 100%; overflow: hidden;">
-                    @if ($displayMedia->count() > 1)
-                    <div id="detailCarousel{{ $post->id }}" class="carousel slide h-100 w-100" data-bs-ride="false">
-                        <div class="carousel-indicators" style="margin-bottom: 15px;">
-                            @foreach ($displayMedia as $index => $item)
-                            <button type="button"
-                                data-bs-target="#detailCarousel{{ $post->id }}"
-                                data-bs-slide-to="{{ $index }}"
-                                class="{{ $index == 0 ? 'active' : '' }}"
-                                aria-current="{{ $index == 0 ? 'true' : 'false' }}"
-                                style="width: 6px; height: 6px; border-radius: 50%; margin: 0 3px; background-color: #fff; border: none; opacity: 0.6;">
-                            </button>
-                            @endforeach
-                        </div>
-
-                        <div class="carousel-inner h-100">
-                            @foreach ($displayMedia as $index => $item)
-                            <div class="carousel-item h-100 {{ $index == 0 ? 'active' : '' }}">
-                                <div class="d-flex justify-content-center align-items-center h-100">
-                                    <img src="{{ asset($item->media_url) }}"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#imagePreviewModal{{ $post->id }}"
-                                        style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;">
+                    <div
+                        style="flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; height: 100%; overflow: hidden;">
+                        @if ($displayMedia->count() > 1)
+                            <div id="detailCarousel{{ $post->id }}" class="carousel slide h-100 w-100"
+                                data-bs-ride="false">
+                                <div class="carousel-indicators" style="margin-bottom: 15px;">
+                                    @foreach ($displayMedia as $index => $item)
+                                        <button type="button" data-bs-target="#detailCarousel{{ $post->id }}"
+                                            data-bs-slide-to="{{ $index }}"
+                                            class="{{ $index == 0 ? 'active' : '' }}"
+                                            aria-current="{{ $index == 0 ? 'true' : 'false' }}"
+                                            style="width: 6px; height: 6px; border-radius: 50%; margin: 0 3px; background-color: #fff; border: none; opacity: 0.6;">
+                                        </button>
+                                    @endforeach
                                 </div>
-                            </div>
-                            @endforeach
-                        </div>
 
-                        <button class="carousel-control-prev" type="button" data-bs-target="#detailCarousel{{ $post->id }}" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true" style="width: 2rem; height: 2rem;"></span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#detailCarousel{{ $post->id }}" data-bs-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true" style="width: 2rem; height: 2rem;"></span>
-                        </button>
+                                <div class="carousel-inner h-100">
+                                    @foreach ($displayMedia as $index => $item)
+                                        <div class="carousel-item h-100 {{ $index == 0 ? 'active' : '' }}">
+                                            <div class="d-flex justify-content-center align-items-center h-100">
+                                                <img src="{{ asset($item->media_url) }}" data-bs-toggle="modal"
+                                                    data-bs-target="#imagePreviewModal{{ $post->id }}"
+                                                    style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;">
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <button class="carousel-control-prev" type="button"
+                                    data-bs-target="#detailCarousel{{ $post->id }}" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"
+                                        style="width: 2rem; height: 2rem;"></span>
+                                </button>
+                                <button class="carousel-control-next" type="button"
+                                    data-bs-target="#detailCarousel{{ $post->id }}" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"
+                                        style="width: 2rem; height: 2rem;"></span>
+                                </button>
+                            </div>
+                        @else
+                            <img src="{{ asset($displayMedia->first()->media_url) }}" data-bs-toggle="modal"
+                                data-bs-target="#imagePreviewModal{{ $post->id }}"
+                                style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;">
+                        @endif
                     </div>
-                    @else
-                    <img src="{{ asset($displayMedia->first()->media_url) }}"
-                        data-bs-toggle="modal"
-                        data-bs-target="#imagePreviewModal{{ $post->id }}"
-                        style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;">
-                    @endif
-                </div>
                 @endif
 
                 {{-- CỘT PHẢI: THÔNG TIN USER, NỘI DUNG VÀ BÌNH LUẬN --}}
-                <div {!! $hasMedia ? 'style="background: #fff; display: flex; flex-direction: column; width: 340px; flex-shrink: 0;"' : 'style="background: #fff; display: flex; flex-direction: column; width: 100%; flex-grow: 1;"' !!}>
+                <div {!! $hasMedia
+                    ? 'style="background: #fff; display: flex; flex-direction: column; width: 340px; flex-shrink: 0;"'
+                    : 'style="background: #fff; display: flex; flex-direction: column; width: 100%; flex-grow: 1;"' !!}>
 
                     {{-- 1. THÔNG TIN USER ĐĂNG BÀI (HEADER) --}}
                     <div class="p-3 d-flex align-items-center border-bottom">
-                        @if($post->is_anonymous)
+                        @if ($post->is_anonymous)
                             <img class="avatar" src="{{ asset('img/user/user.jpg') }}" alt="Ẩn danh">
                             <strong class="name d-block">Người dùng ẩn danh 🕵️</strong>
                         @else
                             <img src="{{ $post->user->avatar_url ? asset($post->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->user_id }}"
-                                class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
+                                class="rounded-circle me-2" width="32" height="32"
+                                style="object-fit: cover;">
                             <strong>{{ $post->user->fullname ?? 'Người dùng' }}</strong>
                         @endif
                     </div>
@@ -157,52 +169,63 @@
                     {{-- KHOANG CHỨA NỘI DUNG VÀ CÁC BÌNH LUẬN (CÓ SCROLLY) --}}
                     <div class="flex-grow-1 p-3" style="overflow-y: auto;">
                         <div class="w-100">
-                            <div class="post-main-content mb-3" style="font-size: 14px; line-height: 1.5; color: #1c1e21;">
+                            <div class="post-main-content mb-3"
+                                style="font-size: 14px; line-height: 1.5; color: #1c1e21;">
                                 {!! Str::replace('[#LOCK_COMMENT#]', '', $post->formatted_content ?? e($post->content)) !!}
                             </div>
 
-                            @if($post->sharedPost)
+                            @if ($post->sharedPost)
                                 <div class="card mt-2 p-3 w-100 d-block"
                                     style="background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; cursor: pointer; min-width: 100%;"
-                                    data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->sharedPost->id }}">
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#instagramModal{{ $post->sharedPost->id }}">
 
-                                <div class="d-flex align-items-center mb-2">
-                                    @if($post->sharedPost->is_anonymous)
-                                        <img src="{{ asset('img/default-anonymous.png') }}" class="rounded-circle me-2" width="24" height="24"
-                                            style="object-fit: cover;" alt="Ẩn danh">
-                                        <strong class="small text-dark" style="font-size: 13px;">Người dùng ẩn danh 🕵️</strong>
-                                    @else
-                                        <img src="{{ $post->sharedPost->user->avatar_url ? asset($post->sharedPost->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->sharedPost->user_id }}"
-                                            class="rounded-circle me-2" width="24" height="24" style="object-fit: cover;">
-                                        <strong class="small" style="font-size: 13px;">{{ $post->sharedPost->user->fullname ?? 'Người dùng gốc' }}</strong>
-                                    @endif
-                                </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        @if ($post->sharedPost->is_anonymous)
+                                            <img src="{{ asset('img/default-anonymous.png') }}"
+                                                class="rounded-circle me-2" width="24" height="24"
+                                                style="object-fit: cover;" alt="Ẩn danh">
+                                            <strong class="small text-dark" style="font-size: 13px;">Người dùng ẩn
+                                                danh 🕵️</strong>
+                                        @else
+                                            <img src="{{ $post->sharedPost->user->avatar_url ? asset($post->sharedPost->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->sharedPost->user_id }}"
+                                                class="rounded-circle me-2" width="24" height="24"
+                                                style="object-fit: cover;">
+                                            <strong class="small"
+                                                style="font-size: 13px;">{{ $post->sharedPost->user->fullname ?? 'Người dùng gốc' }}</strong>
+                                        @endif
+                                    </div>
 
-                                    @if($post->sharedPost->content)
-                                        <div class="small text-secondary mb-2" style="font-size: 13px; line-height: 1.4; word-break: break-word;">
+                                    @if ($post->sharedPost->content)
+                                        <div class="small text-secondary mb-2"
+                                            style="font-size: 13px; line-height: 1.4; word-break: break-word;">
                                             {{ $post->sharedPost->content }}
                                         </div>
                                     @endif
 
-                                    @if($post->sharedPost->media && $post->sharedPost->media->count() > 0)
-                                        @if($post->sharedPost->media->count() == 1)
+                                    @if ($post->sharedPost->media && $post->sharedPost->media->count() > 0)
+                                        @if ($post->sharedPost->media->count() == 1)
                                             <div class="row mt-2 g-0">
                                                 <div class="col-12">
-                                                    <div style="padding-top: 60%; position: relative; overflow: hidden; border-radius: 6px;">
+                                                    <div
+                                                        style="padding-top: 60%; position: relative; overflow: hidden; border-radius: 6px;">
                                                         <img src="{{ asset($post->sharedPost->media->first()->media_url) }}"
-                                                            class="position-absolute top-0 start-0 w-100 h-100" style="object-fit: cover;">
+                                                            class="position-absolute top-0 start-0 w-100 h-100"
+                                                            style="object-fit: cover;">
                                                     </div>
                                                 </div>
                                             </div>
                                         @else
                                             <div class="row g-1 mt-2">
-                                                @foreach($post->sharedPost->media->take(4) as $innerIndex => $media)
+                                                @foreach ($post->sharedPost->media->take(4) as $innerIndex => $media)
                                                     <div class="col-3 position-relative">
-                                                        <div style="padding-top: 100%; position: relative; overflow: hidden; border-radius: 4px;">
-                                                            <img src="{{ asset($media->media_url) }}" class="position-absolute top-0 start-0 w-100 h-100"
+                                                        <div
+                                                            style="padding-top: 100%; position: relative; overflow: hidden; border-radius: 4px;">
+                                                            <img src="{{ asset($media->media_url) }}"
+                                                                class="position-absolute top-0 start-0 w-100 h-100"
                                                                 style="object-fit: cover;">
 
-                                                            @if($loop->index == 3 && $post->sharedPost->media->count() > 4)
+                                                            @if ($loop->index == 3 && $post->sharedPost->media->count() > 4)
                                                                 <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold small"
                                                                     style="background: rgba(0,0,0,0.5);">
                                                                     +{{ $post->sharedPost->media->count() - 4 }}
@@ -214,7 +237,7 @@
                                             </div>
                                         @endif
                                     @endif
-                                    </div>
+                                </div>
                             @endif
                         </div>
                         <hr>
@@ -222,63 +245,79 @@
                         {{-- DANH SÁCH BÌNH LUẬN --}}
                         <div class="danhmuc-comment-{{ $post->id }}">
                             @foreach ($post->comments as $comment)
-                            <div class="d-flex mb-3 justify-content-between align-items-start small">
-                                <div class="d-flex" style="flex: 1; max-width: 85%;">
-                                    <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://i.pravatar.cc/40?u=' . $comment->user_id }}"
-                                        class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
-                                    <div style="flex: 1;">
-                                        <strong>{{ $comment->user->fullname ?? 'Người dùng' }}</strong>
-                                        
-                                        {{-- BỌC NỘI DUNG VĂN BẢN ĐỂ SỬA TRỰC TIẾP --}}
-                                        <div id="comment-text-{{ $comment->id }}" style="word-break: break-word; margin-top: 2px;">
-                                            {{ $comment->content }}
-                                        </div>
+                                <div class="d-flex mb-3 justify-content-between align-items-start small">
+                                    <div class="d-flex" style="flex: 1; max-width: 85%;">
+                                        <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://i.pravatar.cc/40?u=' . $comment->user_id }}"
+                                            class="rounded-circle me-2" width="32" height="32"
+                                            style="object-fit: cover;">
+                                        <div style="flex: 1;">
+                                            <strong>{{ $comment->user->fullname ?? 'Người dùng' }}</strong>
 
-                                        <div class="text-muted" style="font-size: 11px; margin-top: 2px;">
-                                            {{ $comment->created_at->diffForHumans() }}
+                                            {{-- BỌC NỘI DUNG VĂN BẢN ĐỂ SỬA TRỰC TIẾP --}}
+                                            <div id="comment-text-{{ $comment->id }}"
+                                                style="word-break: break-word; margin-top: 2px;">
+                                                {{ $comment->content }}
+                                            </div>
+
+                                            <div class="text-muted" style="font-size: 11px; margin-top: 2px;">
+                                                {{ $comment->created_at->diffForHumans() }}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {{-- DROPDOWN MENU BA CHẤM MỚI --}}
-                                @if (auth()->id() == $comment->user_id || auth()->id() == $post->user_id)
-                                <div class="dropdown">
-                                    <button class="btn btn-link text-muted p-0 border-0 m-0 lh-1 shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none; font-size: 13px;">
-                                        •••
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width: 100px; padding: 4px 0; border-radius: 6px; border: 1px solid #e4e6eb;">
-                                        @if(auth()->id() == $comment->user_id)
-                                        <li>
-                                            <button type="button" class="dropdown-item d-flex align-items-center py-1 px-3" onclick="triggerEditComment({{ $comment->id }}, '{{ addslashes($comment->content) }}')" style="font-size: 13px; gap: 6px;">
-                                                Sửa
+                                    {{-- DROPDOWN MENU BA CHẤM MỚI --}}
+                                    @if (auth()->id() == $comment->user_id || auth()->id() == $post->user_id)
+                                        <div class="dropdown">
+                                            <button class="btn btn-link text-muted p-0 border-0 m-0 lh-1 shadow-none"
+                                                type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                                style="text-decoration: none; font-size: 13px;">
+                                                •••
                                             </button>
-                                        </li>
-                                        @endif
-                                        <li>
-                                            <button type="button" class="btn-trigger-delete-comment dropdown-item d-flex align-items-center text-danger py-1 px-3" data-url="{{ route('comments.destroy', $comment->id) }}" style="font-size: 13px; gap: 6px;">
-                                                Xóa
-                                            </button>
-                                        </li>
-                                    </ul>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm"
+                                                style="min-width: 100px; padding: 4px 0; border-radius: 6px; border: 1px solid #e4e6eb;">
+                                                @if (auth()->id() == $comment->user_id)
+                                                    <li>
+                                                        <button type="button"
+                                                            class="dropdown-item d-flex align-items-center py-1 px-3"
+                                                            onclick="triggerEditComment({{ $comment->id }}, '{{ addslashes($comment->content) }}', '{{ $comment->updated_at }}')"
+                                                            style="font-size: 13px; gap: 6px;">
+                                                            Sửa
+                                                        </button>
+                                                    </li>
+                                                @endif
+                                                <li>
+                                                    <button type="button"
+                                                        class="btn-trigger-delete-comment dropdown-item d-flex align-items-center text-danger py-1 px-3"
+                                                        data-url="{{ route('comments.destroy', $comment->id) }}"
+                                                        style="font-size: 13px; gap: 6px;">
+                                                        Xóa
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    @endif
                                 </div>
-                                @endif
-                            </div>
                             @endforeach
                         </div>
                     </div> {{-- ĐÓNG KHOANG CHỨA BÌNH LUẬN CHUẨN --}}
 
                     {{-- KHU VỰC FORM SUBMIT BÌNH LUẬN (BỊ CỐ ĐỊNH Ở ĐÁY) --}}
                     <div class="border-top p-3 bg-white">
-                        @if(Str::contains($post->content, '[#LOCK_COMMENT#]'))
-                        <div class="text-muted text-center small py-2 w-100">
-                            🔒 Tính năng bình luận đã bị đóng cho bài viết này.
-                        </div>
+                        @if (Str::contains($post->content, '[#LOCK_COMMENT#]'))
+                            <div class="text-muted text-center small py-2 w-100">
+                                🔒 Tính năng bình luận đã bị đóng cho bài viết này.
+                            </div>
                         @else
-                        <form action="{{ route('comments.store', $post->id) }}" method="POST" class="d-flex align-items-center ajax-form" data-id="{{ $post->id }}">
-                            @csrf
-                            <input type="text" name="content" class="form-control border-0 shadow-none p-0 comment-input" placeholder="Thêm bình luận..." style="font-size: 14px;" required autocomplete="off">
-                            <button type="submit" class="btn text-primary fw-bold shadow-none p-0 ms-2">Đăng</button>
-                        </form>
+                            <form action="{{ route('comments.store', $post->id) }}" method="POST"
+                                class="d-flex align-items-center ajax-form" data-id="{{ $post->id }}">
+                                @csrf
+                                <input type="text" name="content"
+                                    class="form-control border-0 shadow-none p-0 comment-input"
+                                    placeholder="Thêm bình luận..." style="font-size: 14px;" required
+                                    autocomplete="off">
+                                <button type="submit"
+                                    class="btn text-primary fw-bold shadow-none p-0 ms-2">Đăng</button>
+                            </form>
                         @endif
                     </div>
 
@@ -289,59 +328,47 @@
 </div>
 
 {{-- MODAL XEM ẢNH FULLSCREEN --}}
-<div class="modal fade image-preview-modal"
-    id="imagePreviewModal{{ $post->id }}"
-    tabindex="-1"
-    aria-hidden="true"
-    style="z-index: 1060;"> {{-- SỬA: Đảm bảo đè lên trên modal chi tiết --}}
+<div class="modal fade image-preview-modal" id="imagePreviewModal{{ $post->id }}" tabindex="-1"
+    aria-hidden="true" style="z-index: 1060;"> {{-- SỬA: Đảm bảo đè lên trên modal chi tiết --}}
 
     <div class="modal-dialog modal-fullscreen">
         <div class="modal-content bg-black border-0">
 
             {{-- nút đóng --}}
-            <button type="button"
-                class="btn-close btn-close-white position-absolute top-0 end-0 m-4 z-3"
+            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-4 z-3"
                 data-bs-dismiss="modal">
             </button>
 
             @if ($post->media && $post->media->count())
 
-            <div id="carousel{{ $post->id }}"
-                class="carousel slide h-100"
-                data-bs-ride="false">
+                <div id="carousel{{ $post->id }}" class="carousel slide h-100" data-bs-ride="false">
 
-                {{-- images --}}
-                <div class="carousel-inner h-100">
-                    @foreach ($post->media as $index => $item)
-                    <div class="carousel-item h-100 {{ $index == 0 ? 'active' : '' }}">
-                        <div class="d-flex justify-content-center align-items-center h-100">
-                            <img src="{{ asset($item->media_url) }}"
-                                class="preview-image"
-                                alt="preview"
-                                style="max-width: 100%; max-height: 100%; object-fit: contain;">
-                        </div>
+                    {{-- images --}}
+                    <div class="carousel-inner h-100">
+                        @foreach ($post->media as $index => $item)
+                            <div class="carousel-item h-100 {{ $index == 0 ? 'active' : '' }}">
+                                <div class="d-flex justify-content-center align-items-center h-100">
+                                    <img src="{{ asset($item->media_url) }}" class="preview-image" alt="preview"
+                                        style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
-                    @endforeach
+
+                    {{-- arrows --}}
+                    @if ($post->media->count() > 1)
+                        <button class="carousel-control-prev" type="button"
+                            data-bs-target="#carousel{{ $post->id }}" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                        </button>
+
+                        <button class="carousel-control-next" type="button"
+                            data-bs-target="#carousel{{ $post->id }}" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                        </button>
+                    @endif
+
                 </div>
-
-                {{-- arrows --}}
-                @if ($post->media->count() > 1)
-                <button class="carousel-control-prev"
-                    type="button"
-                    data-bs-target="#carousel{{ $post->id }}"
-                    data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon"></span>
-                </button>
-
-                <button class="carousel-control-next"
-                    type="button"
-                    data-bs-target="#carousel{{ $post->id }}"
-                    data-bs-slide="next">
-                    <span class="carousel-control-next-icon"></span>
-                </button>
-                @endif
-
-            </div>
             @endif
 
         </div>
@@ -349,22 +376,51 @@
 </div>
 <div class="modal fade" id="deleteCommentModal" tabindex="-1" aria-hidden="true" style="z-index: 1065;">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content text-center" style="border-radius: 12px; border: none; box-shadow: 0 4px 24px rgba(0,0,0,0.15);">
+        <div class="modal-content text-center"
+            style="border-radius: 12px; border: none; box-shadow: 0 4px 24px rgba(0,0,0,0.15);">
             <div class="modal-body p-4">
                 <h5 class="fw-bold mb-2">Xóa bình luận?</h5>
-                <p class="text-muted small mb-0">Bạn có chắc chắn muốn xóa bình luận này không? Hành động này không thể hoàn tác.</p>
+                <p class="text-muted small mb-0">Bạn có chắc chắn muốn xóa bình luận này không? Hành động này không thể
+                    hoàn tác.</p>
             </div>
             <div class="d-flex border-top">
-                <button type="button" class="btn btn-link text-muted text-decoration-none w-50 m-0 p-3 border-end shadow-none" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" id="btnConfirmDeleteComment" class="btn btn-link text-danger fw-bold text-decoration-none w-50 m-0 p-3 shadow-none">Xóa</button>
+                <button type="button"
+                    class="btn btn-link text-muted text-decoration-none w-50 m-0 p-3 border-end shadow-none"
+                    data-bs-dismiss="modal">Hủy</button>
+                <button type="button" id="btnConfirmDeleteComment"
+                    class="btn btn-link text-danger fw-bold text-decoration-none w-50 m-0 p-3 shadow-none">Xóa</button>
             </div>
         </div>
     </div>
 </div>
 <script>
-    // ==========================================
-    // 1. XỬ LÝ ĐĂNG BÌNH LUẬN -> TĂNG SỐ LƯỢNG
-    // ==========================================
+    // ==========================================================
+    // 1. HÀM THÔNG BÁO ĐỒNG BỘ (SỬ DỤNG GIAO DIỆN HÌNH CUỐI)
+    // ==========================================================
+    function showCommentToast(message, type = 'danger') {
+        // Xóa toast cũ nếu có
+        const existingToast = document.querySelector('.custom-toast-notification');
+        if (existingToast) existingToast.remove();
+
+        const toast = document.createElement('div');
+        toast.className =
+            `custom-toast-notification alert alert-${type === 'success' ? 'success' : 'danger'} shadow-sm position-fixed`;
+        // CSS này khớp với thông báo "Bình luận không được vượt quá 1000 ký tự" ở hình cuối
+        toast.style.cssText =
+            'bottom: 20px; right: 20px; z-index: 9999; min-width: 300px; display: flex; align-items: center; justify-content: space-between;';
+
+        toast.innerHTML = `
+        <span>${message}</span>
+        <button type="button" class="btn-close" style="margin-left: 15px;" onclick="this.parentElement.remove()"></button>
+    `;
+
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    }
+
+    // ==========================================================
+    // 2. XỬ LÝ ĐĂNG BÌNH LUẬN (TỐI ƯU & AN TOÀN)
+    // ==========================================================
     if (typeof window.commentEventAttached === 'undefined') {
         window.commentEventAttached = true;
 
@@ -375,10 +431,16 @@
                 const form = e.target;
                 const postId = form.getAttribute('data-id');
                 const input = form.querySelector('.comment-input');
-                const content = input.value.trim();
                 const commentContainer = document.querySelector(`.danhmuc-comment-${postId}`);
+                const content = input.value.trim();
 
                 if (!content) return;
+
+                // Kiểm tra giới hạn 1000 ký tự ngay tại trình duyệt trước khi gửi
+                if (content.length > 1000) {
+                    showCommentToast('Bình luận không được vượt quá 1000 ký tự.', 'danger');
+                    return;
+                }
 
                 const submitBtn = form.querySelector('button[type="submit"]');
                 if (submitBtn) submitBtn.disabled = true;
@@ -391,70 +453,47 @@
                         },
                         body: new FormData(form)
                     })
-                    .then(res => {
-                        if (!res.ok) throw new Error('Lỗi mạng hoặc lỗi Server');
-                        return res.json();
-                    })
+                    .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            // Escape dấu nháy đơn để tránh lỗi cú pháp inline onClick JS
-                            const escapedContent = content.replace(/'/g, "\\'");
+                            const escapedContent = content.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
                             const newCommentHtml = `
-                                <div class="d-flex mb-3 justify-content-between align-items-start small" data-post-id="${postId}">
-                                    <div class="d-flex" style="flex-grow: 1; max-width: calc(100% - 30px);">
-                                        <img src="${data.user_avatar}" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover; width: 32px; height: 32px; flex-shrink: 0;">
-                                        <div style="flex-grow: 1; min-width: 0; word-break: break-word;">
-                                            <strong>${data.user_fullname}</strong>
-                                            <span class="ms-1" id="comment-text-${data.comment_id}">${content}</span>
-                                            <div class="text-muted" style="font-size: 11px; margin-top: 2px;">Vừa xong</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="dropdown" style="flex-shrink: 0;">
-                                        <button class="btn btn-link text-muted p-0 border-0 bg-transparent shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none; line-height: 1; outline: none;">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16">
-                                                <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
-                                            </svg>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size: 12px; min-width: 80px; padding: 4px 0;">
-                                            <li>
-                                                <a class="dropdown-item" style="padding: 4px 12px;" href="javascript:void(0)" onclick="triggerEditComment(${data.comment_id}, '${escapedContent}')">
-                                                    Sửa
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item text-danger btn-trigger-delete-comment" style="padding: 4px 12px;" href="javascript:void(0)" data-url="${data.destroy_route}">
-                                                    Xóa
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
+                        <div class="d-flex mb-3 justify-content-between align-items-start small" data-post-id="${postId}">
+                            <div class="d-flex" style="flex-grow: 1; max-width: calc(100% - 30px);">
+                                <img src="${data.user_avatar}" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover; width: 32px; height: 32px; flex-shrink: 0;">
+                                <div style="flex-grow: 1; min-width: 0; word-break: break-word;">
+                                    <strong>${data.user_fullname}</strong>
+                                    <span class="ms-1" id="comment-text-${data.comment_id}">${content}</span>
+                                    <div class="text-muted" style="font-size: 11px; margin-top: 2px;">Vừa xong</div>
                                 </div>
-                            `;
+                            </div>
+                            <div class="dropdown" style="flex-shrink: 0;">
+                                <button class="btn btn-link text-muted p-0 border-0 bg-transparent shadow-none" type="button" data-bs-toggle="dropdown">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/></svg>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size: 12px; min-width: 80px;">
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="triggerEditComment(${data.comment_id}, '${escapedContent}')">Sửa</a></li>
+                                    <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="document.querySelector('.btn-trigger-delete-comment[data-url=\'${data.destroy_route}\']').click()">Xóa</a></li>
+                                </ul>
+                            </div>
+                        </div>`;
 
-                            if (commentContainer) {
-                                commentContainer.insertAdjacentHTML('beforeend', newCommentHtml);
-                            }
+                            if (commentContainer) commentContainer.insertAdjacentHTML('beforeend',
+                                newCommentHtml);
 
-                            // --- TỰ ĐỘNG TĂNG SỐ LƯỢNG BÌNH LUẬN VỪA THÊM ---
                             const countSpan = document.querySelector(`.comment-count-${postId}`);
-                            if (countSpan) {
-                                let currentCount = parseInt(countSpan.textContent) || 0;
-                                countSpan.textContent = currentCount + 1;
-                            }
+                            if (countSpan) countSpan.textContent = parseInt(countSpan.textContent || 0) + 1;
 
                             input.value = '';
-
-                            const scrollContainer = commentContainer ? commentContainer.closest('[style*="overflow-y: auto"]') : null;
-                            if (scrollContainer) {
-                                scrollContainer.scrollTop = scrollContainer.scrollHeight;
-                            }
+                            showCommentToast('Đăng bình luận thành công!', 'success');
+                        } else {
+                            showCommentToast(data.message || 'Lỗi: Không thể đăng bình luận.', 'danger');
                         }
                     })
                     .catch(err => {
                         console.error(err);
-                        alert('Có lỗi xảy ra, thử lại nhé!');
+                        showCommentToast('Lỗi mạng, vui lòng thử lại.', 'danger');
                     })
                     .finally(() => {
                         if (submitBtn) submitBtn.disabled = false;
@@ -474,9 +513,24 @@
         let deleteModalInstance = null;
         let currentTriggerBtn = null;
 
+        // Hàm helper để tạo Toast
+        const showToast = (message, type = 'success') => {
+            const toastHtml = `
+            <div class="toast align-items-center text-white bg-${type} border-0 position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 9999;">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>`;
+            document.body.insertAdjacentHTML('beforeend', toastHtml);
+            const toastEl = document.body.lastElementChild;
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+            setTimeout(() => toastEl.remove(), 4000);
+        };
+
         document.body.addEventListener('click', function(e) {
             const deleteBtn = e.target.closest('.btn-trigger-delete-comment');
-
             if (deleteBtn) {
                 e.preventDefault();
                 currentTriggerBtn = deleteBtn;
@@ -496,7 +550,8 @@
             confirmBtn.disabled = true;
 
             const parentModal = currentTriggerBtn.closest('.modal-content');
-            const csrfTokenInput = parentModal ? parentModal.querySelector('input[name="_token"]') : document.querySelector('input[name="_token"]');
+            const csrfTokenInput = parentModal ? parentModal.querySelector('input[name="_token"]') : document
+                .querySelector('input[name="_token"]');
             const csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
 
             const formData = new FormData();
@@ -511,12 +566,13 @@
                     body: formData
                 })
                 .then(res => {
-                    if (!res.ok) throw new Error('Mã lỗi hệ thống: ' + res.status);
+                    if (!res.ok) throw new Error('System Error');
                     return res.json();
                 })
                 .then(data => {
                     if (data.success) {
-                        // --- TỰ ĐỘNG GIẢM SỐ LƯỢNG BÌNH LUẬN KHI XÓA THÀNH CÔNG ---
+                        showToast(data.message, 'success');
+
                         const container = commentElementToDelete.closest('[class*="danhmuc-comment-"]');
                         if (container) {
                             const postId = container.className.match(/danhmuc-comment-(\d+)/)?.[1];
@@ -529,75 +585,82 @@
 
                         commentElementToDelete.style.transition = 'all 0.3s ease';
                         commentElementToDelete.style.opacity = '0';
-
-                        setTimeout(() => {
-                            commentElementToDelete.remove();
-                        }, 300);
+                        setTimeout(() => commentElementToDelete.remove(), 300);
                     } else {
-                        alert('Server từ chối xóa: ' + (data.message || 'Không rõ lý do'));
+                        showToast(data.message || 'Bình luận đã bị xóa từ trước!', 'danger');
+                        setTimeout(() => window.location.reload(), 2000);
                     }
                 })
                 .catch(err => {
-                    console.error('Chi tiết lỗi:', err);
-                    alert('Không thể xóa bình luận.');
+                    console.error('Error:', err);
+                    showToast('Đã có lỗi xảy ra, trang sẽ tải lại!', 'danger');
+                    setTimeout(() => window.location.reload(), 2000);
                 })
                 .finally(() => {
                     confirmBtn.disabled = false;
-                    if (deleteModalInstance) {
-                        deleteModalInstance.hide();
-                    }
+                    if (deleteModalInstance) deleteModalInstance.hide();
                 });
         });
     }
 
     // ==========================================
-    // 3. XỬ LÝ SỬA BÌNH LUẬN INLINE (CẬP NHẬT)
+    // 3. XỬ LÝ SỬA BÌNH LUẬN INLINE (ĐÃ CÓ TOAST ĐỘC LẬP)
     // ==========================================
-    if (typeof triggerEditComment !== 'function') {
-        window.triggerEditComment = function(commentId, oldContent) {
+
+    // Hàm tự tạo Toast không phụ thuộc vào bên ngoài
+    const showInlineToast = (message, type = 'success') => {
+        const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'danger' ? 'danger' : 'success'} border-0 position-fixed bottom-0 end-0 m-3" 
+             role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 9999;">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', toastHtml);
+        const toastEl = document.body.lastElementChild;
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+        setTimeout(() => toastEl.remove(), 4000);
+    };
+
+    if (typeof window.triggerEditComment !== 'function') {
+        window.triggerEditComment = function(commentId, oldContent, updatedAt) {
             const container = document.getElementById(`comment-text-${commentId}`);
             if (!container || document.getElementById(`edit-form-${commentId}`)) return;
 
             container.innerHTML = `
-                <form id="edit-form-${commentId}" action="/comments/${commentId}" method="POST" style="margin-top: 5px; width: 100%;">
-                    <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}">
-                    <input type="hidden" name="_method" value="PUT">
-                    <div class="input-group input-group-sm">
-                        <input type="text" name="content" class="form-control" value="${oldContent}" required style="border-radius: 8px 0 0 8px; font-size: 12px;">
-                        <button class="btn btn-primary btn-sm" type="submit" style="border-radius: 0 8px 8px 0; font-size: 11px; font-weight: bold;">Lưu</button>
-                    </div>
-                    <div style="margin-top: 2px;">
-                        <button type="button" class="btn btn-link btn-sm text-muted p-0" onclick="cancelEditComment(${commentId}, '${oldContent.replace(/'/g, "\\'")}')" style="font-size: 11px; text-decoration: none;">Hủy sửa</button>
-                    </div>
-                </form>
-            `;
+            <form id="edit-form-${commentId}" action="/comments/${commentId}" method="POST" style="margin-top: 5px; width: 100%;">
+                <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}">
+                <input type="hidden" name="_method" value="PUT">
+                <input type="hidden" name="last_updated_at" value="${updatedAt}">
+                <div class="input-group input-group-sm">
+                    <input type="text" name="content" class="form-control" value="${oldContent.replace(/"/g, '&quot;')}" required style="border-radius: 8px 0 0 8px; font-size: 12px;">
+                    <button class="btn btn-primary btn-sm" type="submit" style="border-radius: 0 8px 8px 0; font-size: 11px; font-weight: bold;">Lưu</button>
+                </div>
+                <div style="margin-top: 2px;">
+                    <button type="button" class="btn btn-link btn-sm text-muted p-0" onclick="cancelEditComment(${commentId}, '${oldContent.replace(/'/g, "\\'")}', '${updatedAt}')" style="font-size: 11px; text-decoration: none;">Hủy sửa</button>
+                </div>
+            </form>
+        `;
         };
 
-        window.cancelEditComment = function(commentId, oldContent) {
+        window.cancelEditComment = function(commentId, oldContent, updatedAt) {
             const container = document.getElementById(`comment-text-${commentId}`);
             if (container) {
                 container.innerHTML = oldContent;
             }
         };
 
-        // --- ĐOẠN CODE AJAX BỊ THIẾU ĐỂ CHẶN CHUYỂN TRANG ---
         document.body.addEventListener('submit', function(e) {
-            // Nếu form đang submit có id bắt đầu bằng edit-form-
             if (e.target && e.target.id && e.target.id.startsWith('edit-form-')) {
-                e.preventDefault(); // CHẶN KHÔNG CHO BỊ ĐƯA ĐI TRANG KHÁC
+                e.preventDefault();
 
                 const form = e.target;
                 const commentId = form.id.replace('edit-form-', '');
-                const input = form.querySelector('input[name="content"]');
-                const newContent = input.value.trim();
-                const container = document.getElementById(`comment-text-${commentId}`);
-
-                if (!newContent) return;
-
                 const submitBtn = form.querySelector('button[type="submit"]');
-                if (submitBtn) submitBtn.disabled = true;
+                submitBtn.disabled = true;
 
-                // Gửi dữ liệu cập nhật ngầm qua Fetch API
                 fetch(form.action, {
                         method: 'POST',
                         headers: {
@@ -606,23 +669,30 @@
                         },
                         body: new FormData(form)
                     })
-                    .then(res => {
-                        if (!res.ok) throw new Error('Cập nhật thất bại');
-                        return res.json();
-                    })
+                    .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            // Thay đổi chữ trực tiếp ngay trên màn hình mà không cần reload trang
-                            if (container) {
-                                container.innerHTML = data.content || newContent;
+                            showInlineToast('Sửa bình luận thành công!', 'success');
+                            const container = document.getElementById(`comment-text-${commentId}`);
+                            if (container) container.innerHTML = data.content;
+
+                            const editBtn = document.querySelector(
+                                `[onclick*="triggerEditComment(${commentId},"]`);
+                            if (editBtn) {
+                                editBtn.setAttribute('onclick',
+                                    `triggerEditComment(${commentId}, '${data.content.replace(/'/g, "\\'")}', '${data.updated_at}')`
+                                );
                             }
                         } else {
-                            alert('Lỗi: ' + (data.message || 'Không thể lưu bình luận'));
+                            // Hiển thị thông báo lỗi từ server nếu có
+                            showInlineToast(data.message || 'Có lỗi xảy ra', 'danger');
+                            // Nếu cần reload trang thì để reload, không thì bỏ dòng dưới
+                            if (data.reload) setTimeout(() => window.location.reload(), 2000);
                         }
                     })
                     .catch(err => {
                         console.error(err);
-                        alert('Có lỗi xảy ra khi sửa bình luận, vui lòng thử lại!');
+                        showInlineToast('Đã có lỗi xảy ra!', 'danger');
                     })
                     .finally(() => {
                         if (submitBtn) submitBtn.disabled = false;
@@ -674,13 +744,15 @@
                     if (!response.ok) {
                         const currentModalEl = form.closest('.modal');
                         if (currentModalEl) {
-                            const modalInstance = bootstrap.Modal.getInstance(currentModalEl);
+                            const modalInstance = bootstrap.Modal.getInstance(
+                                currentModalEl);
                             if (modalInstance) {
-                                currentModalEl.addEventListener('hidden.bs.modal', function() {
-                                    reloadModal.show();
-                                }, {
-                                    once: true
-                                });
+                                currentModalEl.addEventListener('hidden.bs.modal',
+                                    function() {
+                                        reloadModal.show();
+                                    }, {
+                                        once: true
+                                    });
                                 modalInstance.hide();
                             }
                         } else {
@@ -729,7 +801,8 @@
                 Array.from(this.files).forEach(file => {
                     if (!file.type.startsWith('image/')) return;
 
-                    const isDuplicate = accumulatedFiles.some(f => f.name === file.name && f.size === file.size);
+                    const isDuplicate = accumulatedFiles.some(f => f.name === file.name && f
+                        .size === file.size);
                     if (!isDuplicate) {
                         accumulatedFiles.push(file);
                         renderPreviewCard(file);
