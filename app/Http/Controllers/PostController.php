@@ -351,8 +351,22 @@ class PostController extends Controller
 
     public function listLikers($postId)
     {
-        // Lấy bài viết và load danh sách người dùng đã like
-        $post = Post::with('likedByUsers')->findOrFail($postId);
+        // FIX 1: Chặn ID không phải số
+        if (!is_numeric($postId)) {
+            return view('social.custom_message', [
+                'message' => 'ID bài viết không hợp lệ!'
+            ]);
+        }
+
+        // FIX 2: Dùng find
+        $post = Post::with('likedByUsers')->find($postId);
+
+        if (!$post) {
+            // TRẢ VỀ VIEW THÔNG BÁO
+            return view('social.custom_message', [
+                'message' => 'Bài viết không tìm thấy hoặc đã bị xóa.'
+            ]);
+        }
 
         return view('social.post_likers', compact('post'));
     }
