@@ -111,27 +111,36 @@ class CommentController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Tìm comment, nếu không có trả về lỗi 404
         $comment = Comment::findOrFail($id);
 
-        // Kiểm tra quyền (Chỉ cho phép chính chủ sửa bình luận)
-        if (auth()->id() !== $comment->user_id) {
-            return response()->json(['success' => false, 'message' => 'Bạn không có quyền sửa!'], 403);
+        // 1. Kiểm tra tính toàn vẹn dữ liệu (tránh sửa trùng)
+        $requestTimestamp = strtotime($request->input('last_updated_at'));
+        $dbTimestamp = strtotime($comment->updated_at);
+
+        if ($requestTimestamp !== $dbTimestamp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bình luận đã bị thay đổi, trang sẽ tải lại.',
+                'reload' => true
+            ], 200);
         }
 
-        // Validate dữ liệu đầu vào gọn lẹ
+        // 2. Validate dữ liệu với giới hạn 1000 ký tự
         $request->validate([
-            'content' => 'required|string',
+            'content' => 'required|string|max:1000',
+        ], [
+            'content.max' => 'Bình luận không được vượt quá 1000 ký tự.',
+            'content.required' => 'Nội dung bình luận không được để trống.',
         ]);
 
-        // Lưu nội dung mới
+        // 3. Lưu bình luận
         $comment->content = $request->input('content');
         $comment->save();
 
-        // Trả về JSON cho đoạn mã Javascript/Ajax hiển thị lên màn hình
         return response()->json([
             'success' => true,
-            'content' => $comment->content
+            'content' => $comment->content,
+            'updated_at' => $comment->updated_at->toDateTimeString()
         ]);
     }
 }
