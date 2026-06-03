@@ -733,4 +733,179 @@ class MessageController extends Controller
             ], 500);
         }
     }
+    public function getMembers($id)
+    {
+        // 1. Load cuộc hội thoại kèm theo TẤT CẢ thành viên
+        $conversation = \App\Models\Conversation::with('participants')->findOrFail($id);
+
+        // 2. Lấy nguyên vẹn danh sách, không dùng filter ẩn chính mình
+        $members = $conversation->participants->map(function ($user) {
+            $user->avatar_url = $user->avatar_url
+                ? asset($user->avatar_url)
+                : asset('images/default-avatar.png');
+
+            // Lấy luôn vai trò (admin/member) để hiển thị nếu cần
+            $user->role = $user->pivot ? $user->pivot->role : 'member';
+            return $user;
+        });
+
+        // 3. Trả về toàn bộ danh sách cho JavaScript
+        return response()->json($members);
+    }
+    public function getFriendsToAdd($id)
+    {
+        $myId = auth()->id();
+        $conversation = Conversation::findOrFail($id);
+
+        // ĐIỂM QUAN TRỌNG: Lấy ID của những người ĐÃ CÓ trong nhóm hiện tại để tí nữa loại trừ
+        $currentParticipantIds = $conversation->participants()->pluck('users.id')->toArray();
+
+        // 1. Lấy ID những người ĐÃ KẾT BẠN từ bảng friendships
+        $friendIds = DB::table('friendships')
+            ->where(function ($query) use ($myId) {
+                $query->where('user_id', $myId)->orWhere('friend_id', $myId);
+            })
+            ->where('status', 'accepted')
+            ->get()
+            ->map(function ($row) use ($myId) {
+                return $row->user_id == $myId ? $row->friend_id : $row->user_id;
+            })
+            ->toArray();
+
+        // 2. Lấy ID những người CHƯA KẾT BẠN NHƯNG ĐÃ TỪNG NHẮN TIN (từ các cuộc trò chuyện private)
+        $chattedUserIds = DB::table('conversation_participants')
+            ->whereIn('conversation_id', function ($q) use ($myId) {
+                $q->select('conversation_id')
+                    ->from('conversation_participants')
+                    ->join('conversations', 'conversations.id', '=', 'conversation_participants.conversation_id')
+                    ->where('conversation_participants.user_id', $myId)
+                    ->where('conversations.type', 'private');
+            })
+            ->where('user_id', '!=', $myId) // Loại chính mình ra
+            ->pluck('user_id')
+            ->toArray();
+
+        // 3. Gộp 2 mảng ID lại, lọc bỏ các ID trùng nhau
+        $allValidUserIds = array_unique(array_merge($friendIds, $chattedUserIds));
+
+        // 4. Bốc thông tin User, ĐỒNG THỜI loại trừ những người đã ở trong nhóm chat hiện tại
+        $friends = User::whereIn('id', $allValidUserIds)
+            ->whereNotIn('id', $currentParticipantIds) // Loại trừ những người đã có trong nhóm
+            ->select('id', 'username', 'fullname', 'avatar_url')
+            ->get()
+            ->map(function ($user) {
+                // Chuẩn hóa đường dẫn avatar để JS hiển thị không bị lỗi 404
+                $user->avatar_url = $user->avatar_url ? asset($user->avatar_url) : asset('images/default-avatar.png');
+                return $user;
+            });
+
+        // Trả về dữ liệu dạng JSON cho AJAX (Fetch API) bên chat.js hốt về render
+        return response()->json($friends);
+    }
+    public function storeMembers(Request $request, $id)
+    {
+        // 1. Kiểm tra tính hợp lệ của dữ liệu gửi lên
+        $request->validate([
+            'user_ids' => 'required|array',
+            'user_ids.*' => 'exists:users,id' // Đảm bảo tất cả ID truyền lên đều là user thật trong DB
+        ], [
+            'user_ids.required' => 'Cậu chưa chọn thành viên nào để thêm cả!',
+            'user_ids.array'    => 'Dữ liệu thành viên gửi lên không đúng định dạng.'
+        ]);
+
+        try {
+            // 2. Tìm cuộc trò chuyện dựa theo ID
+            $conversation = Conversation::findOrFail($id);
+
+            // Kiểm tra bảo mật nếu cần: Chỉ cho phép thêm người nếu đây là nhóm chat (group)
+            if ($conversation->type !== 'group') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Úi, cuộc trò chuyện này không phải là nhóm chat cậu ơi!'
+                ], 400);
+            }
+
+            // 3. Tiến hành chèn dữ liệu vào bảng trung gian (conversation_participants)
+            // Mẹo: Dùng syncWithoutDetaching giúp chèn thêm mảng ID mới mà giữ nguyên các thành viên cũ
+            if (method_exists($conversation, 'participants')) {
+                $conversation->participants()->syncWithoutDetaching($request->user_ids);
+            } else {
+                // Trường hợp nếu Model Conversation của cậu chưa thiết lập quan hệ participants()
+                // Thì tụi mình dùng DB Builder chèn thủ công trực tiếp vào bảng cho chắc cú:
+                foreach ($request->user_ids as $userId) {
+                    // Kiểm tra xem user này đã có trong nhóm chưa để tránh chèn trùng (gây lỗi Duplicate)
+                    $exists = DB::table('conversation_participants')
+                        ->where('conversation_id', $id)
+                        ->where('user_id', $userId)
+                        ->exists();
+
+                    if (!$exists) {
+                        DB::table('conversation_participants')->insert([
+                            'conversation_id' => $id,
+                            'user_id'         => $userId,
+                            'created_at'      => now(),
+                            'updated_at'      => now(),
+                        ]);
+                    }
+                }
+            }
+
+            // 4. Trả về phản hồi JSON thành công rực rỡ để JavaScript bên ngoài hốt dữ liệu
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã thêm các thành viên được chọn vào nhóm thành công rồi nhé cậu ơi! 🎉'
+            ]);
+        } catch (\Exception $e) {
+            // Ghi log lỗi nếu hệ thống trục trặc để cậu dễ debug
+            \Log::error('Lỗi thêm thành viên nhóm chat: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Đã có lỗi xảy ra trong quá trình lưu dữ liệu. Thử lại sau cậu nhé!'
+            ], 500);
+        }
+    }
+    public function leaveGroup($id)
+    {
+        $myId = auth()->id();
+
+        try {
+            // 1. Tìm cuộc trò chuyện dựa theo ID truyền lên
+            $conversation = Conversation::findOrFail($id);
+
+            // 2. Bảo mật: Phải là nhóm chat (group) thì mới cho out
+            if ($conversation->type !== 'group') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cuộc trò chuyện này không phải nhóm chat cậu ơi!'
+                ], 400);
+            }
+
+            // 3. Xóa bản ghi của chính mình trong bảng trung gian conversation_participants
+            if (method_exists($conversation, 'participants')) {
+                // Nếu Model đã cấu hình quan hệ participants() thì dùng detach cho chuyên nghiệp
+                $conversation->participants()->detach($myId);
+            } else {
+                // Nếu chưa cấu hình Relationship thì dùng DB Query Builder xóa trực tiếp cho chắc cú
+                DB::table('conversation_participants')
+                    ->where('conversation_id', $id)
+                    ->where('user_id', $myId)
+                    ->delete();
+            }
+
+            // 4. Trả về phản hồi JSON báo thành công rực rỡ
+            return response()->json([
+                'success' => true,
+                'message' => 'Cậu đã rời khỏi nhóm chat này thành công! 👋'
+            ]);
+        } catch (\Exception $e) {
+            // Ghi log lỗi để dễ debug nếu hệ thống trục trặc
+            \Log::error('Lỗi rời nhóm chat: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Đã có lỗi xảy ra từ máy chủ, thử lại sau cậu nhé!'
+            ], 500);
+        }
+    }
 }
