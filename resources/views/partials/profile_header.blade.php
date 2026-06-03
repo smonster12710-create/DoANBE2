@@ -129,16 +129,41 @@
 
                 {{-- NÚT CHẶN --}}
                 @if (auth()->check() && auth()->id() !== $user->id)
-                    <form action="{{ route('user.block', $user->id) }}" method="POST" class="friend-action-form"
-                        onsubmit="return confirm('Bạn có chắc muốn chặn người dùng này?')">
+                    @php $isBlocking = auth()->user()->isBlocking($user->id); @endphp
+
+                    <form action="{{ route('user.block', $user->id) }}" method="POST"
+                        id="blockUserForm-{{ $user->id }}" class="friend-action-form">
                         @csrf
-                        <button type="submit" class="profile-action-btn secondary"
-                            style="color: #dc3545; border-color: #dc3545;">
-                            {{ auth()->user()->isBlocking($user->id) ? 'Bỏ chặn' : 'Chặn' }}
+                        {{-- Thêm input này để gửi trạng thái hiện tại lên server --}}
+                        <input type="hidden" name="expected_status"
+                            value="{{ auth()->user()->isBlocking($user->id) ? 'blocked' : 'not_blocked' }}">
+                        <button type="button" class="profile-action-btn secondary"
+                            style="color: #dc3545; border-color: #dc3545;"
+                            onclick="handleBlockAction('{{ $user->id }}', {{ $isBlocking ? 'true' : 'false' }})">
+                            {{ $isBlocking ? 'Bỏ chặn' : 'Chặn' }}
                         </button>
                     </form>
                 @endif
             </div>
         @endif
+    </div>
+</div>
+<div class="modal fade" id="blockConfirmModal" tabindex="-1" aria-labelledby="blockConfirmModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="blockConfirmModalLabel">Xác nhận chặn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn chặn người dùng này không? Sau khi chặn, bạn sẽ không thể thấy bài viết hoặc tương
+                tác với họ.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmBlockBtn">Đồng ý chặn</button>
+            </div>
+        </div>
     </div>
 </div>

@@ -164,3 +164,20 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+function handleBlockAction(userId, isBlocking) {
+    // Nếu đang là trạng thái 'Bỏ chặn' (isBlocking == true)
+    if (isBlocking) {
+        // Submit thẳng form luôn, không hiện modal
+        document.getElementById('blockUserForm-' + userId).submit();
+    } else {
+        // Nếu là trạng thái 'Chặn', hiện Modal xác nhận
+        document.getElementById('confirmBlockBtn').setAttribute('data-user-id', userId);
+        var myModal = new bootstrap.Modal(document.getElementById('blockConfirmModal'));
+        myModal.show();
+    }
+}
+
+document.getElementById('confirmBlockBtn').addEventListener('click', function() {
+    var userId = this.getAttribute('data-user-id');
+    document.getElementById('blockUserForm-' + userId).submit();
+});
