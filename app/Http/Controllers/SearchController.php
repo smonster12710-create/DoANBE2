@@ -29,11 +29,13 @@ class SearchController extends Controller
                     ->orWhere('fullname', 'LIKE', "%{$keyword}%");
             })
             // Nếu Pro không chắc user đã active chưa thì tạm thời bỏ cái where('is_active', 1) để test nhé!
-            ->select('id', 'username', 'fullname', 'avatar_url', 'role', 'show_activity_status')
+            ->select('id', 'username', 'fullname', 'avatar_url', 'role', 'show_activity_status', 'is_online', 'last_activity_at')
             ->paginate(5);
 
         $users->getCollection()->transform(function ($user) {
             $user->can_show_activity = $user->canShowActivityTo(auth()->user());
+            $user->activity_status = $user->activityStatusFor(auth()->user());
+            $user->avatar_src = $user->avatar_src;
 
             return $user;
         });

@@ -5,6 +5,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!searchInput || !resultsBox) return;
 
+    function renderActivityDot(activity) {
+        if (!activity || !activity.visible) {
+            return '';
+        }
+
+        return `
+            <span
+                class="online-dot activity-dot ${activity.status || 'hidden'}"
+                data-activity-user-id="${activity.user_id}"
+                data-activity-status="${activity.status || 'hidden'}"
+                data-last-activity-at="${activity.last_activity_at || ''}"
+                data-short-label="${activity.short_label || ''}"
+                title="${activity.label || ''}"
+            ></span>
+        `;
+    }
+
     searchInput.addEventListener('input', function () {
         let query = this.value.trim();
 
@@ -48,13 +65,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         users.forEach(user => {
                             // Link chuẩn: /profile/username
                             // avatar_url hoặc avatar tùy theo cột Pro select trong Controller nhen
-                            let userImg = user.avatar || user.avatar_url || '/images/default-avatar.png';
+                            let userImg = user.avatar_src || user.avatar || user.avatar_url || '/images/default-avatar.png';
 
                             html += `
                             <div class="result-item" onclick="window.location.href='/profile/${user.username}'" style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 12px;">
                                 <div class="avatar-online-wrap">
                                     <img src="${userImg}" alt="avatar" style="width:35px; height:35px; border-radius:50%; object-fit: cover;">
-                                    ${user.can_show_activity ? '<span class="online-dot"></span>' : ''}
+                                    ${renderActivityDot(user.activity_status)}
                                 </div>
                                 <div>
                                     <div style="font-weight: bold; color: #333;">${user.fullname}</div>

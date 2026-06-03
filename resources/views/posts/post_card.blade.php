@@ -31,9 +31,7 @@
                         <img class="avatar"
                             src="{{ $post->user->avatar_url ? asset($post->user->avatar_url) : asset('img/user/user.jpg') }}"
                             alt="avatar">
-                        @if($post->user && $post->user->canShowActivityTo(auth()->user()))
-                        <span class="online-dot"></span>
-                        @endif
+                        @include('partials.activity_dot', ['user' => $post->user])
                     </div>
                 </a>
 

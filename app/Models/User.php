@@ -31,10 +31,19 @@ class User extends Authenticatable
         'is_active',
         'show_activity_status',
         'profile_locked',
+        'is_online',
+        'last_activity_at',
     ];
 
     protected $hidden = [
         'password_hash',
+    ];
+
+    protected $casts = [
+        'show_activity_status' => 'boolean',
+        'profile_locked' => 'boolean',
+        'is_online' => 'boolean',
+        'last_activity_at' => 'datetime',
     ];
 
     public function getAuthPassword()
@@ -194,7 +203,7 @@ class User extends Authenticatable
             return false;
         }
 
-        // Không hiển thị chấm xanh của chính mình
+        // Chủ tài khoản được tự thấy trạng thái của mình khi đã bật hiển thị hoạt động.
         if ($this->id == $viewer->id) {
             return false;
         }
@@ -205,7 +214,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Mối quan hệ: Một người dùng có thể tham gia nhiều hội nhóm khác nhau
+     * Moi quan he: mot nguoi dung co the tham gia nhieu hoi nhom khac nhau.
      */
     public function joinedGroups()
     {
@@ -214,15 +223,83 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    // Trong app/Models/User.php
     public function blocks()
     {
         return $this->hasMany(Block::class, 'blocker_id');
     }
 
-    // Kiểm tra xem user này đã chặn ai đó chưa
     public function isBlocking($userId)
     {
         return $this->blocks()->where('blocked_id', $userId)->exists();
     }
+
+    public function activityStatusFor($viewer): array
+    {
+        if (!$this->canShowActivityTo($viewer)) {
+            return $this->hiddenActivityPayload();
+        }
+
+        return $this->activityStatusPayload();
+    }
+
+    public function activityStatusPayload(): array
+    {
+        if (!$this->show_activity_status || !$this->last_activity_at) {
+            return $this->hiddenActivityPayload();
+        }
+
+        $lastActivity = $this->last_activity_at;
+        $secondsSinceActivity = $lastActivity->diffInSeconds(now());
+
+        if ($this->is_online && $secondsSinceActivity <= 90) {
+            return [
+                'user_id' => (int) $this->id,
+                'visible' => true,
+                'status' => 'online',
+                'last_activity_at' => $lastActivity->toIso8601String(),
+                'label' => 'Dang hoat dong',
+                'short_label' => 'Online',
+            ];
+        }
+
+        if ($secondsSinceActivity <= 86400) {
+            return [
+                'user_id' => (int) $this->id,
+                'visible' => true,
+                'status' => 'away',
+                'last_activity_at' => $lastActivity->toIso8601String(),
+                'label' => 'Hoat dong ' . $this->shortActivityTime($secondsSinceActivity) . ' truoc',
+                'short_label' => $this->shortActivityTime($secondsSinceActivity),
+            ];
+        }
+
+        return $this->hiddenActivityPayload();
+    }
+
+    private function hiddenActivityPayload(): array
+    {
+        return [
+            'user_id' => (int) $this->id,
+            'visible' => false,
+            'status' => 'hidden',
+            'last_activity_at' => optional($this->last_activity_at)->toIso8601String(),
+            'label' => '',
+            'short_label' => '',
+        ];
+    }
+
+    private function shortActivityTime(int $seconds): string
+    {
+        if ($seconds < 60) {
+            return 'vua xong';
+        }
+
+        if ($seconds < 3600) {
+            return floor($seconds / 60) . 'p';
+        }
+
+        return floor($seconds / 3600) . 'h';
+    }
 }
+
+

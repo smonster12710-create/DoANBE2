@@ -29,9 +29,7 @@
                                             src="{{ $post->user->avatar_url ? asset($post->user->avatar_url) : asset('img/user/user.jpg') }}"
                                             alt="avatar" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
 
-                                        @if($post->user && $post->user->canShowActivityTo(auth()->user()))
-                                            <span class="online-dot"></span>
-                                        @endif
+                                        @include('partials.activity_dot', ['user' => $post->user])
                                     </div>
                                 </a>
 
@@ -110,9 +108,7 @@
                                         <div class="avatar-online-wrap">
                                             <img src="{{ $post->parent->user->avatar_url ? asset($post->parent->user->avatar_url) : asset('img/user/user.jpg') }}"
                                                 style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
-                                            @if($post->parent->user && $post->parent->user->canShowActivityTo(auth()->user()))
-                                                <span class="online-dot"></span>
-                                            @endif
+                                            @include('partials.activity_dot', ['user' => $post->parent->user])
                                         </div>
                                         <strong class="text-dark ms-2" style="font-size: 14px;">
                                             {{ $post->parent->user->fullname ?? 'Người dùng' }}

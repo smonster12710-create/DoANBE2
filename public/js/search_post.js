@@ -9,6 +9,23 @@ document.addEventListener('DOMContentLoaded', function () {
     let lastQuery = '';
     let lastPostHTML = '';
 
+    function renderActivityDot(activity) {
+        if (!activity || !activity.visible) {
+            return '';
+        }
+
+        return `
+            <span
+                class="online-dot activity-dot ${activity.status || 'hidden'}"
+                data-activity-user-id="${activity.user_id}"
+                data-activity-status="${activity.status || 'hidden'}"
+                data-last-activity-at="${activity.last_activity_at || ''}"
+                data-short-label="${activity.short_label || ''}"
+                title="${activity.label || ''}"
+            ></span>
+        `;
+    }
+
     // SEARCH POSTS
     async function searchPosts(query) {
 
@@ -75,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     : 'Không có nội dung';
 
                 const avatar =
+                    post.user?.avatar_src ||
                     post.user?.avatar_url ||
                     '/img/user/user.jpg';
 
@@ -102,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     flex-shrink:0;
                                 "
                             >
-                            ${post.user?.can_show_activity ? '<span class="online-dot"></span>' : ''}
+                            ${renderActivityDot(post.user?.activity_status)}
                         </div>
 
                         <div style="flex:1; min-width:0;">

@@ -188,3 +188,11 @@ body {
     border-radius: 50%;
     z-index: 5;
 }
+
+.online-dot.online {
+    background: #31a24c;
+}
+
+.online-dot.away {
+    background: #8a8d91;
+}

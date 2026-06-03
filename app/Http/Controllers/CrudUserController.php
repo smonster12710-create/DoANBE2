@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Services\UserActivityService;
 
 /**
  * CRUD User controller
@@ -254,6 +255,29 @@ class CrudUserController extends Controller
 
         return redirect('/social');
     }
+    public function removeSwitchAccount(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+        ]);
+
+        $removeId = (int) $request->user_id;
+
+        // Không cho xóa tài khoản đang đăng nhập khỏi danh sách
+        if ($removeId === auth()->id()) {
+            return back()->with('error', 'Không thể xóa tài khoản đang sử dụng.');
+        }
+
+        $accounts = session()->get('switch_accounts', []);
+
+        $accounts = array_values(array_filter($accounts, function ($id) use ($removeId) {
+            return (int) $id !== $removeId;
+        }));
+
+        session(['switch_accounts' => $accounts]);
+
+        return back()->with('success', 'Đã xóa tài khoản khỏi danh sách chuyển nhanh.');
+    }
     /*
     |--------------------------------------------------------------------------
     | Legacy User CRUD
@@ -401,8 +425,12 @@ class CrudUserController extends Controller
     /**
      * Sign out
      */
-    public function signOut()
+    public function signOut(UserActivityService $activityService)
     {
+        if (Auth::check()) {
+            $activityService->markOffline(Auth::user());
+        }
+
         Auth::logout();
 
         return Redirect('/');

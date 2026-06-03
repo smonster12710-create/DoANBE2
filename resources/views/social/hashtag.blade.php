@@ -1,7 +1,7 @@
 @extends('dashboard')
 
 @section('content')
-    <link rel="stylesheet" href="{{ asset('css/social.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/social.css') }}?v={{ time() }}">
     <div class="gird">
         @foreach ($posts as $post)
             @include('posts.post_card', ['post' => $post])
