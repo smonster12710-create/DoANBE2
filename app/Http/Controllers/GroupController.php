@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Group;
 use App\Models\GroupMember;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -159,6 +160,14 @@ class GroupController extends Controller
             return back()->with('error', 'Bạn là Admin sáng lập, không thể rời nhóm. Hãy giải tán nhóm nếu muốn.');
         }
 
+        // 2. Kiểm tra xem user còn là thành viên không (Đây là bước quan trọng nhất)
+        $isMember = $group->members()->where('user_id', $me->id)->exists();
+
+        if (!$isMember) {
+            // Nếu không còn tồn tại liên kết, báo lỗi và load lại trang để xóa nút "Rời nhóm" đi
+            return back()->with('error', 'Bạn đã rời khỏi nhóm này từ trước hoặc không phải là thành viên.');
+        }
+
         // Xóa liên kết khỏi bảng trung gian group_members
         $group->members()->detach($me->id);
 
@@ -205,6 +214,19 @@ class GroupController extends Controller
             return back()->with('error', 'Hành động không hợp lệ.');
         }
 
+        // 1. KIỂM TRA TRẠNG THÁI TRƯỚC KHI DUYỆT
+        $membership = $group->members()
+            ->where('user_id', $userId)
+            ->wherePivot('status', 'pending')
+            ->first();
+
+        // Nếu không tìm thấy bản ghi nào ở trạng thái 'pending', nghĩa là:
+        // - Đã được duyệt ở tab khác rồi
+        // - Hoặc user đã hủy yêu cầu/rời nhóm
+        if (!$membership) {
+            return back()->with('error', 'Yêu cầu này đã được xử lý hoặc không còn tồn tại.');
+        }
+
         // Cập nhật trạng thái của user được duyệt từ pending -> approved
         $group->members()->updateExistingPivot($userId, ['status' => 'approved']);
 
@@ -235,19 +257,25 @@ class GroupController extends Controller
      */
     public function destroy($slug)
     {
-        $group = Group::where('slug', $slug)->firstOrFail();
+        // Tìm nhóm, nếu không tìm thấy (đã bị xóa ở tab khác) thì không bắn 404
+        $group = Group::where('slug', $slug)->first();
+
+        // Kiểm tra: Nếu nhóm không tồn tại, có nghĩa là đã bị giải tán rồi
+        if (!$group) {
+            return redirect()->route('groups.index')
+                ->with('error', 'Nhóm này đã bị giải tán hoặc không tồn tại.');
+        }
 
         // Chỉ có người tạo nhóm mới được giải tán
         if ($group->creator_id !== auth()->id()) {
             return redirect()->back()->with('error', 'Bạn không có quyền giải tán nhóm này!');
         }
 
-        // Xóa tất cả dữ liệu liên quan để tránh rác database
+        // Xóa dữ liệu liên quan và xóa nhóm
         $group->posts()->delete();
-        $group->members()->detach(); // ✨ ĐÃ SỬA: Đồng bộ dùng gỡ liên kết bảng trung gian qua quan hệ members()
+        $group->members()->detach();
         $group->delete();
 
-        // Điều hướng về trang danh sách nhóm thay vì route('dashboard') nếu không có
         return redirect()->route('groups.index')->with('success', 'Đã giải tán nhóm thành công!');
     }
 
