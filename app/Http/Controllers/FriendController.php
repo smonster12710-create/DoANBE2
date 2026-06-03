@@ -12,10 +12,15 @@ class FriendController extends Controller
     /**
      * 1. GỬI LỜI MỜI KẾT BẠN (Người A chủ động bấm nút "Thêm bạn bè")
      */
-    public function sendFriendRequest($username)
+    public function sendFriendRequest(Request $request, $username)
     {
         $me = Auth::user(); // Lấy thông tin người gửi (Người A)
         $target = User::where('username', $username)->firstOrFail(); // Tìm thông tin người nhận (Người B)
+
+        // 1. Kiểm tra sự đồng bộ
+        if ($me->getFriendshipStatus($target->id) !== $request->input('expected_status')) {
+            return back()->with('error', 'Trạng thái đã thay đổi, trang sẽ tải lại để cập nhật.');
+        }
 
         // Không cho phép tự kết bạn với chính mình
         if ($me->id === $target->id) {
@@ -24,7 +29,7 @@ class FriendController extends Controller
 
         // Chỉ gửi lời mời nếu giữa 2 người chưa có mối quan hệ ('none')
         if ($me->getFriendshipStatus($target->id) === 'none') {
-            
+
             // Bước A: Thêm mối quan hệ chờ duyệt vào bảng liên kết `friendships`
             $me->sentFriendRequests()->attach($target->id, ['status' => 'pending']);
 
@@ -51,10 +56,15 @@ class FriendController extends Controller
     /**
      * 2. CHẤP NHẬN KẾT BẠN (Người B bấm nút "Chấp nhận")
      */
-    public function acceptFriendRequest($username)
+    public function acceptFriendRequest(Request $request, $username)
     {
         $me = Auth::user(); // Người bấm đồng ý (Người B)
         $target = User::where('username', $username)->firstOrFail(); // Người gửi ban đầu (Người A)
+
+        // Kiểm tra sự đồng bộ
+        if ($me->getFriendshipStatus($target->id) !== $request->input('expected_status')) {
+            return back()->with('error', 'Trạng thái đã thay đổi, trang sẽ tải lại để cập nhật.');
+        }
 
         // Bước A: Cập nhật trạng thái liên kết từ 'pending' sang 'accepted'
         $me->receivedFriendRequests()->updateExistingPivot($target->id, ['status' => 'accepted']);
@@ -72,10 +82,15 @@ class FriendController extends Controller
     /**
      * 3. TỪ CHỐI LỜI MỜI / HỦY KẾT BẠN
      */
-    public function removeFriend($username)
+    public function removeFriend(Request $request, $username)
     {
-        $me = Auth::user(); 
-        $target = User::where('username', $username)->firstOrFail(); 
+        $me = Auth::user();
+        $target = User::where('username', $username)->firstOrFail();
+
+        // [MỚI] Kiểm tra sự đồng bộ để chống lỗi 2 tab
+        if ($me->getFriendshipStatus($target->id) !== $request->input('expected_status')) {
+            return back()->with('error', 'Trạng thái đã thay đổi, trang sẽ tải lại để cập nhật.');
+        }
 
         // Bước A: Hủy bỏ hoàn toàn các dòng liên kết liên quan trong bảng friendships
         $me->sentFriendRequests()->detach($target->id);
@@ -84,11 +99,11 @@ class FriendController extends Controller
         // Bước B: ✨ ĐÃ FIX KHỚP 100% CẤU TRÚC: Dọn dẹp thông báo cho cả 2 trường hợp (Hủy đã gửi hoặc Từ chối đã nhận)
         DB::table('notifications')
             ->where('type', 'friend_request') // Đúng loại thông báo kết bạn
-            ->where(function($query) use ($me, $target) {
-                $query->where(function($q) use ($me, $target) {
+            ->where(function ($query) use ($me, $target) {
+                $query->where(function ($q) use ($me, $target) {
                     // Trường hợp 1: Tôi là người nhận bấm Từ chối lời mời của đối phương
                     $q->where('user_id', $me->id)->where('actor_id', $target->id);
-                })->orWhere(function($q) use ($me, $target) {
+                })->orWhere(function ($q) use ($me, $target) {
                     // Trường hợp 2: Tôi là người gửi bấm Hủy/Thu hồi lời mời đã gửi đi cho đối phương
                     $q->where('user_id', $target->id)->where('actor_id', $me->id);
                 });
@@ -115,10 +130,19 @@ class FriendController extends Controller
      */
     public function friends($username)
     {
-        $user = User::where('username', $username)->firstOrFail();
+        // 1. Thay firstOrFail() bằng first() để tự xử lý
+        $user = User::where('username', $username)->first();
+
+        // 2. Kiểm tra nếu không tìm thấy user
+        if (!$user) {
+            return view('social.custom_message', [
+                'message' => 'Người dùng này không tồn tại.'
+            ]);
+        }
+
         $me = auth()->user();
 
-        // Thu thập toàn bộ danh sách ID bạn bè có trạng thái 'accepted'
+        // 3. Thực hiện truy vấn danh sách bạn bè
         $friendIds = DB::table('friendships')
             ->where('user_id', $user->id)
             ->where('status', 'accepted')
@@ -129,11 +153,10 @@ class FriendController extends Controller
                     ->where('status', 'accepted')
                     ->pluck('user_id')
             );
-        
+
         $friends = User::whereIn('id', $friendIds)->get();
         $friendRequests = collect();
-        
-        // Chỉ lấy danh sách lời mời kết bạn chờ duyệt nếu lướt xem trang của chính mình
+
         if ($me && $me->id === $user->id) {
             $friendRequests = $me->receivedFriendRequests()->wherePivot('status', 'pending')->get();
         }

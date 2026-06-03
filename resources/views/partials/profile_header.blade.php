@@ -65,12 +65,14 @@
                         <form method="POST" action="{{ route('friend.remove', $user->username) }}"
                             class="friend-action-form">
                             @csrf
+                            <input type="hidden" name="expected_status" value="accepted">
                             <button type="submit" class="profile-action-btn secondary">Hủy kết bạn</button>
                         </form>
                     @elseif ($friendStatus === 'pending')
                         <form method="POST" action="{{ route('friend.remove', $user->username) }}"
                             class="friend-action-form">
                             @csrf
+                            <input type="hidden" name="expected_status" value="pending">
                             <button type="submit" class="profile-action-btn secondary">Đang chờ đồng ý</button>
                         </form>
                     @elseif ($friendStatus === 'requested')
@@ -78,11 +80,13 @@
                             <form method="POST" action="{{ route('friend.accept', $user->username) }}"
                                 class="friend-action-form">
                                 @csrf
+                                <input type="hidden" name="expected_status" value="requested">
                                 <button type="submit" class="profile-action-btn primary">Chấp nhận</button>
                             </form>
                             <form method="POST" action="{{ route('friend.remove', $user->username) }}"
                                 class="friend-action-form">
                                 @csrf
+                                <input type="hidden" name="expected_status" value="requested">
                                 <button type="submit" class="profile-action-btn secondary">Từ chối</button>
                             </form>
                         </div>
@@ -90,6 +94,7 @@
                         <form method="POST" action="{{ route('friend.send', $user->username) }}"
                             class="friend-action-form">
                             @csrf
+                            <input type="hidden" name="expected_status" value="none">
                             <button type="submit" class="profile-action-btn primary">Thêm bạn bè</button>
                         </form>
                     @endif
