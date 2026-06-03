@@ -1,12 +1,37 @@
-{{-- TẦNG 0: BÙA CÀO DỮ LIỆU --}}
 @php
-    $activeStories = \App\Models\Story::with('user')
-        ->where('expires_at', '>', now())
-        ->latest()
-        ->get()
-        ->groupBy('user_id');
-@endphp
+    // Mặc định cho một cái giỏ rỗng lỡ user chưa đăng nhập thì web không bị sập
+    $activeStories = collect();
 
+    if (auth()->check() && auth()->user()->role !== 'admin') {
+        $currentUserId = auth()->id();
+
+        // 1. Quét tìm anh em (Trường hợp 1: Mình là người chủ động gửi lời mời)
+        $friends1 = \DB::table('friendships')
+            ->where('user_id', $currentUserId)
+            ->where('status', 'accepted')
+            ->pluck('friend_id')
+            ->toArray();
+
+        // 2. Quét tìm anh em (Trường hợp 2: Mình là người được mời và đã bấm đồng ý)
+        $friends2 = \DB::table('friendships')
+            ->where('friend_id', $currentUserId)
+            ->where('status', 'accepted')
+            ->pluck('user_id')
+            ->toArray();
+
+        // 3. Gom 2 hội này lại làm một, lọc mấy thằng trùng (nếu có), và nhét thêm chính mình vô
+        $friendIds = array_unique(array_merge($friends1, $friends2));
+        $friendIds[] = $currentUserId; // ID của Pro nè, để còn thấy tin của mình
+
+        // 4. Tuyệt kỹ lùa gà: Chỉ hốt những cái Story của những ID nằm trong cái bọc $friendIds
+        $activeStories = \App\Models\Story::with('user')
+            ->whereIn('user_id', $friendIds) // Chốt chặn bảo mật nằm ở đây!
+            ->where('expires_at', '>', now())
+            ->latest()
+            ->get()
+            ->groupBy('user_id');
+    }
+@endphp
 <style>
     .story-wrapper {
         display: flex;
@@ -88,150 +113,152 @@
 </style>
 
 {{-- TẦNG 1: THANH CUỘN NGANG --}}
-<div class="story-wrapper shadow-sm">
+@if (!auth()->check() || auth()->user()->role !== 'admin')
+    <div class="story-wrapper shadow-sm">
 
-    {{-- Nút Tạo Tin Của Mình --}}
-    <div class="story-item" data-bs-toggle="modal" data-bs-target="#createStoryModal">
-        <div class="story-add-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                <path
-                    d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-            </svg>
+        {{-- Nút Tạo Tin Của Mình --}}
+        <div class="story-item" data-bs-toggle="modal" data-bs-target="#createStoryModal">
+            <div class="story-add-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                </svg>
+            </div>
+            <span class="story-name fw-bold">Tạo tin</span>
         </div>
-        <span class="story-name fw-bold">Tạo tin</span>
+
+        {{-- Vòng Tròn Xem Tin --}}
+        @foreach($activeStories as $userId => $userStories)
+            @php
+                $firstStory = $userStories->first();
+            @endphp
+                <div class="story-item" data-bs-toggle="modal" data-bs-target="#viewStoryModal{{ $userId }}">
+                    <div class="story-ring">
+                        <img src="{{ asset('storage/' . $firstStory->media_path) }}" alt="story preview">
+                    </div>
+                    <span class="story-name">{{ $firstStory->user->fullname ?? 'Người dùng' }}</span>
+                </div>
+        @endforeach
+
     </div>
 
-    {{-- Vòng Tròn Xem Tin Của Thiên Hạ --}}
+
+    {{-- TẦNG 2: MODAL TẠO TIN (ĐÃ VÁ LẠI ID FORM) --}}
+    <div class="modal fade" id="createStoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Tạo tin 24h</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                {{-- ĐÃ THÊM ID FORM Ở ĐÂY NÈ PRO --}}
+                <form id="storyForm" action="{{ route('stories.store') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Chọn hình ảnh hoặc video ngắn</label>
+                            <input class="form-control" type="file" name="media" accept="image/*,video/mp4,video/quicktime"
+                                required>
+                        </div>
+
+                        {{-- Nơi hiển thị lỗi Real-time --}}
+                        <div id="js-media-error" class="alert alert-danger py-2" style="font-size: 14px; display: none;">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Thêm văn bản (Tùy chọn)</label>
+                            <input type="text" id="storyContent" class="form-control" name="content"
+                                placeholder="Gõ vài chữ cho xôm tụ..." maxlength="255">
+
+                            <div class="text-right mt-1">
+                                <small id="charCount" class="text-muted" style="font-size: 12px;">0/255 ký tự</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Đăng tin</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    {{-- TẦNG 3: VÒNG LẶP MODAL XEM TIN (ĐÃ ĐUỔI SCRIPT RA NGOÀI) --}}
     @foreach($activeStories as $userId => $userStories)
-        @php
-            $firstStory = $userStories->first();
-        @endphp
-        <div class="story-item" data-bs-toggle="modal" data-bs-target="#viewStoryModal{{ $userId }}">
-            <div class="story-ring">
-                <img src="{{ asset('storage/' . $firstStory->media_path) }}" alt="story preview">
-            </div>
-            <span class="story-name">{{ $firstStory->user->fullname ?? 'Người dùng' }}</span>
-        </div>
-    @endforeach
+        <div class="modal fade" id="viewStoryModal{{ $userId }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content bg-dark text-white" style="border-radius: 12px; overflow: hidden; border: none;">
 
-</div>
-
-
-{{-- TẦNG 2: MODAL TẠO TIN (ĐÃ VÁ LẠI ID FORM) --}}
-<div class="modal fade" id="createStoryModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">Tạo tin 24h</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            {{-- ĐÃ THÊM ID FORM Ở ĐÂY NÈ PRO --}}
-            <form id="storyForm" action="{{ route('stories.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Chọn hình ảnh hoặc video ngắn</label>
-                        <input class="form-control" type="file" name="media" accept="image/*,video/mp4,video/quicktime"
-                            required>
+                    {{-- Thanh Gạch Ngang Chạy Trên Nóc --}}
+                    <div class="d-flex w-100 px-1 pt-2" style="position: absolute; top: 0; z-index: 999999; gap: 4px;">
+                        @foreach($userStories as $story)
+                            <div
+                                style="flex-grow: 1; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden;">
+                                <div class="progress-fill js-fill-{{ $userId }}-{{ $loop->index }}"
+                                    style="width: 0%; height: 100%; background: #fff;"></div>
+                            </div>
+                        @endforeach
                     </div>
 
-                    {{-- Nơi hiển thị lỗi Real-time --}}
-                    <div id="js-media-error" class="alert alert-danger py-2" style="font-size: 14px; display: none;">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Thêm văn bản (Tùy chọn)</label>
-                        <input type="text" id="storyContent" class="form-control" name="content"
-                            placeholder="Gõ vài chữ cho xôm tụ..." maxlength="255">
-
-                        <div class="text-right mt-1">
-                            <small id="charCount" class="text-muted" style="font-size: 12px;">0/255 ký tự</small>
+                    {{-- Thanh Header người đăng --}}
+                    <div class="modal-header border-0 pb-0"
+                        style="position: absolute; z-index: 99999; width: 100%; background: linear-gradient(rgba(0,0,0,0.7), transparent);">
+                        <div class="d-flex align-items-center w-100 p-2">
+                            <img src="{{ $userStories->first()->user->avatar_url ? asset($userStories->first()->user->avatar_url) : asset('img/user/user.jpg') }}"
+                                class="rounded-circle me-2" width="40" height="40"
+                                style="border: 2px solid white; object-fit: cover;">
+                            <strong
+                                class="text-shadow fs-6">{{ $userStories->first()->user->fullname ?? 'Người dùng' }}</strong>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Đăng tin</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
+                    <div class="modal-body p-0">
+                        <div id="storyCarousel{{ $userId }}" class="carousel slide" data-bs-ride="false">
+                            <div class="carousel-inner">
+                                @foreach($userStories as $story)
+                                    <div class="carousel-item {{ $loop->index == 0 ? 'active' : '' }}">
+                                        <div class="carousel-item-container">
+                                            @if($story->media_type == 'video')
+                                                <video src="{{ asset('storage/' . $story->media_path) }}"
+                                                    style="max-height: 100%; max-width: 100%; object-fit: contain;" controls autoplay
+                                                    muted></video>
+                                            @else
+                                                <img src="{{ asset('storage/' . $story->media_path) }}"
+                                                    style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                                            @endif
+                                        </div>
 
-{{-- TẦNG 3: VÒNG LẶP MODAL XEM TIN (ĐÃ ĐUỔI SCRIPT RA NGOÀI) --}}
-@foreach($activeStories as $userId => $userStories)
-    <div class="modal fade" id="viewStoryModal{{ $userId }}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content bg-dark text-white" style="border-radius: 12px; overflow: hidden; border: none;">
-
-                {{-- Thanh Gạch Ngang Chạy Trên Nóc --}}
-                <div class="d-flex w-100 px-1 pt-2" style="position: absolute; top: 0; z-index: 999999; gap: 4px;">
-                    @foreach($userStories as $story)
-                        <div
-                            style="flex-grow: 1; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden;">
-                            <div class="progress-fill js-fill-{{ $userId }}-{{ $loop->index }}"
-                                style="width: 0%; height: 100%; background: #fff;"></div>
-                        </div>
-                    @endforeach
-                </div>
-
-                {{-- Thanh Header người đăng --}}
-                <div class="modal-header border-0 pb-0"
-                    style="position: absolute; z-index: 99999; width: 100%; background: linear-gradient(rgba(0,0,0,0.7), transparent);">
-                    <div class="d-flex align-items-center w-100 p-2">
-                        <img src="{{ $userStories->first()->user->avatar_url ? asset($userStories->first()->user->avatar_url) : asset('img/user/user.jpg') }}"
-                            class="rounded-circle me-2" width="40" height="40"
-                            style="border: 2px solid white; object-fit: cover;">
-                        <strong
-                            class="text-shadow fs-6">{{ $userStories->first()->user->fullname ?? 'Người dùng' }}</strong>
-                    </div>
-                </div>
-
-                <div class="modal-body p-0">
-                    <div id="storyCarousel{{ $userId }}" class="carousel slide" data-bs-ride="false">
-                        <div class="carousel-inner">
-                            @foreach($userStories as $story)
-                                <div class="carousel-item {{ $loop->index == 0 ? 'active' : '' }}">
-                                    <div class="carousel-item-container">
-                                        @if($story->media_type == 'video')
-                                            <video src="{{ asset('storage/' . $story->media_path) }}"
-                                                style="max-height: 100%; max-width: 100%; object-fit: contain;" controls autoplay
-                                                muted></video>
-                                        @else
-                                            <img src="{{ asset('storage/' . $story->media_path) }}"
-                                                style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                                        @if($story->content)
+                                            <div class="position-absolute bottom-0 w-100 p-4 text-center"
+                                                style="background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 9;">
+                                                <p class="mb-0 text-white fw-bold text-shadow">{{ $story->content }}</p>
+                                                <small class="text-white-50">{{ $story->created_at->diffForHumans() }}</small>
+                                            </div>
                                         @endif
                                     </div>
+                                @endforeach
+                            </div>
 
-                                    @if($story->content)
-                                        <div class="position-absolute bottom-0 w-100 p-4 text-center"
-                                            style="background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 9;">
-                                            <p class="mb-0 text-white fw-bold text-shadow">{{ $story->content }}</p>
-                                            <small class="text-white-50">{{ $story->created_at->diffForHumans() }}</small>
-                                        </div>
-                                    @endif
-                                </div>
-                            @endforeach
+                            @if($userStories->count() > 1)
+                                <button class="carousel-control-prev" type="button" data-bs-target="#storyCarousel{{ $userId }}"
+                                    data-bs-slide="prev" style="z-index: 99;">
+                                    <span class="carousel-control-prev-icon"></span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#storyCarousel{{ $userId }}"
+                                    data-bs-slide="next" style="z-index: 99;">
+                                    <span class="carousel-control-next-icon"></span>
+                                </button>
+                            @endif
                         </div>
-
-                        @if($userStories->count() > 1)
-                            <button class="carousel-control-prev" type="button" data-bs-target="#storyCarousel{{ $userId }}"
-                                data-bs-slide="prev" style="z-index: 99;">
-                                <span class="carousel-control-prev-icon"></span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#storyCarousel{{ $userId }}"
-                                data-bs-slide="next" style="z-index: 99;">
-                                <span class="carousel-control-next-icon"></span>
-                            </button>
-                        @endif
                     </div>
-                </div>
 
+                </div>
             </div>
         </div>
-    </div>
-@endforeach
+    @endforeach
+@endif
 
 
 {{-- TẦNG 4: KHỐI SCRIPT ĐỘC LẬP HOÀN TOÀN (NẰM NGOÀI VÒNG LẶP FOREACH) --}}

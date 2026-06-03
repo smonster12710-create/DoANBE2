@@ -28,7 +28,7 @@ class SearchController extends Controller
                 $query->where('username', 'LIKE', "%{$keyword}%")
                     ->orWhere('fullname', 'LIKE', "%{$keyword}%");
             })
-            // Nếu Pro không chắc user đã active chưa thì tạm thời bỏ cái where('is_active', 1) để test nhé!
+            // Nếu không chắc user đã active chưa thì tạm thời bỏ cái where('is_active', 1) để test !
             ->select('id', 'username', 'fullname', 'avatar_url', 'role', 'show_activity_status', 'is_online', 'last_activity_at')
             ->paginate(5);
 

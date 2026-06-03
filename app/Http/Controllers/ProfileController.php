@@ -246,6 +246,8 @@ class ProfileController extends Controller
             'address'
         ]));
 
+        $user->anonymous_posts = $request->has('anonymous_posts');
+
         // Xử lý Upload Avatar
         // Xử lý upload avatar: ảnh sẽ được resize và nén trước khi lưu.
         if ($request->hasFile('avatar')) {
@@ -329,6 +331,34 @@ class ProfileController extends Controller
 
         return back()->with('success', 'Đã tắt khóa bảo vệ trang cá nhân!');
     }
+
+    /**
+     * Hiển thị trang chế độ ẩn danh
+     */
+    public function anonymousToggle()
+    {
+        $user = auth()->user();
+
+        return view('social.profile_anonymous', compact('user'));
+    }
+
+    /**
+     * Cập nhật chế độ ẩn danh
+     */
+    public function updateAnonymous()
+    {
+        $user = auth()->user();
+
+        $user->anonymous_posts = !$user->anonymous_posts;
+        $user->save();
+
+        if ($user->anonymous_posts) {
+            return back()->with('success', 'Đã bật chế độ ẩn danh! Bài viết mới của bạn sẽ được đăng ẩn danh.');
+        }
+
+        return back()->with('success', 'Đã tắt chế độ ẩn danh! Bài viết mới sẽ hiển thị tên thực của bạn.');
+    }
+
     /**
      * Nén và resize ảnh profile trước khi lưu.
      *

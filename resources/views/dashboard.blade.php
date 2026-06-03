@@ -951,6 +951,9 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                                 <a href="{{ route('activity.status') }}">
                                     Trạng thái hoạt động
                                 </a>
+                                <a href="{{ route('profile.anonymous.toggle') }}">
+                                    Bật ẩn danh
+                                </a>
                             </div>
 
                         </div> <a href="#">Trợ giúp và hỗ trợ</a>
@@ -994,13 +997,17 @@ $unreadMessageCount = \App\Models\Message::where('is_read', 0)
                                 accept="image/*" multiple>
                             <div id="preview-images" class="d-flex flex-wrap gap-2 mt-2"></div>
                         </div>
-                    </div>
-                    <div class="mb-3" style="margin-left: 20px;">
-                        <input class="form-check-input" type="checkbox" name="is_anonymous" id="anonymousCheck"
-                            value="1">
-                        <label class="form-check-label" for="anonymousCheck">
-                            Đăng bài ẩn danh (Sẽ không ai biết bạn là ai)
-                        </label>
+                        <div class="mb-3">
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                                <input type="checkbox" name="is_anonymous" value="1" {{ auth()->check() && auth()->user()->anonymous_posts ? 'checked' : '' }}>
+                                <span>Đăng ẩn danh</span>
+                            </label>
+                            @if(auth()->check() && auth()->user()->anonymous_posts)
+                                <p style="margin: 8px 0 0; color: #6c757d; font-size: 13px;">
+                                    Chế độ ẩn danh đang bật trong cài đặt. Bỏ tích để đăng bài công khai.
+                                </p>
+                            @endif
+                            </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>

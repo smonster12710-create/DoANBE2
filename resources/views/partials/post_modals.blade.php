@@ -91,8 +91,8 @@
 {{-- MODAL CHI TIẾT (INSTAGRAM STYLE) --}}
 <div class="modal fade" id="instagramModal{{ $post->id }}" tabindex="-1" aria-hidden="true">
     @php
-        $displayMedia = $post->media ?? collect();
-        $hasMedia = $displayMedia->count() > 0;
+$displayMedia = $post->media ?? collect();
+$hasMedia = $displayMedia->count() > 0;
     @endphp
 
     <div class="modal-dialog modal-dialog-centered {{ $hasMedia ? 'modal-lg' : 'modal-md' }}">
@@ -150,8 +150,8 @@
 
                 {{-- CỘT PHẢI: THÔNG TIN USER, NỘI DUNG VÀ BÌNH LUẬN --}}
                 <div {!! $hasMedia
-                    ? 'style="background: #fff; display: flex; flex-direction: column; width: 340px; flex-shrink: 0;"'
-                    : 'style="background: #fff; display: flex; flex-direction: column; width: 100%; flex-grow: 1;"' !!}>
+    ? 'style="background: #fff; display: flex; flex-direction: column; width: 340px; flex-shrink: 0;"'
+    : 'style="background: #fff; display: flex; flex-direction: column; width: 100%; flex-grow: 1;"' !!}>
 
                     {{-- 1. THÔNG TIN USER ĐĂNG BÀI (HEADER) --}}
                     <div class="p-3 d-flex align-items-center border-bottom">
@@ -182,7 +182,7 @@
 
                                     <div class="d-flex align-items-center mb-2">
                                         @if ($post->sharedPost->is_anonymous)
-                                            <img src="{{ asset('img/default-anonymous.png') }}"
+                                            <img src="{{ asset('img/user/user.jpg') }}"
                                                 class="rounded-circle me-2" width="24" height="24"
                                                 style="object-fit: cover;" alt="Ẩn danh">
                                             <strong class="small text-dark" style="font-size: 13px;">Người dùng ẩn
@@ -247,11 +247,21 @@
                             @foreach ($post->comments as $comment)
                                 <div class="d-flex mb-3 justify-content-between align-items-start small">
                                     <div class="d-flex" style="flex: 1; max-width: 85%;">
-                                        <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://i.pravatar.cc/40?u=' . $comment->user_id }}"
-                                            class="rounded-circle me-2" width="32" height="32"
-                                            style="object-fit: cover;">
+                                        @if($comment->is_anonymous)
+                                            <img src="{{ asset('img/user/user.jpg') }}"
+                                                class="rounded-circle me-2" width="32" height="32"
+                                                style="object-fit: cover;">
+                                        @else
+                                            <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://i.pravatar.cc/40?u=' . $comment->user_id }}"
+                                                class="rounded-circle me-2" width="32" height="32"
+                                                style="object-fit: cover;">
+                                        @endif
                                         <div style="flex: 1;">
-                                            <strong>{{ $comment->user->fullname ?? 'Người dùng' }}</strong>
+                                            @if($comment->is_anonymous)
+                                                <strong>Ẩn danh</strong>
+                                            @else
+                                                <strong>{{ $comment->user->fullname ?? 'Người dùng' }}</strong>
+                                            @endif
 
                                             {{-- BỌC NỘI DUNG VĂN BẢN ĐỂ SỬA TRỰC TIẾP --}}
                                             <div id="comment-text-{{ $comment->id }}"

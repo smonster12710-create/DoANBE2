@@ -33,6 +33,8 @@ class CommentController extends Controller
         $comment->post_id = $postId;
         $comment->user_id = Auth::id();
         $comment->content = $request->content;
+        // Nếu user có bật chế độ ẩn danh, bình luận cũng sẽ ẩn danh
+        $comment->is_anonymous = Auth::user()->anonymous_posts ?? false;
         $comment->save();
 
         // ====================================================================
@@ -49,16 +51,22 @@ class CommentController extends Controller
             // ĐÃ CẬP NHẬT: Ưu tiên lấy trang cá nhân/fanpage hiện tại trong session nếu có
             $currentProfile = session('current_profile') ?? Auth::user();
 
-            // Xác định tên hiển thị chính xác của trang cá nhân
-            $fullName = $currentProfile->fullname ?? $currentProfile->name ?? Auth::user()->fullname ?? 'Người dùng';
-
-            // Xác định đúng avatar của trang cá nhân đang chọn
-            if (!empty($currentProfile->avatar_url)) {
-                $avatarUrl = asset($currentProfile->avatar_url);
-            } elseif (!empty(Auth::user()->avatar_url)) {
-                $avatarUrl = asset(Auth::user()->avatar_url);
+            // Kiểm tra xem comment có ẩn danh không
+            if ($comment->is_anonymous) {
+                $fullName = 'Ẩn danh';
+                $avatarUrl = asset('img/user/user.jpg');
             } else {
-                $avatarUrl = 'https://i.pravatar.cc/40?u=' . Auth::id();
+                // Xác định tên hiển thị chính xác của trang cá nhân
+                $fullName = $currentProfile->fullname ?? $currentProfile->name ?? Auth::user()->fullname ?? 'Người dùng';
+
+                // Xác định đúng avatar của trang cá nhân đang chọn
+                if (!empty($currentProfile->avatar_url)) {
+                    $avatarUrl = asset($currentProfile->avatar_url);
+                } elseif (!empty(Auth::user()->avatar_url)) {
+                    $avatarUrl = asset(Auth::user()->avatar_url);
+                } else {
+                    $avatarUrl = 'https://i.pravatar.cc/40?u=' . Auth::id();
+                }
             }
 
             return response()->json([
@@ -67,6 +75,7 @@ class CommentController extends Controller
                 'user_avatar' => $avatarUrl,
                 'comment_id' => $comment->id,
                 'created_at' => 'Vừa xong',
+                'is_anonymous' => $comment->is_anonymous,
                 'destroy_route' => route('comments.destroy', $comment->id) // Trả về link xóa để JS vẽ nút xóa
             ]);
         }
