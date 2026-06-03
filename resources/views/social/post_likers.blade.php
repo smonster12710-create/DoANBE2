@@ -2,6 +2,12 @@
 
 @section('content')
 <div class="container" style="max-width: 600px; margin-top: 20px;">
+    {{-- Đặt đoạn thông báo lỗi ở đây --}}
+    @if(session('error'))
+        <div class="alert alert-danger shadow-sm mb-3">
+            {{ session('error') }}
+        </div>
+    @endif
     <div class="card shadow-sm">
         <div class="card-header bg-white">
             <h5 class="mb-0">Những người đã thích bài viết</h5>
