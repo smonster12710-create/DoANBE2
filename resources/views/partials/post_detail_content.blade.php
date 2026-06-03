@@ -33,14 +33,22 @@
                         @foreach ($post->comments as $comment)
                             <div class="d-flex mb-3 justify-content-between align-items-start small">
                                 <div class="d-flex">
-                                    <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://i.pravatar.cc/40?u=' . $comment->user_id }}"
-                                        class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
+                                    @if($comment->is_anonymous)
+                                        <img src="{{ asset('img/user/user.jpg') }}" class="rounded-circle me-2" width="32" height="32"
+                                            style="object-fit: cover;">
+                                    @else
+                                        <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://i.pravatar.cc/40?u=' . $comment->user_id }}"
+                                            class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
+                                    @endif
 
                                     <div>
                                         {{-- Hàng 1: Fullname và @username --}}
-                                        <strong>{{ $comment->user->fullname ?? 'Người dùng' }}</strong>
-                                        <span class="text-muted ms-1"
-                                            style="font-size: 12px;">{{ '@' . $comment->user->username }}</span>
+                                        @if($comment->is_anonymous)
+                                            <strong>Ẩn danh</strong>
+                                        @else
+                                            <strong>{{ $comment->user->fullname ?? 'Người dùng' }}</strong>
+                                            <span class="text-muted ms-1" style="font-size: 12px;">{{ '@' . $comment->user->username }}</span>
+                                        @endif
 
                                         {{-- Hàng 2: NỘI DUNG (ĐÃ XÀI DẤU {!! !!} ĐỂ HIỆN LINK XANH) --}}
                                         <div class="mt-1 text-dark" style="font-size: 14px; word-break: break-word;">

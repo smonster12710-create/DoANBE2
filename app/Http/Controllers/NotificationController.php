@@ -9,14 +9,30 @@ class NotificationController extends Controller
     /*
      * Hiển thị trang danh sách thông báo
      */
-    public function index()
+    /*
+     * Hiển thị trang danh sách thông báo (Đã độ thêm Filter Tất cả - Chưa đọc - Đã đọc)
+     */
+    public function index(Request $request)
     {
-        $notifications = \App\Models\Notification::with('actor')
-            ->where('user_id', auth()->id())
-            ->latest()
-            ->get();
+        // 1. Chụp lấy cái chữ (all, unread, read) trên thanh URL, không có thì mặc định là 'all'
+        $filter = $request->query('filter', 'all');
 
-        return view('social.notifications', compact('notifications'));
+        // 2. Khởi tạo query builder để lấy thông báo của user đang đăng nhập, kèm luôn dữ liệu của thằng actor (người tạo ra thông báo
+        $query = \App\Models\Notification::with('actor')
+            ->where('user_id', auth()->id());
+
+        // 3. Đóng chốt lưới lọc
+        if ($filter == 'unread') {
+            $query->where('is_read', 0); // lấy data chưa đọc
+        } elseif ($filter == 'read') {
+            $query->where('is_read', 1); // lấy data đã đọc
+        }
+
+        // 4. lấy data mới nhất về
+        $notifications = $query->latest()->get();
+
+        // 5. Gói mớ data và biến $filter quăng qua cho Blade để nó biết đang ở tab nào
+        return view('social.notifications', compact('notifications', 'filter'));
     }
 
     /**

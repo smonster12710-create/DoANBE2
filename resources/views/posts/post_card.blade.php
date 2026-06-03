@@ -126,7 +126,7 @@
                 <div class="original-post-block border rounded p-3 bg-light mb-3 mx-1">
                     <div class="d-flex align-items-center mb-2">
                         @if ($post->parent->is_anonymous)
-                            <img src="{{ asset('img/default-anonymous.png') }}"
+                            <img src="{{ asset('img/user/user.jpg') }}"
                                 style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
                             <strong class="text-dark ms-2" style="font-size: 14px;">Người dùng ẩn danh 🕵️</strong>
                         @else
@@ -162,25 +162,21 @@
 
                         <div class="parent-fb-gallery my-2">
                             @if ($parentCount == 1)
-                                <div class="single-image shadow-sm"
-                                    style="max-height: 250px; overflow: hidden; border-radius: 6px;">
-                                    <img src="{{ $getImageUrl($parentMedia[0]->media_url) }}" alt="parent-post-image"
-                                        class="img-fluid w-100" style="object-fit: cover; max-height: 250px;"
-                                        data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->parent->id }}">
+                                <div class="single-image shadow-sm" style="max-height: 250px; overflow: hidden; border-radius: 6px;">
+                                    <img src="{{ $getImageUrl($parentMedia[0]->media_url) }}" alt="parent-post-image" class="img-fluid w-100"
+                                        style="object-fit: cover; max-height: 250px;" data-bs-toggle="modal"
+                                        data-bs-target="#instagramModal{{ $post->parent->id }}">
                                 </div>
                             @else
                                 <div class="row g-1">
                                     @foreach ($parentMedia->take(4) as $index => $item)
                                         <div class="col-3 position-relative">
-                                            <img src="{{ $getImageUrl($item->media_url) }}" alt="parent-post-image"
-                                                class="img-fluid rounded"
-                                                style="height: 80px; width: 100%; object-fit: cover;"
-                                                data-bs-toggle="modal"
+                                            <img src="{{ $getImageUrl($item->media_url) }}" alt="parent-post-image" class="img-fluid rounded"
+                                                style="height: 80px; width: 100%; object-fit: cover;" data-bs-toggle="modal"
                                                 data-bs-target="#instagramModal{{ $post->parent->id }}">
                                             @if ($index == 3 && $parentCount > 4)
                                                 <div class="position-absolute top-0 start-0 w-100 h-100 rounded d-flex align-items-center justify-content-center text-white fw-bold"
-                                                    style="background: rgba(0,0,0,0.5); font-size: 14px; cursor: pointer;"
-                                                    data-bs-toggle="modal"
+                                                    style="background: rgba(0,0,0,0.5); font-size: 14px; cursor: pointer;" data-bs-toggle="modal"
                                                     data-bs-target="#instagramModal{{ $post->parent->id }}">
                                                     +{{ $parentCount - 4 }}
                                                 </div>
@@ -195,75 +191,75 @@
 
                 {{-- TRƯỜNG HỢP 2: BÀI VIẾT THƯỜNG --}}
             @else
-                @if ($post->media->count())
-                    @php
-                        $media = $post->media->values();
-                        $count = $media->count();
-                        $defaultImage = asset('img/default-image.png');
-                        $getImageUrl = function ($path) use ($defaultImage) {
-                            if (empty($path)) {
-                                return $defaultImage;
-                            }
-                            if (\Illuminate\Support\Str::startsWith($path, ['http://', 'https://'])) {
-                                return $path;
-                            }
-                            return asset(ltrim($path, '/'));
-                        };
-                    @endphp
+                            @if ($post->media->count())
+                                    @php
+                                        $media = $post->media->values();
+                                        $count = $media->count();
+                                        $defaultImage = asset('img/default-image.png');
+                                        $getImageUrl = function ($path) use ($defaultImage) {
+                                            if (empty($path)) {
+                                                return $defaultImage;
+                                            }
+                                            if (\Illuminate\Support\Str::startsWith($path, ['http://', 'https://'])) {
+                                                return $path;
+                                            }
+                                            return asset(ltrim($path, '/'));
+                                        };
+                                    @endphp
 
-                    <div class="fb-gallery mb-3" onclick="event.stopPropagation()">
-                        @if ($count == 1)
-                            <div class="single-image">
-                                <img src="{{ $getImageUrl($media[0]->media_url) }}" alt="post-image" loading="lazy"
-                                    onerror="this.onerror=null; this.src='{{ $defaultImage }}';"
-                                    data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->id }}">
-                            </div>
-                        @elseif ($count == 2)
-                            <div class="two-images">
-                                @foreach ($media as $item)
-                                    <img src="{{ $getImageUrl($item->media_url) }}" alt="post-image" loading="lazy"
-                                        onerror="this.onerror=null;this.src='{{ $defaultImage }}';"
-                                        data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->id }}">
-                                @endforeach
-                            </div>
-                        @elseif ($count == 3)
-                            <div class="three-images">
-                                <div class="left">
-                                    <img src="{{ $getImageUrl($media[0]->media_url) }}" alt="post-image"
-                                        loading="lazy" onerror="this.onerror=null;this.src='{{ $defaultImage }}';"
-                                        data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->id }}">
-                                </div>
-                                <div class="right">
-                                    <img src="{{ $getImageUrl($media[1]->media_url) }}" alt="post-image"
-                                        loading="lazy" onerror="this.onerror=null;this.src='{{ $defaultImage }}';"
-                                        data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->id }}">
-                                    <img src="{{ $getImageUrl($media[2]->media_url) }}" alt="post-image"
-                                        loading="lazy" onerror="this.onerror=null;this.src='{{ $defaultImage }}';"
-                                        data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->id }}">
-                                </div>
-                            </div>
-                        @else
-                            <div class="four-images">
-                                @for ($i = 0; $i < min(4, $count); $i++)
-                                    <div class="img-box position-relative">
-                                        <img src="{{ $getImageUrl($media[$i]->media_url) }}" alt="post-image"
-                                            loading="lazy"
-                                            onerror="this.onerror=null;this.src='{{ $defaultImage }}';"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#instagramModal{{ $post->id }}">
-                                        @if ($i == 3 && $count > 4)
-                                            <div class="overlay-more" data-bs-toggle="modal"
-                                                data-bs-target="#instagramModal{{ $post->id }}">
-                                                +{{ $count - 4 }}
+                                <div class="fb-gallery mb-3" onclick="event.stopPropagation()">
+                                    @if ($count == 1)
+                                        <div class="single-image">
+                                            <img src="{{ $getImageUrl($media[0]->media_url) }}" alt="post-image" loading="lazy"
+                                                onerror="this.onerror=null; this.src='{{ $defaultImage }}';"
+                                                data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->id }}">
+                                        </div>
+                                    @elseif ($count == 2)
+                                        <div class="two-images">
+                                            @foreach ($media as $item)
+                                                <img src="{{ $getImageUrl($item->media_url) }}" alt="post-image" loading="lazy"
+                                                    onerror="this.onerror=null;this.src='{{ $defaultImage }}';"
+                                                    data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->id }}">
+                                            @endforeach
+                                        </div>
+                                    @elseif ($count == 3)
+                                        <div class="three-images">
+                                            <div class="left">
+                                                <img src="{{ $getImageUrl($media[0]->media_url) }}" alt="post-image"
+                                                    loading="lazy" onerror="this.onerror=null;this.src='{{ $defaultImage }}';"
+                                                    data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->id }}">
                                             </div>
-                                        @endif
-                                    </div>
-                                @endfor
-                            </div>
+                                            <div class="right">
+                                                <img src="{{ $getImageUrl($media[1]->media_url) }}" alt="post-image"
+                                                    loading="lazy" onerror="this.onerror=null;this.src='{{ $defaultImage }}';"
+                                                    data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->id }}">
+                                                <img src="{{ $getImageUrl($media[2]->media_url) }}" alt="post-image"
+                                                    loading="lazy" onerror="this.onerror=null;this.src='{{ $defaultImage }}';"
+                                                    data-bs-toggle="modal" data-bs-target="#instagramModal{{ $post->id }}">
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="four-images">
+                                            @for ($i = 0; $i < min(4, $count); $i++)
+                                                <div class="img-box position-relative">
+                                                    <img src="{{ $getImageUrl($media[$i]->media_url) }}" alt="post-image"
+                                                        loading="lazy"
+                                                        onerror="this.onerror=null;this.src='{{ $defaultImage }}';"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#instagramModal{{ $post->id }}">
+                                                    @if ($i == 3 && $count > 4)
+                                                        <div class="overlay-more" data-bs-toggle="modal"
+                                                            data-bs-target="#instagramModal{{ $post->id }}">
+                                                            +{{ $count - 4 }}
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @endfor
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
                         @endif
-                    </div>
-                @endif
-            @endif
         </div>
 
         {{-- ACTIONS --}}

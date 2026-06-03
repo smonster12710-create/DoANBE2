@@ -23,6 +23,11 @@ class Post extends Model
         'is_anonymous'
     ];
 
+    protected $casts = [
+        'is_anonymous' => 'boolean',
+        'expires_at' => 'datetime',
+    ];
+
     protected $with = ['user'];
 
     // --- LOGIC TỰ ĐỘNG XÓA BÀI VIẾT (PRUNABLE) ---

@@ -8,12 +8,12 @@
     <div class="profile-container">
 
         @include('partials.profile_header', [
-        'user' => $user,
-        'friendsCount' => $friendsCount ?? 0,
-        'postsCount' => $postsCount ?? 0,
-        'followersCount' => $followersCount ?? 0,
-        'followingCount' => $followingCount ?? 0,
-        ])
+    'user' => $user,
+    'friendsCount' => $friendsCount ?? 0,
+    'postsCount' => $postsCount ?? 0,
+    'followersCount' => $followersCount ?? 0,
+    'followingCount' => $followingCount ?? 0,
+])
 
         <div class="profile-body">
             {{-- CỘT TRÁI: GIỚI THIỆU --}}
@@ -66,43 +66,54 @@
 @endsection
 
 @push('modals')
-<div class="modal fade" id="createWallPostModal" tabindex="-1" aria-labelledby="wallModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title wall-modal-title" id="wallModalLabel">Tạo bài viết mới</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" id="createWallPostForm">
-                @csrf
-                <input type="hidden" name="wall_user_id" value="{{ $user->id }}">
-                {{-- ĐÃ BỔ SUNG: Gửi kèm username lên Server phục vụ tạo route redirect --}}
-                <input type="hidden" name="wall_username" value="{{ $user->username ?? $user->name }}">
+    <div class="modal fade" id="createWallPostModal" tabindex="-1" aria-labelledby="wallModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title wall-modal-title" id="wallModalLabel">Tạo bài viết mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" id="createWallPostForm">
+                    @csrf
+                    <input type="hidden" name="wall_user_id" value="{{ $user->id }}">
+                    {{-- ĐÃ BỔ SUNG: Gửi kèm username lên Server phục vụ tạo route redirect --}}
+                    <input type="hidden" name="wall_username" value="{{ $user->username ?? $user->name }}">
 
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <textarea name="content" id="wallPostContent" class="form-control wall-textarea" rows="4"
-                            placeholder="@if(auth()->id() == $user->id) Bạn đang nghĩ gì? @else Viết gì đó lên tường của {{ $user->name }}... @endif"
-                            required maxlength="500"></textarea>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <textarea name="content" id="wallPostContent" class="form-control wall-textarea" rows="4"
+                                placeholder="@if(auth()->id() == $user->id) Bạn đang nghĩ gì? @else Viết gì đó lên tường của {{ $user->name }}... @endif"
+                                required maxlength="500"></textarea>
 
-                        <div class="text-end text-muted small mt-1">
-                            <span id="wallCharCount">0</span>/500 ký tự
+                            <div class="text-end text-muted small mt-1">
+                                <span id="wallCharCount">0</span>/500 ký tự
+                            </div>
                         </div>
+                        <div class="mb-3">
+                            <label for="wallPostImages" class="form-label fw-bold text-secondary">Thêm ảnh vào bài viết</label>
+                            <input class="form-control" type="file" name="images[]" id="wallPostImages" accept="image/*" multiple>
+                            <div id="wall-preview-images" class="d-flex flex-wrap gap-2 mt-2"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                                <input type="checkbox" name="is_anonymous" value="1" {{ auth()->check() && auth()->user()->anonymous_posts ? 'checked' : '' }}>
+                                    <span>Đăng ẩn danh</span>
+                                    </label>
+                                        @if(auth()->check() && auth()->user()->anonymous_posts)
+                                            <p style="margin: 8px 0 0; color: #6c757d; font-size: 13px;">
+                                                Chế độ ẩn danh đang bật trong cài đặt. Bỏ tích để đăng bài công khai.
+                                            </p>
+                                        @endif
+                                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="wallPostImages" class="form-label fw-bold text-secondary">Thêm ảnh vào bài viết</label>
-                        <input class="form-control" type="file" name="images[]" id="wallPostImages" accept="image/*" multiple>
-                        <div id="wall-preview-images" class="d-flex flex-wrap gap-2 mt-2"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary wall-btn-submit">Đăng bài</button>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary wall-btn-submit">Đăng bài</button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 @endpush
 
 {{-- Đẩy file JS vừa tạo vào hệ thống layout --}}

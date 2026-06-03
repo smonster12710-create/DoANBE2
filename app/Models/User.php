@@ -30,6 +30,7 @@ class User extends Authenticatable
         'role',
         'is_active',
         'show_activity_status',
+        'anonymous_posts',
         'profile_locked',
         'is_online',
         'last_activity_at',
@@ -41,6 +42,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'show_activity_status' => 'boolean',
+        'anonymous_posts' => 'boolean',
         'profile_locked' => 'boolean',
         'is_online' => 'boolean',
         'last_activity_at' => 'datetime',

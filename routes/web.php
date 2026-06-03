@@ -134,7 +134,9 @@ Route::middleware('auth')->group(function () {
             Route::get('/activity-status', [ProfileController::class, 'activityStatus'])->name('activity.status');
             Route::post('/activity-status/toggle', [ProfileController::class, 'toggleActivityStatus'])->name('activity.status.toggle');
 
-
+            // Chế độ ẩn danh
+            Route::get('/profile-anonymous', [ProfileController::class, 'anonymousToggle'])->name('profile.anonymous.toggle');
+            Route::post('/profile-anonymous/update', [ProfileController::class, 'updateAnonymous'])->name('profile.anonymous.update');
 
             // Route phụ: Nếu gõ domain.com/profile thì tự nhảy về profile của mình
             Route::get('/profile', function () {
