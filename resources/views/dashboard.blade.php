@@ -16,6 +16,7 @@ $switchAccounts = \App\Models\User::whereIn('id', $switchAccountIds)->where('rol
         window.currentUserId = "{{ auth()->id() }}";
         console.log("Blade đã ép ID vào window thành công:", window.currentUserId);
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>ESPACE</title>
     <link rel="stylesheet" href="{{ asset('css/account-privacy.css') }}">
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">

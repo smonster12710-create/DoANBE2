@@ -15,3 +15,31 @@
         <div class="text-muted small">Chưa có xu hướng nào.</div>
     @endforelse
 </div>
+@if (session()->has('error'))
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            let errorMsg = @json(session()->pull('error'));
+
+            // Chỉ kích hoạt Toast khi thực sự có chuỗi thông báo
+            if (errorMsg) {
+                // Kiểm tra xem máy đã nhận thư viện Toastr chưa, nếu chưa thì xài tạm alert để test
+                if (typeof toastr !== "undefined") {
+                    toastr.error(errorMsg);
+                } else if (typeof Swal !== "undefined") {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'ERROR',
+                        text: errorMsg,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                } else {
+                    alert(errorMsg); // Cứu cánh cuối cùng nếu quên nhúng thư viện UI
+                }
+            }
+        });
+    </script>
+@endif

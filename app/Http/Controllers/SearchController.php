@@ -96,13 +96,17 @@ class SearchController extends Controller
 
     public function showHashtag($name)
     {
+        $hashtag = \App\Models\Hashtag::where('name', $name)->first(); // Đắp thêm \App\Models\ cho chắc cú
 
-        $hashtag = Hashtag::where('name', $name)->first();
         if (!$hashtag) {
-            return redirect()->route('social')->with('error', 'Hashtag không tồn tại!');
+            // 1. Nhét bưu kiện vô RAM
+            session()->put('error', 'Hashtag không tồn tại!');
+
+            // 2. Lệnh bẻ lái (Pro bị rớt mất dòng chí mạng này nè)
+            return redirect()->route('social');
         }
+
         // Bươi DB lấy những bài viết có chứa hashtag này
-        // Khúc này tùy cấu trúc DB của Pro (có bảng trung gian hay dạng chuỗi)
         $posts = \App\Models\Post::whereHas('hashtags', function ($q) use ($name) {
             $q->where('name', $name);
         })->latest()->get();
