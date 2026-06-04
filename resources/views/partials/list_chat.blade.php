@@ -24,7 +24,9 @@ return (int) $user->id !== $myId;
             @endif
             @else
             <div class="avatar-online-wrap">
-                <img src="{{ $partner?->avatar_url ?? 'https://i.pravatar.cc/40' }}" class="chat-avatar">
+                <img src="{{ $partner && $partner->avatar_url ? asset($partner->avatar_url) : 'https://i.pravatar.cc/40' }}"
+                    class="chat-avatar"
+                    style="width:45px; height:45px; border-radius:50%; object-fit: cover;">
 
                 @include('partials.activity_dot', ['user' => $partner])
             </div>
