@@ -42,11 +42,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (msg.is_deleted == 1) {
                     let wrapper = document.querySelector(`.message-wrapper[data-id="${msg.id}"]`);
                     if (wrapper) {
-                        // Bốc lại tên và avatar cũ trên màn hình để tái sử dụng, tránh bị lỗi mất ảnh
                         let oldAvatar = wrapper.querySelector('.chat-group-avatar')?.getAttribute('src') || '';
                         let oldName = wrapper.querySelector('.group-chat-sender-name')?.innerText || 'Thành viên';
 
-                        // Tạo object dữ liệu giả lập có đầy đủ thông tin để hàm render vẽ lại đúng cấu trúc
                         let fakeMsg = {
                             id: msg.id,
                             sender_id: msg.sender_id,
@@ -57,7 +55,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             }
                         };
 
-                        // Gọi hàm tạo HTML chuẩn để thay thế khối cũ, bảo toàn tên và avatar bên trái
                         let newHTML = createMessageHTML(fakeMsg);
                         let parser = new DOMParser();
                         let doc = parser.parseFromString(newHTML, 'text/html');
@@ -68,13 +65,24 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     }
                 } else {
-                    // Tin nhắn bình thường gửi đến
+                    // 🌟 GOM CHUNG KIỂM TRA TIN NHẮN RỜI NHÓM TẠI ĐÂY
+                    // Nếu nội dung chứa chữ rời nhóm VÀ người rời chính là mình (dành cho tab phụ tự out)
+                    if (msg.content && String(msg.content).includes('đã rời khỏi nhóm') && msg.sender_id == currentUserId) {
+
+                        // Thay vì return đứng im, ta thông báo nhẹ rồi chuyển hướng ra trang chủ chat luôn!
+                        console.log('⚡ Phát hiện tài khoản đã rời nhóm từ tab khác. Đang chuyển hướng...');
+
+                        // Chuyển hướng user về trang danh sách chat (hoặc route nào cậu muốn, ví dụ: '/messages')
+                        window.location.href = '/list_messages'; // Thay đổi URL này thành route danh sách chat của cậu
+
+                        return; // Dừng toàn bộ các logic phía sau
+                    }
+                    // Tin nhắn bình thường (hoặc tin rời nhóm của người khác gửi tới)
                     const existed = document.querySelector(`.message-wrapper[data-id="${msg.id}"]`);
                     if (!existed) {
                         appendMessageRealtime(msg);
                         scrollBottom();
 
-                        // SỬA LỖI: Nếu đang mở khung chat và tin nhắn tới là của đối phương -> Tự động đánh dấu đã xem realtime
                         if (msg.sender_id != currentUserId) {
                             markAsRead();
                         }
@@ -84,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function () {
             .listen('.ChatReadStatusUpdated', (e) => {
                 console.log('🔥 ĐÃ THẤY TÍN HIỆU ĐÃ XEM VỀ REALTIME:', e);
 
-                // Cập nhật trạng thái đã xem realtime theo mảng tin nhắn trả về
                 if (e.updatedMessages && e.updatedMessages.length > 0) {
                     e.updatedMessages.forEach(msg => {
                         let status = document.querySelector(`.message-status[data-id="${msg.id}"]`);
@@ -93,7 +100,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     });
                 } else {
-                    // Dự phòng quét sạch các chữ "Đã gửi" trên màn hình thành "Đã xem"
                     const allStatuses = document.querySelectorAll('.message-status');
                     allStatuses.forEach(status => {
                         if (status.innerText.trim() === 'Đã gửi') {
@@ -103,7 +109,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
     }
-
     // Tự động cuộn xuống dưới khi load trang xong
     setTimeout(() => { forceScrollBottom(); }, 100);
     window.addEventListener('load', () => { forceScrollBottom(); });
@@ -348,6 +353,28 @@ if (chatInputForm) {
 // 5. HÀM TẠO GIAO DIỆN TIN NHẮN ĐỒNG BỘ 100% VỚI HTML BLADE
 // =========================================================================
 function createMessageHTML(msg) {
+    // 🌟 1. KIỂM TRA TIN NHẮN HỆ THỐNG (THÔNG BÁO RỜI NHÓM)
+    // Nếu tin nhắn chứa chữ "đã rời khỏi nhóm", hiển thị dạng dòng chữ căn giữa, ẩn hết avatar/tên/actions
+    if (msg.content && String(msg.content).includes('đã rời khỏi nhóm')) {
+        return `
+            <div class="message-system-notify text-center my-3 w-100" data-id="${msg.id}">
+                <span style="
+                    display: inline-block;
+                    background-color: #f0f2f5;
+                    color: #65676b;
+                    font-size: 0.825rem;
+                    padding: 6px 16px;
+                    border-radius: 20px;
+                    font-weight: 500;
+                    user-select: none;
+                ">
+                    ${msg.content}
+                </span>
+            </div>
+        `;
+    }
+
+    // 🌟 2. LOGIC XỬ LÝ TIN NHẮN THƯỜNG CỦA CẬU (Giữ nguyên 100% cấu trúc cũ bên dưới)
     let isMe = msg.sender_id == currentUserId;
     let wrapperClass = isMe ? 'me' : 'them';
 
@@ -448,19 +475,31 @@ function createMessageHTML(msg) {
         `;
     }
 }
-
 // =========================================================================
 // 6. THAO TÁC APPEND / PREPEND DOM
 // =========================================================================
 function appendMessage(msg) {
     let box = document.getElementById('chat-box');
     if (!box) return;
+
+    // 🌟 THÊM ĐOẠN NÀY: Xóa thông báo trống nếu có tin nhắn mới đẩy vào
+    let emptyMessageEl = document.getElementById('empty-message');
+    if (emptyMessageEl) {
+        emptyMessageEl.remove();
+    }
+
     let div = document.createElement('div');
     div.innerHTML = createMessageHTML(msg);
     box.appendChild(div.firstElementChild);
 }
 
 function appendMessageRealtime(msg) {
+    // 🌟 THÊM ĐOẠN NÀY: Dự phòng xóa thẻ trống khi nhận tin Realtime qua Socket
+    let emptyMessageEl = document.getElementById('empty-message');
+    if (emptyMessageEl) {
+        emptyMessageEl.remove();
+    }
+
     appendMessage(msg);
     if (msg.id > lastMessageId) {
         lastMessageId = msg.id;
@@ -781,21 +820,41 @@ function renderFriendsToSelect(friends) {
     friends.forEach(friend => {
         const displayName = friend.fullname ? friend.fullname : friend.username;
 
+        const serverUrl = "http://127.0.0.1:8000/";
+        let avatarUrl = "";
+
+        if (friend.avatar_url) {
+            // Kiểm tra nếu link đã bắt đầu bằng http:// hoặc https:// (như link picsum)
+            if (friend.avatar_url.startsWith('http://') || friend.avatar_url.startsWith('https://')) {
+                avatarUrl = friend.avatar_url; // Giữ nguyên link
+            } else {
+                // Nếu là đường dẫn từ DB (uploads_profile/...) thì nối thêm domain local
+                if (friend.avatar_url.startsWith('/')) {
+                    avatarUrl = `${serverUrl}${friend.avatar_url.substring(1)}`;
+                } else {
+                    avatarUrl = `${serverUrl}${friend.avatar_url}`;
+                }
+            }
+        } else {
+            // Ảnh mặc định nếu không có dữ liệu
+            avatarUrl = `${serverUrl}uploads_profile/avatar/default-avatar.png`;
+        }
+
         container.innerHTML += `
-            <label style="display: flex; align-items: center; gap: 15px; padding: 12px 10px; border-bottom: 1px solid #f8f9fa; cursor: pointer; transition: background 0.2s; border-radius: 8px;" 
-                   onmouseover="this.style.background='#f0f2f5'" onmouseout="this.style.background='transparent'">
-                
-                <img src="${friend.avatar_url}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;">
-                
-                <div style="flex: 1;">
-                    <h5 style="margin: 0; font-size: 14px; color: #333; font-weight: 600;">${displayName}</h5>
-                    <small style="color: #777;">@${friend.username}</small>
-                </div>
-                
-                <input type="checkbox" name="selected_friends_to_add[]" value="${friend.id}" 
-                       style="width: 18px; height: 18px; cursor: pointer; accent-color: #0084ff;">
-            </label>
-        `;
+        <label style="display: flex; align-items: center; gap: 15px; padding: 12px 10px; border-bottom: 1px solid #f8f9fa; cursor: pointer; transition: background 0.2s; border-radius: 8px;" 
+               onmouseover="this.style.background='#f0f2f5'" onmouseout="this.style.background='transparent'">
+            
+            <img src="${avatarUrl}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;">
+            
+            <div style="flex: 1;">
+                <h5 style="margin: 0; font-size: 14px; color: #333; font-weight: 600;">${displayName}</h5>
+                <small style="color: #777;">@${friend.username}</small>
+            </div>
+            
+            <input type="checkbox" name="selected_friends_to_add[]" value="${friend.id}" 
+                   style="width: 18px; height: 18px; cursor: pointer; accent-color: #0084ff;">
+        </label>
+    `;
     });
 }
 

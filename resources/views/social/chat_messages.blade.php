@@ -110,6 +110,24 @@
             : "https://ui-avatars.com/api/?name=" . urlencode($senderName) . "&background=0084ff&color=fff&size=100";
             @endphp
 
+            {{-- 🌟 BƯỚC THAY ĐỔI CHÍNH: KIỂM TRA TIN NHẮN RỜI NHÓM ĐỂ HIỂN THỊ CĂN GIỮA --}}
+            @if(isset($msg->content) && str_contains($msg->content, 'đã rời khỏi nhóm'))
+            <div class="message-system-notify text-center my-3 w-100" data-id="{{ $msg->id }}">
+                <span style="
+                        display: inline-block;
+                        background-color: #f0f2f5;
+                        color: #65676b;
+                        font-size: 0.825rem;
+                        padding: 6px 16px;
+                        border-radius: 20px;
+                        font-weight: 500;
+                        user-select: none;
+                    ">
+                    {{ $msg->content }}
+                </span>
+            </div>
+            @else
+            {{-- ĐOẠN CODE LAYOUT GỐC CỦA CẬU (Bọc lại trong nhánh else để xử lý tin nhắn thường) --}}
             {{-- Wrapper gốc trái/phải --}}
             <div class="message-wrapper {{ $isMe ? 'me' : 'them' }}" data-id="{{ $msg->id }}">
 
@@ -161,9 +179,8 @@
                 <div class="group-chat-layout">
 
                     {{-- 1. Tên người gửi ở trên cùng (Chỉ hiện ở Group và không quan trọng thu hồi hay chưa) --}}
- 
                     <span class="group-chat-sender-name">{{ $senderName }}</span>
-               
+
                     {{-- Hàng ngang chứa Avatar + Bóng chat --}}
                     <div class="group-chat-row">
 
@@ -207,6 +224,8 @@
                 @endif
 
             </div>
+            @endif
+
             @empty
             <div id="empty-message" style="text-align:center;color:#aaa;margin-top:20px;">
                 Chưa có tin nhắn nào. Hãy chào nhau đi!
@@ -313,7 +332,7 @@
                             @foreach($friends as $friend)
                             <label class="friend-select-item">
                                 <div class="avatar-online-wrap">
-                                    <img src="{{ $friend->avatar_url ?? 'https://i.pravatar.cc/40' }}" class="friend-avatar">
+                                    <img src="{{ $friend && $friend->avatar_url ? asset($friend->avatar_url) : 'https://i.pravatar.cc/40' }}" class="friend-avatar">
                                     @include('partials.activity_dot', ['user' => $friend])
                                 </div>
                                 <span class="friend-name">{{ $friend->fullname ?? $friend->username }}</span>

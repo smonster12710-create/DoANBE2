@@ -682,7 +682,7 @@ class MessageController extends Controller
     public function createGroup(Request $request)
     {
         $request->validate([
-            'group_name'   => 'required|string|max:255',
+            'group_name'   => 'required|string|max:25',
             'user_ids'     => 'required|array|min:1',
             'user_ids.*'   => 'exists:users,id',
             'group_avatar' => 'nullable|image|max:2048',
@@ -887,24 +887,39 @@ class MessageController extends Controller
                 $conversation->participants()->detach($myId);
             } else {
                 // Nếu chưa cấu hình Relationship thì dùng DB Query Builder xóa trực tiếp cho chắc cú
-                DB::table('conversation_participants')
+                \DB::table('conversation_participants')
                     ->where('conversation_id', $id)
                     ->where('user_id', $myId)
                     ->delete();
             }
 
-            // 4. Trả về phản hồi JSON báo thành công rực rỡ
+            // 🌟 ĐÃ SỬA: Đổi toàn bộ $conversationId thành biến $id khớp với tham số đầu hàm
+            $systemMessage = \App\Models\Message::create([
+                'conversation_id' => $id,
+                'sender_id'       => $myId,
+                'content'         => (auth()->user()->fullname ?? auth()->user()->username ?? 'Thành viên') . " đã rời khỏi nhóm.",
+            ]);
+
+            // 🌟 ĐÃ SỬA: Dùng trực tiếp DB::table quét bảng trung gian để đồng bộ và an toàn tuyệt đối
+            $receiverIds = \DB::table('conversation_participants')
+                ->where('conversation_id', $id)
+                ->where('user_id', '!=', $myId)
+                ->pluck('user_id')
+                ->toArray();
+
+            // 4. 🔥 BẮN EVENT VÀ THÊM ->toOthers() VÀO CUỐI ĐỂ TRÁNH TRANH CHẤP VỚI TAB GỐC
+            broadcast(new \App\Events\MessageSent($systemMessage, $receiverIds))->toOthers();
+
+            // 🌟 ĐÃ SỬA: Khôi phục lại thông báo trả về bình thường (Xóa bớt 1 dòng return trùng lặp)
             return response()->json([
                 'success' => true,
-                'message' => 'Cậu đã rời khỏi nhóm chat này thành công! 👋'
+                'message' => 'Đã rời nhóm thành công!'
             ]);
         } catch (\Exception $e) {
-            // Ghi log lỗi để dễ debug nếu hệ thống trục trặc
-            \Log::error('Lỗi rời nhóm chat: ' . $e->getMessage());
-
+            // Trả về lỗi chi tiết nếu có phát sinh (Cậu có thể đổi lại chuỗi thông báo cũ sau khi test xong xuôi)
             return response()->json([
                 'success' => false,
-                'message' => 'Đã có lỗi xảy ra từ máy chủ, thử lại sau cậu nhé!'
+                'message' => 'Lỗi Backend: ' . $e->getMessage() . ' tại dòng ' . $e->getLine()
             ], 500);
         }
     }
