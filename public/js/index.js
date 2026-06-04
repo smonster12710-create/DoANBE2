@@ -25,69 +25,71 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 });
-document.addEventListener('DOMContentLoaded', function () {
+const savingPostIds = {}; // Cờ chống spam click cho từng bài viết
 
-    document.querySelectorAll('.ajax-save-form').forEach(form => {
-        form.addEventListener('submit', function (e) {
-            e.preventDefault(); // Chặn load lại trang
+document.addEventListener('submit', function (e) {
+    const form = e.target.closest('.ajax-save-form');
+    if (!form) return;
 
-            const url = this.action;
-            const csrfToken = this.querySelector('input[name="_token"]').value;
-            const button = this.querySelector('.save-btn');
-            const svg = button.querySelector('svg');
+    e.preventDefault();
+    e.stopPropagation();
 
-            // Tìm block bao quanh bài viết (tìm lên class .post-clickable của bạn)
-            const postCard = this.closest('.post-clickable');
+    const postCard = form.closest('.post-clickable');
+    const postId = postCard ? postCard.getAttribute('data-post-id') : null;
 
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Dựa vào dữ liệu thật từ bộ xử lý Laravel trả về
-                        if (data.is_saved) {
-                            // Nếu đã lưu: Thêm màu và đổ màu kín SVG
-                            button.classList.add('saved', 'text-warning');
-                            svg.setAttribute('fill', 'currentColor');
-                        } else {
-                            // Nếu hủy lưu: Xóa màu và đưa SVG về dạng viền rỗng
-                            button.classList.remove('saved', 'text-warning');
-                            svg.setAttribute('fill', 'none');
+    if (postId && savingPostIds[postId]) return;
+    if (postId) savingPostIds[postId] = true;
 
-                            // XỬ LÝ RIÊNG CHO TRANG "BÀI VIẾT ĐÃ LƯU":
-                            // Nếu tìm thấy wrapper `.saved-page` (đã định nghĩa ở file view trước của bạn)
-                            if (document.querySelector('.saved-page') && postCard) {
-                                // Tạo hiệu ứng thu nhỏ và mờ dần trước khi xóa
-                                postCard.style.transition = 'all 0.3s ease';
-                                postCard.style.opacity = '0';
-                                postCard.style.transform = 'scale(0.95)';
+    const url = form.action;
+    const csrfToken = form.querySelector('input[name="_token"]').value;
+    const button = form.querySelector('.save-btn');
+    const svg = button ? button.querySelector('svg') : null;
 
-                                setTimeout(() => {
-                                    postCard.remove(); // Xóa hẳn khỏi giao diện
+    if (button) button.disabled = true;
 
-                                    // Kiểm tra xem còn bài viết nào không, nếu hết thì hiện thông báo trống
-                                    const remainingPosts = document.querySelectorAll('.post-clickable');
-                                    if (remainingPosts.length === 0) {
-                                        const grid = document.querySelector('.grid');
-                                        if (grid) {
-                                            grid.innerHTML = '<div class="saved-empty">Chưa có bài viết nào được lưu.</div>';
-                                        }
-                                    }
-                                }, 300);
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    })
+        .then(response => {
+            if (!response.ok) throw new Error('Mạng không ổn định');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && button && svg) {
+                if (data.is_saved) {
+                    button.classList.add('saved', 'text-warning');
+                    svg.setAttribute('fill', 'currentColor');
+                } else {
+                    button.classList.remove('saved', 'text-warning');
+                    svg.setAttribute('fill', 'none');
+
+                    // Hiệu ứng biến mất nếu đang ở trang Lưu trữ
+                    if (document.querySelector('.saved-page') && postCard) {
+                        postCard.style.transition = 'all 0.3s ease';
+                        postCard.style.opacity = '0';
+                        postCard.style.transform = 'scale(0.95)';
+
+                        setTimeout(() => {
+                            postCard.remove();
+                            if (document.querySelectorAll('.post-clickable').length === 0) {
+                                const grid = document.querySelector('.grid');
+                                if (grid) grid.innerHTML = '<div class="saved-empty">Chưa có bài viết nào được lưu.</div>';
                             }
-                        }
+                        }, 300);
                     }
-                })
-                .catch(error => console.error('Lỗi hệ thống:', error));
+                }
+            }
+        })
+        .catch(error => console.error('Lỗi hệ thống Ajax:', error))
+        .finally(() => {
+            if (postId) delete savingPostIds[postId];
+            if (button) button.disabled = false;
         });
-    });
-
 });
 document.addEventListener('DOMContentLoaded', function () {
     if (typeof Echo !== 'undefined') {
