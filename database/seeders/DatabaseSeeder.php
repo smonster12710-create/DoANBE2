@@ -33,16 +33,12 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => now(),
             ]);
 
-            // 3. Hashtags
-            $hashId = DB::table('hashtags')->insertGetId([
-                'name' => "trending_$i",
-                'usage_count' => rand(10, 100)
-            ]);
+            // ĐÃ XÓA MỤC SỐ 3 (Hashtags fake) ĐỂ XÀI HÀNG XỊN Ở DƯỚI!
 
             // 4. Conversations
             $convId = DB::table('conversations')->insertGetId([
                 'name' => "Nhóm học tập $i",
-                'image_url' => "https://picsum.photos/100/100?sig=conv_$i", // Ảnh nhóm
+                'image_url' => "https://picsum.photos/100/100?sig=conv_$i",
                 'type' => 'group',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -56,17 +52,17 @@ class DatabaseSeeder extends Seeder
                 'joined_at' => now()
             ]);
 
-            // 6. Posts (Đã bỏ cột image_url trực tiếp)
+            // 6. Posts
             $postId = DB::table('posts')->insertGetId([
                 'user_id' => $uId,
-                'content' => "Hôm nay mình học về Database Seeder trong Laravel cực hay! #$i",
+                'content' => "Hôm nay mình học về Database Seeder trong Laravel cực hay! Bài số $i",
                 'location_id' => $locId,
                 'privacy' => 0,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            // 7. Post Media (Ảnh chi tiết cho Post)
+            // 7. Post Media
             DB::table('post_media')->insert([
                 'post_id' => $postId,
                 'media_url' => "https://picsum.photos/600/400?sig=post_$i",
@@ -75,28 +71,24 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => now(),
             ]);
 
-            // 8. Post Hashtags
-            DB::table('post_hashtags')->insert([
-                'post_id' => $postId,
-                'hashtag_id' => $hashId
-            ]);
+            // ĐÃ XÓA MỤC SỐ 8 (Gắn Post Hashtag fake)
 
-            // 9. Messages (Có thêm image_url)
+            // 9. Messages
             DB::table('messages')->insert([
                 'conversation_id' => $convId,
                 'sender_id' => $uId,
                 'content' => "Chào mọi người, đây là ảnh tài liệu nhé!",
-                'image_url' => "https://picsum.photos/300/200?sig=msg_$i", // Ảnh tin nhắn
+                'image_url' => "https://picsum.photos/300/200?sig=msg_$i",
                 'is_read' => false,
                 'created_at' => now()
             ]);
 
-            // 10. Comments (Có thêm image_url)
+            // 10. Comments
             DB::table('comments')->insert([
                 'post_id' => $postId,
                 'user_id' => $uId,
                 'content' => "Ảnh minh họa cho bình luận của mình.",
-                'image_url' => "https://picsum.photos/250/150?sig=cmt_$i", // Ảnh bình luận
+                'image_url' => "https://picsum.photos/250/150?sig=cmt_$i",
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -129,22 +121,25 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
 
-            // 14. Reports (Có thêm image_url)
+            // 14. Reports
             if ($uId > 1) {
                 DB::table('reports')->insert([
                     'user_id' => $uId,
                     'post_id' => $postId - 1,
                     'reason' => "Nội dung vi phạm tiêu chuẩn cộng đồng số $i",
-                    'image_url' => "https://picsum.photos/400/300?sig=report_$i", // Ảnh bằng chứng
+                    'image_url' => "https://picsum.photos/400/300?sig=report_$i",
                     'status' => 'pending',
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
             }
         }
+
+        // CHỐT HẠ: Triệu hồi 10 em Trending xịn xò vào cuối cùng
         $this->call([
             AdminUserSeeder::class,
             NotificationSeeder::class,
+            HashtagSeeder::class, // <-- Bùa gọi Trending nằm đây nè Pro!
         ]);
     }
 }

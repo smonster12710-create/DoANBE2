@@ -13,29 +13,29 @@ class HashtagSeeder extends Seeder
         $faker = Faker::create();
         $hashtags = [];
 
-        $this->command->info('Đang xuất 1000 cái hashtags');
+        $this->command->info('Đang xuất 10 cái trending hashtags siêu xịn...');
 
-        // 1. TẠO 1000 HASHTAG
-        for ($i = 0; $i < 1000; $i++) {
+        // 1. TẠO 10 HASHTAG TRENDING
+        $trendingNames = ['XuHuong', 'TinTuc', 'GiaiTri', 'TheThao', 'CongNghe', 'DuLich', 'AmThuc', 'KhamPha', 'ristiano_ronaldo', 'Drama'];
+
+        for ($i = 0; $i < 10; $i++) {
             $hashtags[] = [
-                // Random tên hashtag (thêm $i để bảo đảm 1000 cái không bị trùng văng lỗi Unique)
-                'name' => str_replace(' ', '', $faker->unique()->words(2, true)) . '_' . $i,
-                // Random số đếm từ 10 đến 50.000 để test cái vụ 1.5k, 50k trên giao diện
-                'usage_count' => rand(10, 50000),
+                'name' => $trendingNames[$i],
+                // Trending thì view phải khủng, random từ 10k đến 500k luôn test UI cho phê
+                'usage_count' => rand(10000, 500000),
             ];
         }
 
-        // Dùng chiêu Chunk (Cắt lô) chèn 500 dòng 1 lần cho nó lẹ, ko bị nghẽn RAM
-        foreach (array_chunk($hashtags, 500) as $chunk) {
-            DB::table('hashtags')->insert($chunk);
-        }
+        // Có 10 dòng thì insert thẳng 1 phát luôn, dẹp cái trò array_chunk
+        // SỬA LẠI THÀNH DÒNG NÀY CHO TUI:
+        DB::table('hashtags')->insertOrIgnore($hashtags);
 
         // ==========================================
         // 2. LIÊN KẾT BÀI VIẾT (Tạo data cho bảng Pivot)
         // ==========================================
         $postIds = DB::table('posts')->pluck('id')->toArray();
 
-        // Chốt chặn: Nếu chưa có bài post nào thì ngưng, khỏi làm bước 2
+        // Chốt chặn: Nếu chưa có bài post nào thì ngưng
         if (empty($postIds)) {
             $this->command->error('Ủa khoan, bảng posts đang trống lóc! Pro cần seed bài viết trước mới liên kết được nha!');
             return;
@@ -44,26 +44,24 @@ class HashtagSeeder extends Seeder
         $hashtagIds = DB::table('hashtags')->pluck('id')->toArray();
         $pivotData = [];
 
-        $this->command->info('Đang móc nối Hashtag với Post...');
+        $this->command->info('Đang móc nối 10 Hashtag trending này vô mấy bài Post...');
 
-        // Random tạo khoảng 3000 lượt gắn tag vô bài viết
-        for ($i = 0; $i < 3000; $i++) {
+        // Random tạo khoảng 50 lượt gắn tag 
+        for ($i = 0; $i < 50; $i++) {
             $pivotData[] = [
                 'post_id' => $faker->randomElement($postIds),
                 'hashtag_id' => $faker->randomElement($hashtagIds),
             ];
         }
 
-        // Lọc trùng lặp (1 bài post không thể gắn 1 hashtag 2 lần) để né lỗi SQL
+        // Lọc trùng lặp 
         $pivotData = collect($pivotData)->unique(function ($item) {
             return $item['post_id'] . '_' . $item['hashtag_id'];
         })->toArray();
 
-        // Chèn lô vô bảng trung gian (Tên bảng thường là hashtag_post)
-        // Đổi hàm insert() thành insertOrIgnore()
-        foreach (array_chunk($pivotData, 500) as $chunk) {
-            DB::table('post_hashtags')->insertOrIgnore($chunk); // SỬA NGAY DÒNG NÀY
-        }
-        $this->command->info('Seed xong 1000 hashtags mượt rượt rồi Pro ơi! 🚀');
+
+        DB::table('post_hashtags')->insertOrIgnore($pivotData);
+
+        $this->command->info('Seed xong 10 top trending ! 🚀');
     }
 }
