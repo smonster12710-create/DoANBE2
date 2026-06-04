@@ -400,10 +400,6 @@
                         </div>
                     </div>
                 </div>
-                <button type="button" class="btn btn-link text-secondary p-0 m-0" data-bs-toggle="modal"
-                    data-bs-target="#reportPostModal{{ $post->id }}">
-                    Báo cáo
-                </button>
 
                 <div class="modal fade" id="reportPostModal{{ $post->id }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
