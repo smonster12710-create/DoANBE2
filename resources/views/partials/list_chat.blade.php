@@ -9,9 +9,10 @@ return (int) $user->id !== $myId;
 })->first();
 }
 @endphp
-
 <a href="{{ route('chat_messages', $chat->id) }}"
     data-conversation-id="{{ $chat->id }}"
+    {{-- CHỈ CẦN THÊM DÒNG NÀY VÀO THẺ A HIỆN TẠI CỦA CẬU --}}
+    data-chat-name="{{ strtolower($chat->type === 'group' ? ($chat->name ?? 'Nhóm chat') : ($partner?->fullname ?? 'Tin nhắn đã lưu')) }}"
     class="message-item-link {{ (isset($conversation) && $conversation->id == $chat->id) || (request()->route('id') == $chat->id) ? 'active-chat' : '' }}">
     <div class="message-item">
 

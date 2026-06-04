@@ -1028,3 +1028,35 @@ document.getElementById('confirmLeaveModal')?.addEventListener('click', function
         closeConfirmLeaveModal();
     }
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Định danh ô tìm kiếm dựa vào ID cậu vừa gửi
+    const searchInput = document.getElementById('sidebar-search');
+
+    // Hàm hỗ trợ bỏ dấu tiếng Việt để gõ "tuan" vẫn ra "Tuấn"
+    function removeVietnameseTones(str) {
+        return str.normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g, '')
+                  .replace(/đ/g, 'd').replace(/Đ/g, 'd');
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function (e) {
+            const keyword = removeVietnameseTones(e.target.value.toLowerCase().trim());
+            
+            // Lấy toàn bộ danh sách các item chat đang hiển thị ở file partial
+            const chatItems = document.querySelectorAll('.message-item-link');
+
+            chatItems.forEach(item => {
+                // Lấy tên chat từ data attribute
+                const chatName = removeVietnameseTones(item.getAttribute('data-chat-name') || '');
+
+                if (chatName.includes(keyword)) {
+                    item.style.display = ''; // Khớp thì hiện
+                } else {
+                    item.style.display = 'none'; // Không khớp thì ẩn đi
+                }
+            });
+        });
+    }
+});
