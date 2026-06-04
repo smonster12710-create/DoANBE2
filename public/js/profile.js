@@ -41,27 +41,20 @@ document.addEventListener("DOMContentLoaded", function () {
         function handleFileChange(e) {
             const newFiles = Array.from(e.target.files);
 
-            // Lọc bỏ các file trùng tên + trùng dung lượng (nếu người dùng chọn lại file cũ)
             const uniqueNewFiles = newFiles.filter(newFile =>
                 !selectedFiles.some(oldFile => oldFile.name === newFile.name && oldFile.size === newFile.size)
             );
 
             if (uniqueNewFiles.length === 0) {
-                input.value = "";
                 return;
             }
 
-            // Cập nhật mảng lưu trữ
             selectedFiles = [...selectedFiles, ...uniqueNewFiles];
-
-            // Vẽ lại giao diện dựa trên mảng chuẩn
             renderPreviewData(selectedFiles);
-
-            // Cập nhật danh sách file thật để gửi lên Laravel
             updateInputFilesData(selectedFiles);
 
-            // Reset input ngay lập tức
-            input.value = "";
+            // XÓA HOẶC COMMENT BỎ DÒNG NÀY ĐỂ GIỮ FILE LẠI GỬI LÊN SERVER:
+            // input.value = ""; 
         }
 
         function renderPreviewData(filesArray) {
@@ -133,63 +126,73 @@ document.addEventListener("DOMContentLoaded", function () {
     const errorMessageText = document.getElementById('errorMessageText');
 
     if (createForm) {
-        createForm.addEventListener("submit", async function (e) {
-            e.preventDefault();
+        // MẸO: Kiểm tra nếu form đã được gán listener xử lý custom trước đó thì bỏ qua, tránh trùng lặp
+        if (!createForm.dataset.listenerAttached) {
+            createForm.dataset.listenerAttached = "true"; // Đánh dấu đã gán
 
-            const submitBtn = createForm.querySelector("button[type='submit']");
-            if (submitBtn) submitBtn.disabled = true;
+            let isSubmitting = false;
 
-            try {
-                const response = await fetch(createForm.action, {
-                    method: createForm.method,
-                    body: new FormData(createForm),
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                });
+            createForm.addEventListener("submit", async function (e) {
+                e.preventDefault(); // Chặn đứng hành vi gửi form mặc định của trình duyệt
 
-                // Kiểm tra định dạng trả về có phải JSON không để tránh crash hàm .json()
-                const contentType = response.headers.get("content-type");
-                let result = {};
-                if (contentType && contentType.indexOf("application/json") !== -1) {
-                    result = await response.json();
+                if (isSubmitting) return;
+
+                const submitBtn = createForm.querySelector("button[type='submit']");
+                isSubmitting = true;
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang đăng...';
                 }
 
-                if (!response.ok) {
-                    if (errorMessageText && errorModal) {
-                        // Nếu server trả về thông điệp lỗi cụ thể thì hiển thị, không thì dùng câu mặc định
-                        if (result.message) {
-                            errorMessageText.textContent = result.message;
-                        } else if (result.errors && result.errors.content) {
-                            errorMessageText.textContent = "Nội dung bài viết vượt quá giới hạn ký tự thực tế cho phép!";
-                        } else {
-                            errorMessageText.textContent = "Không thể đăng bài. Vui lòng kiểm tra lại dữ liệu!";
+                try {
+                    const response = await fetch(createForm.action, {
+                        method: createForm.method,
+                        body: new FormData(createForm),
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
                         }
-                        errorModal.show();
-                    } else {
-                        alert(result.message || "Không thể đăng bài. Vui lòng kiểm tra lại!");
+                    });
+
+                    const contentType = response.headers.get("content-type");
+                    let result = {};
+                    if (contentType && contentType.indexOf("application/json") !== -1) {
+                        result = await response.json();
                     }
-                    if (submitBtn) submitBtn.disabled = false;
-                } else {
-                    // Xử lý khi thành công điều hướng thông minh dựa vào chỉ định từ Controller
-                    if (result.redirect_url) {
-                        window.location.href = result.redirect_url;
+
+                    if (!response.ok) {
+                        if (errorMessageText && errorModal) {
+                            errorMessageText.textContent = result.message || "Không thể đăng bài. Vui lòng kiểm tra lại!";
+                            errorModal.show();
+                        } else {
+                            alert(result.message || "Không thể đăng bài!");
+                        }
+
+                        // Thất bại: trả lại trạng thái để người dùng bấm lại
+                        isSubmitting = false;
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = 'Đăng bài';
+                        }
                     } else {
-                        window.location.reload();
+                        // Thành công: Điều hướng an toàn bằng replace
+                        if (result.redirect_url) {
+                            window.location.replace(result.redirect_url);
+                        } else {
+                            window.location.reload();
+                        }
+                    }
+                } catch (error) {
+                    console.error("Lỗi AJAX Post:", error);
+                    isSubmitting = false;
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Đăng bài';
                     }
                 }
-            } catch (error) {
-                console.error("Lỗi AJAX Post:", error);
-                if (errorMessageText && errorModal) {
-                    errorMessageText.textContent = "Kết nối máy chủ thất bại hoặc có lỗi hệ thống xảy ra!";
-                    errorModal.show();
-                } else {
-                    alert("Kết nối máy chủ thất bại!");
-                }
-                if (submitBtn) submitBtn.disabled = false;
-            }
-        });
+            });
+        }
     }
 });
 function handleBlockAction(userId, isBlocking) {

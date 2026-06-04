@@ -102,7 +102,7 @@
                 {{-- CỘT TRÁI: HIỂN THỊ TRÌNH CHIẾU ẢNH LỚN --}}
                 @if ($hasMedia)
                     <div
-                        style="flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; height: 100%; overflow: hidden;">
+                        style="flex: 1; background: #1a1a1a; display: flex; align-items: center; justify-content: center; position: relative; height: 100%; overflow: hidden;">
                         @if ($displayMedia->count() > 1)
                             <div id="detailCarousel{{ $post->id }}" class="carousel slide h-100 w-100" data-bs-ride="false">
                                 <div class="carousel-indicators" style="margin-bottom: 15px;">
@@ -121,7 +121,7 @@
                                             <div class="d-flex justify-content-center align-items-center h-100">
                                                 <img src="{{ asset($item->media_url) }}" data-bs-toggle="modal"
                                                     data-bs-target="#imagePreviewModal{{ $post->id }}"
-                                                    style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;">
+                                                    style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; cursor: pointer;">
                                             </div>
                                         </div>
                                     @endforeach
@@ -141,7 +141,7 @@
                         @else
                             <img src="{{ asset($displayMedia->first()->media_url) }}" data-bs-toggle="modal"
                                 data-bs-target="#imagePreviewModal{{ $post->id }}"
-                                style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;">
+                                style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; cursor: pointer;">
                         @endif
                     </div>
                 @endif
@@ -154,12 +154,33 @@
                     {{-- 1. THÔNG TIN USER ĐĂNG BÀI (HEADER) --}}
                     <div class="p-3 d-flex align-items-center border-bottom">
                         @if ($post->is_anonymous)
-                            <img class="avatar" src="{{ asset('img/user/user.jpg') }}" alt="Ẩn danh">
-                            <strong class="name d-block">Người dùng ẩn danh 🕵️</strong>
+                            <img class="avatar rounded-circle me-2" src="{{ asset('img/user/user.jpg') }}" alt="Ẩn danh"
+                                width="32" height="32">
+                            <strong class="name d-block" style="font-size: 14px;">Người dùng ẩn danh 🕵️</strong>
                         @else
+                            {{-- Avatar của người đăng bài --}}
                             <img src="{{ $post->user->avatar_url ? asset($post->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->user_id }}"
                                 class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
-                            <strong>{{ $post->user->fullname ?? 'Người dùng' }}</strong>
+
+                            <div class="d-flex align-items-center flex-wrap" style="font-size: 14px; color: #212529;">
+                                {{-- Tên người đăng bài --}}
+                                <strong
+                                    class="fw-bold">{{ $post->user->fullname ?? ($post->user->name ?? 'Người dùng') }}</strong>
+
+                                {{-- Kiểm tra xem bài viết có được đăng lên tường người khác (wall_user_id) không --}}
+                                @if (!empty($post->wall_user_id) && $post->wall_user_id != $post->user_id)
+                                    @php
+                                        // Lấy thông tin người nhận tường (nếu quan hệ wallUser chưa được eager load, Eloquent sẽ tự query)
+                                        $wallUser = $post->wallUser ?? \App\Models\User::find($post->wall_user_id);
+                                    @endphp
+                                    @if ($wallUser)
+                                        <span class="text-muted mx-2" style="font-size: 12px;"><i
+                                                class="bi bi-caret-right-fill"></i> ➔</span>
+                                        <strong
+                                            class="fw-bold">{{ $wallUser->fullname ?? ($wallUser->name ?? 'Người dùng') }}</strong>
+                                    @endif
+                                @endif
+                            </div>
                         @endif
                     </div>
 
