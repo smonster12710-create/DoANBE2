@@ -43,6 +43,22 @@ class UserActivityService
         return $payload;
     }
 
+    public function visibleFriendActivities(User $viewer): array
+    {
+        $friendIds = $this->friendIds($viewer);
+
+        if (empty($friendIds)) {
+            return [];
+        }
+
+        return User::whereIn('id', $friendIds)
+            ->where('show_activity_status', true)
+            ->get()
+            ->map(fn (User $friend) => $friend->activityStatusFor($viewer))
+            ->values()
+            ->all();
+    }
+
     private function broadcast(User $user, array $payload): void
     {
         $receiverIds = $this->activityReceiverIds($user);
@@ -61,7 +77,22 @@ class UserActivityService
 
     private function activityReceiverIds(User $user): array
     {
-        $friendIds = DB::table('friendships')
+        $friendIds = $this->friendIds($user);
+
+        $receiverIds = User::whereIn('id', $friendIds)
+            ->where('show_activity_status', true)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $receiverIds[] = (int) $user->id;
+
+        return $receiverIds;
+    }
+
+    private function friendIds(User $user): array
+    {
+        return DB::table('friendships')
             ->where('status', 'accepted')
             ->where(function ($query) use ($user) {
                 $query->where('user_id', $user->id)
@@ -74,15 +105,5 @@ class UserActivityService
                     : (int) $friendship->user_id;
             })
             ->all();
-
-        $receiverIds = User::whereIn('id', $friendIds)
-            ->where('show_activity_status', true)
-            ->pluck('id')
-            ->map(fn ($id) => (int) $id)
-            ->all();
-
-        $receiverIds[] = (int) $user->id;
-
-        return $receiverIds;
     }
 }

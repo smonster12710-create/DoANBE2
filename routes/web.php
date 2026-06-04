@@ -54,14 +54,13 @@ Route::middleware('guest')->group(function () {
 
         Route::post('forgot-password/update', 'updateForgotPassword')->name('forgot.password.update');
     });
-
-    Route::post('/activity/online', [UserActivityController::class, 'online'])->name('activity.online');
-    Route::post('/activity/offline', [UserActivityController::class, 'offline'])->name('activity.offline');
 });
 // ==========================================
 // KHU VỰC BẢO MẬT (BẮT BUỘC ĐĂNG NHẬP)
 // ==========================================
 Route::middleware('auth')->group(function () {
+    Route::post('/activity/online', [UserActivityController::class, 'online'])->name('activity.online');
+    Route::post('/activity/offline', [UserActivityController::class, 'offline'])->name('activity.offline');
 
     // --- QUẢN LÝ USER ---
     Route::controller(CrudUserController::class)->group(function () {
