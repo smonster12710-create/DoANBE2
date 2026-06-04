@@ -34,46 +34,74 @@ document.addEventListener("DOMContentLoaded", function () {
     if (input && preview) {
         let selectedFiles = [];
 
-        input.addEventListener("change", function (e) {
+        // Sử dụng tính năng xóa listener cũ nếu có, đề phòng file JS bị load 2 lần
+        input.removeEventListener("change", handleFileChange);
+        input.addEventListener("change", handleFileChange);
+
+        function handleFileChange(e) {
             const newFiles = Array.from(e.target.files);
-            selectedFiles = [...selectedFiles, ...newFiles];
-            renderPreview();
-            updateInputFiles();
-        });
 
-        function renderPreview() {
-            preview.innerHTML = "";
-            selectedFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    const wrapper = document.createElement("div");
-                    wrapper.classList.add("wall-preview-wrapper");
+            // Lọc bỏ các file trùng tên + trùng dung lượng (nếu người dùng chọn lại file cũ)
+            const uniqueNewFiles = newFiles.filter(newFile =>
+                !selectedFiles.some(oldFile => oldFile.name === newFile.name && oldFile.size === newFile.size)
+            );
 
-                    const img = document.createElement("img");
-                    img.src = event.target.result;
-                    img.classList.add("wall-preview-img");
+            if (uniqueNewFiles.length === 0) {
+                input.value = "";
+                return;
+            }
 
-                    const removeBtn = document.createElement("button");
-                    removeBtn.innerHTML = "×";
-                    removeBtn.classList.add("wall-preview-remove");
+            // Cập nhật mảng lưu trữ
+            selectedFiles = [...selectedFiles, ...uniqueNewFiles];
 
-                    removeBtn.addEventListener("click", function () {
-                        selectedFiles.splice(index, 1);
-                        renderPreview();
-                        updateInputFiles();
-                    });
+            // Vẽ lại giao diện dựa trên mảng chuẩn
+            renderPreviewData(selectedFiles);
 
-                    wrapper.appendChild(img);
-                    wrapper.appendChild(removeBtn);
-                    preview.appendChild(wrapper);
-                };
-                reader.readAsDataURL(file);
+            // Cập nhật danh sách file thật để gửi lên Laravel
+            updateInputFilesData(selectedFiles);
+
+            // Reset input ngay lập tức
+            input.value = "";
+        }
+
+        function renderPreviewData(filesArray) {
+            preview.innerHTML = ""; // Xóa sạch để vẽ lại chính xác theo mảng
+
+            filesArray.forEach((file, index) => {
+                const wrapper = document.createElement("div");
+                wrapper.classList.add("wall-preview-wrapper");
+
+                const img = document.createElement("img");
+                // Sử dụng ObjectURL thay cho FileReader để chạy đồng bộ, không bị delay tạo bản sao
+                img.src = URL.createObjectURL(file);
+                img.classList.add("wall-preview-img");
+
+                // Giải phóng bộ nhớ khi ảnh đã load xong
+                img.onload = function () {
+                    URL.revokeObjectURL(this.src);
+                }
+
+                const removeBtn = document.createElement("button");
+                removeBtn.innerHTML = "×";
+                removeBtn.classList.add("wall-preview-remove");
+                removeBtn.type = "button"; // Bắt buộc phải có để không bị tự submit form trên một số trình duyệt
+
+                removeBtn.addEventListener("click", function (event) {
+                    event.preventDefault();
+                    selectedFiles.splice(index, 1);
+                    renderPreviewData(selectedFiles);
+                    updateInputFilesData(selectedFiles);
+                });
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(removeBtn);
+                preview.appendChild(wrapper);
             });
         }
 
-        function updateInputFiles() {
+        function updateInputFilesData(filesArray) {
             const dataTransfer = new DataTransfer();
-            selectedFiles.forEach(file => {
+            filesArray.forEach(file => {
                 dataTransfer.items.add(file);
             });
             input.files = dataTransfer.files;
@@ -177,7 +205,7 @@ function handleBlockAction(userId, isBlocking) {
     }
 }
 
-document.getElementById('confirmBlockBtn').addEventListener('click', function() {
+document.getElementById('confirmBlockBtn').addEventListener('click', function () {
     var userId = this.getAttribute('data-user-id');
     document.getElementById('blockUserForm-' + userId).submit();
 });
