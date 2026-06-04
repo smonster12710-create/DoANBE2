@@ -18,6 +18,14 @@ document.addEventListener('DOMContentLoaded', function () {
     setInterval(refreshActivityDots, 60000);
     setInterval(registerOpenTab, 30000);
 
+    window.addEventListener('focus', markOnline);
+
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+            markOnline();
+        }
+    });
+
     document.addEventListener('click', function (event) {
         const link = event.target.closest('a[href]');
 
@@ -77,6 +85,10 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(function (data) {
                 if (data && data.activity) {
                     updateActivityDots(data.activity);
+                }
+
+                if (data && Array.isArray(data.activities)) {
+                    data.activities.forEach(updateActivityDots);
                 }
             })
             .catch(function () {});

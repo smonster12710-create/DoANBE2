@@ -9,9 +9,12 @@ class UserActivityController extends Controller
 {
     public function online(Request $request, UserActivityService $activityService)
     {
+        $user = $request->user();
+
         return response()->json([
             'success' => true,
-            'activity' => $activityService->markOnline($request->user()),
+            'activity' => $activityService->markOnline($user),
+            'activities' => $activityService->visibleFriendActivities($user),
         ]);
     }
 
