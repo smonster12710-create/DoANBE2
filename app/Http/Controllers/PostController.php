@@ -42,12 +42,20 @@ class PostController extends Controller
      */
     public function store(Request $request, \App\Services\TextProcessorService $hashtagService)
     {
-        // 1. CHỦ ĐỘNG VALIDATE ĐỂ TRÁNH LỖI HTML FALLBACK CỦA LARAVEL KHI DÙNG AJAX
-        $validator = Validator::make($request->all(), [
+        // ================= 1. VALIDATE LINH HOẠT =================
+        $rules = [
             'content' => 'required|string|max:550',
-            'images.*' => 'nullable|image|max:10240',
             'expires_in' => 'nullable|integer',
-        ]);
+        ];
+
+        // Kiểm tra xem thẻ input gửi lên là Mảng (nhiều file) hay Đơn (1 file) để gài luật cho chuẩn
+        if (is_array($request->file('images'))) {
+            $rules['images.*'] = 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:20480';
+        } else {
+            $rules['images'] = 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:20480';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             if ($request->ajax() || $request->wantsJson()) {
@@ -65,21 +73,20 @@ class PostController extends Controller
             $expiresAt = now()->addMinutes((int) $request->expires_in);
         }
 
-        $post = new Post();
-        $post->user_id = Auth::id();
+        $post = new \App\Models\Post(); // Thêm \App\Models\ cho chắc cú
+        $post->user_id = \Illuminate\Support\Facades\Auth::id();
         $post->content = $request->content;
         $post->privacy = 0;
         $post->expires_at = $expiresAt;
         $post->group_id = $request->input('group_id', null);
 
-        // Thêm logic lưu thông tin tường nhà bạn bè nếu có gửi lên database (ví dụ trường wall_user_id)
         if ($request->filled('wall_user_id')) {
-            $post->wall_user_id = $request->wall_user_id; // Đảm bảo bảng posts của bạn có trường này
+            $post->wall_user_id = $request->wall_user_id;
         }
 
         $post->save();
 
-        // Xử lý hashtag
+        // ================= 2. XỬ LÝ HASHTAG =================
         $tagNames = $hashtagService->getHashtags($post->content);
         $tagIds = [];
         if (!empty($tagNames)) {
@@ -95,50 +102,58 @@ class PostController extends Controller
             $post->hashtags()->sync($tagIds);
         }
 
-        // ================= XỬ LÝ NÉN ẢNH THUẦN =================
-        if ($request->hasFile('images')) {
+        // ================= 3. XỬ LÝ ẢNH (BẢN ĐỘ NÉ LỖI 422) =================
+        $files = $request->file('images');
+        if ($files) {
+            // Bùa: Ép về mảng để vòng lặp foreach chạy mượt dù chỉ có 1 file
+            if (!is_array($files)) {
+                $files = [$files];
+            }
+
             if (!file_exists(public_path('uploads/posts'))) {
                 mkdir(public_path('uploads/posts'), 0777, true);
             }
 
-            foreach ($request->file('images') as $file) {
-                $sourceImage = @imagecreatefromstring(file_get_contents($file->getRealPath()));
+            foreach ($files as $file) {
+                $filename = '';
+                $fileContent = file_get_contents($file->getRealPath());
+                $sourceImage = @imagecreatefromstring($fileContent);
 
-                if ($sourceImage === false) {
-                    if ($request->ajax() || $request->wantsJson()) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Một trong số các file bạn tải lên không đúng định dạng ảnh hiển thị được!'
-                        ], 422);
+                // TRƯỜNG HỢP 1: GD đọc được file (jpg, png) -> Tiến hành thu nhỏ kích thước
+                if ($sourceImage !== false) {
+                    $filename = time() . '_' . uniqid() . '.jpg';
+                    $destinationPath = public_path('uploads/posts/' . $filename);
+
+                    $origWidth = imagesx($sourceImage);
+                    $origHeight = imagesy($sourceImage);
+                    $maxWidth = 1000;
+
+                    if ($origWidth > $maxWidth) {
+                        $ratio = $maxWidth / $origWidth;
+                        $newWidth = $maxWidth;
+                        $newHeight = (int) ($origHeight * $ratio);
+
+                        $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+                        imagealphablending($resizedImage, false);
+                        imagesavealpha($resizedImage, true);
+
+                        imagecopyresampled($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+                        imagedestroy($sourceImage);
+                        $sourceImage = $resizedImage;
                     }
-                    return back()->withErrors(['images' => 'Định dạng ảnh không hỗ trợ!']);
-                }
 
-                $filename = time() . '_' . uniqid() . '.jpg';
-                $destinationPath = public_path('uploads/posts/' . $filename);
-
-                $origWidth = imagesx($sourceImage);
-                $origHeight = imagesy($sourceImage);
-                $maxWidth = 1000;
-
-                if ($origWidth > $maxWidth) {
-                    $ratio = $maxWidth / $origWidth;
-                    $newWidth = $maxWidth;
-                    $newHeight = (int)($origHeight * $ratio);
-
-                    $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
-                    imagealphablending($resizedImage, false);
-                    imagesavealpha($resizedImage, true);
-
-                    imagecopyresampled($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+                    imagejpeg($sourceImage, $destinationPath, 65);
                     imagedestroy($sourceImage);
-                    $sourceImage = $resizedImage;
+                }
+                // TRƯỜNG HỢP 2: Là ảnh WEBP/GIF mà GD không đọc được -> Bỏ qua nén, lưu nguyên bản gốc luôn!
+                else {
+                    $extension = $file->getClientOriginalExtension() ?: 'webp';
+                    $filename = time() . '_' . uniqid() . '.' . $extension;
+                    $file->move(public_path('uploads/posts'), $filename);
                 }
 
-                imagejpeg($sourceImage, $destinationPath, 65);
-                imagedestroy($sourceImage);
-
-                $media = new PostMedia();
+                // Ghi vô Database
+                $media = new \App\Models\PostMedia();
                 $media->post_id = $post->id;
                 $media->media_url = 'uploads/posts/' . $filename;
                 $media->media_type = 'photo';
@@ -146,16 +161,13 @@ class PostController extends Controller
             }
         }
 
-        // ================= PHẢN HỒI THÀNH CÔNG CHO CẢ INDEX VÀ PROFILE =================
+        // ================= 4. TRẢ KẾT QUẢ =================
         if ($request->ajax() || $request->wantsJson()) {
-
-            // Tự động tìm username từ wall_user_id gửi lên để làm link chuyển hướng
-            $redirectUrl = route('posts.index'); // Mặc định là trang chủ
+            $redirectUrl = route('posts.index');
 
             if ($request->filled('wall_user_id')) {
                 $wallUser = \App\Models\User::find($request->wall_user_id);
                 if ($wallUser) {
-                    // Sửa tham số truyền vào đúng với biến {username} trong route của bạn
                     $redirectUrl = route('profile.show', ['username' => $wallUser->username ?? $wallUser->name]);
                 }
             }
@@ -163,7 +175,7 @@ class PostController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Đăng bài thành công!',
-                'redirect_url' => $redirectUrl // Trả về link trang cá nhân chính xác vừa tìm được
+                'redirect_url' => $redirectUrl
             ], 200);
         }
 
@@ -425,7 +437,6 @@ class PostController extends Controller
             if ($post->user) {
                 $post->user->can_show_activity = $post->user->canShowActivityTo(Auth::user());
                 $post->user->activity_status = $post->user->activityStatusFor(Auth::user());
-                $post->user->avatar_src = $post->user->avatar_src;
             }
 
             return $post;
