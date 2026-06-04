@@ -58,22 +58,26 @@ class FriendController extends Controller
      */
     public function acceptFriendRequest(Request $request, $username)
     {
-        $me = Auth::user(); // Người bấm đồng ý (Người B)
-        $target = User::where('username', $username)->firstOrFail(); // Người gửi ban đầu (Người A)
+        $me = Auth::user();
+        $target = User::where('username', $username)->firstOrFail();
 
-        // Kiểm tra sự đồng bộ
-        if ($me->getFriendshipStatus($target->id) !== $request->input('expected_status')) {
-            return back()->with('error', 'Trạng thái đã thay đổi, trang sẽ tải lại để cập nhật.');
+        // LẤY TRẠNG THÁI THỰC TẾ
+        $status = $me->getFriendshipStatus($target->id);
+
+        // Ở đây, nếu bạn là người nhận, status sẽ là 'requested'
+        // Chúng ta chỉ cho phép chấp nhận nếu status là 'requested'
+        if ($status !== 'requested') {
+            return back()->with('error', 'Lời mời không còn hiệu lực.');
         }
 
-        // Bước A: Cập nhật trạng thái liên kết từ 'pending' sang 'accepted'
+        // Cập nhật trạng thái
         $me->receivedFriendRequests()->updateExistingPivot($target->id, ['status' => 'accepted']);
 
-        // Bước B: ✨ ĐÃ FIX KHỚP 100% CẤU TRÚC: Xóa thông báo lời mời sau khi đã đồng ý xong
+        // Xóa notification
         DB::table('notifications')
-            ->where('user_id', $me->id)          // Thông báo gửi đến tôi
-            ->where('actor_id', $target->id)     // Do người gửi ban đầu thực hiện
-            ->where('type', 'friend_request')    // Đúng loại thông báo kết bạn
+            ->where('user_id', $me->id)
+            ->where('actor_id', $target->id)
+            ->where('type', 'friend_request')
             ->delete();
 
         return back()->with('success', 'Bạn và ' . $target->fullname . ' đã trở thành bạn bè!');
@@ -87,28 +91,29 @@ class FriendController extends Controller
         $me = Auth::user();
         $target = User::where('username', $username)->firstOrFail();
 
-        // [MỚI] Kiểm tra sự đồng bộ để chống lỗi 2 tab
-        if ($me->getFriendshipStatus($target->id) !== $request->input('expected_status')) {
-            return back()->with('error', 'Trạng thái đã thay đổi, trang sẽ tải lại để cập nhật.');
+        $currentStatus = $me->getFriendshipStatus($target->id);
+
+        // THÊM 'accepted' VÀO ĐÂY
+        $allowedStatuses = ['pending', 'requested', 'accepted'];
+
+        if (!in_array($currentStatus, $allowedStatuses)) {
+            return back()->with('error', 'Thao tác không hợp lệ hoặc trạng thái đã thay đổi.');
         }
 
-        // Bước A: Hủy bỏ hoàn toàn các dòng liên kết liên quan trong bảng friendships
+        // Bước A: Hủy bỏ hoàn toàn
         $me->sentFriendRequests()->detach($target->id);
         $me->receivedFriendRequests()->detach($target->id);
 
-        // Bước B: ✨ ĐÃ FIX KHỚP 100% CẤU TRÚC: Dọn dẹp thông báo cho cả 2 trường hợp (Hủy đã gửi hoặc Từ chối đã nhận)
+        // Bước B: Dọn dẹp thông báo (giữ nguyên)
         DB::table('notifications')
-            ->where('type', 'friend_request') // Đúng loại thông báo kết bạn
+            ->where('type', 'friend_request')
             ->where(function ($query) use ($me, $target) {
                 $query->where(function ($q) use ($me, $target) {
-                    // Trường hợp 1: Tôi là người nhận bấm Từ chối lời mời của đối phương
                     $q->where('user_id', $me->id)->where('actor_id', $target->id);
                 })->orWhere(function ($q) use ($me, $target) {
-                    // Trường hợp 2: Tôi là người gửi bấm Hủy/Thu hồi lời mời đã gửi đi cho đối phương
                     $q->where('user_id', $target->id)->where('actor_id', $me->id);
                 });
-            })
-            ->delete();
+            })->delete();
 
         return back()->with('success', 'Thao tác thành công.');
     }
