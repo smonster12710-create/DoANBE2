@@ -23,13 +23,13 @@
 
                     <div class="row g-2 mt-2" id="imagePreviewContainer{{ $post->id }}">
                         @if ($post->media->count())
-                            @foreach ($post->media as $media)
-                                <div class="col-4 position-relative old-image-item">
-                                    <img src="{{ asset($media->media_url) }}" class="w-100 rounded object-fit-cover"
-                                        style="height: 120px;">
-                                    <span class="badge bg-secondary position-absolute top-0 start-0 m-1">Ảnh cũ</span>
-                                </div>
-                            @endforeach
+                        @foreach ($post->media as $media)
+                        <div class="col-4 position-relative old-image-item">
+                            <img src="{{ asset($media->media_url) }}" class="w-100 rounded object-fit-cover"
+                                style="height: 120px;">
+                            <span class="badge bg-secondary position-absolute top-0 start-0 m-1">Ảnh cũ</span>
+                        </div>
+                        @endforeach
                         @endif
                     </div>
 
@@ -91,8 +91,8 @@
 {{-- MODAL CHI TIẾT (INSTAGRAM STYLE) --}}
 <div class="modal fade" id="instagramModal{{ $post->id }}" tabindex="-1" aria-hidden="true">
     @php
-$displayMedia = $post->media ?? collect();
-$hasMedia = $displayMedia->count() > 0;
+    $displayMedia = $post->media ?? collect();
+    $hasMedia = $displayMedia->count() > 0;
     @endphp
 
     <div class="modal-dialog modal-dialog-centered {{ $hasMedia ? 'modal-lg' : 'modal-md' }}">
@@ -101,68 +101,68 @@ $hasMedia = $displayMedia->count() > 0;
 
                 {{-- CỘT TRÁI: HIỂN THỊ TRÌNH CHIẾU ẢNH LỚN --}}
                 @if ($hasMedia)
-                    <div
-                        style="flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; height: 100%; overflow: hidden;">
-                        @if ($displayMedia->count() > 1)
-                            <div id="detailCarousel{{ $post->id }}" class="carousel slide h-100 w-100"
-                                data-bs-ride="false">
-                                <div class="carousel-indicators" style="margin-bottom: 15px;">
-                                    @foreach ($displayMedia as $index => $item)
-                                        <button type="button" data-bs-target="#detailCarousel{{ $post->id }}"
-                                            data-bs-slide-to="{{ $index }}"
-                                            class="{{ $index == 0 ? 'active' : '' }}"
-                                            aria-current="{{ $index == 0 ? 'true' : 'false' }}"
-                                            style="width: 6px; height: 6px; border-radius: 50%; margin: 0 3px; background-color: #fff; border: none; opacity: 0.6;">
-                                        </button>
-                                    @endforeach
-                                </div>
+                <div
+                    style="flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; height: 100%; overflow: hidden;">
+                    @if ($displayMedia->count() > 1)
+                    <div id="detailCarousel{{ $post->id }}" class="carousel slide h-100 w-100"
+                        data-bs-ride="false">
+                        <div class="carousel-indicators" style="margin-bottom: 15px;">
+                            @foreach ($displayMedia as $index => $item)
+                            <button type="button" data-bs-target="#detailCarousel{{ $post->id }}"
+                                data-bs-slide-to="{{ $index }}"
+                                class="{{ $index == 0 ? 'active' : '' }}"
+                                aria-current="{{ $index == 0 ? 'true' : 'false' }}"
+                                style="width: 6px; height: 6px; border-radius: 50%; margin: 0 3px; background-color: #fff; border: none; opacity: 0.6;">
+                            </button>
+                            @endforeach
+                        </div>
 
-                                <div class="carousel-inner h-100">
-                                    @foreach ($displayMedia as $index => $item)
-                                        <div class="carousel-item h-100 {{ $index == 0 ? 'active' : '' }}">
-                                            <div class="d-flex justify-content-center align-items-center h-100">
-                                                <img src="{{ asset($item->media_url) }}" data-bs-toggle="modal"
-                                                    data-bs-target="#imagePreviewModal{{ $post->id }}"
-                                                    style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;">
-                                            </div>
-                                        </div>
-                                    @endforeach
+                        <div class="carousel-inner h-100">
+                            @foreach ($displayMedia as $index => $item)
+                            <div class="carousel-item h-100 {{ $index == 0 ? 'active' : '' }}">
+                                <div class="d-flex justify-content-center align-items-center h-100">
+                                    <img src="{{ asset($item->media_url) }}" data-bs-toggle="modal"
+                                        data-bs-target="#imagePreviewModal{{ $post->id }}"
+                                        style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;">
                                 </div>
-
-                                <button class="carousel-control-prev" type="button"
-                                    data-bs-target="#detailCarousel{{ $post->id }}" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"
-                                        style="width: 2rem; height: 2rem;"></span>
-                                </button>
-                                <button class="carousel-control-next" type="button"
-                                    data-bs-target="#detailCarousel{{ $post->id }}" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"
-                                        style="width: 2rem; height: 2rem;"></span>
-                                </button>
                             </div>
-                        @else
-                            <img src="{{ asset($displayMedia->first()->media_url) }}" data-bs-toggle="modal"
-                                data-bs-target="#imagePreviewModal{{ $post->id }}"
-                                style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;">
-                        @endif
+                            @endforeach
+                        </div>
+
+                        <button class="carousel-control-prev" type="button"
+                            data-bs-target="#detailCarousel{{ $post->id }}" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"
+                                style="width: 2rem; height: 2rem;"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button"
+                            data-bs-target="#detailCarousel{{ $post->id }}" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"
+                                style="width: 2rem; height: 2rem;"></span>
+                        </button>
                     </div>
+                    @else
+                    <img src="{{ asset($displayMedia->first()->media_url) }}" data-bs-toggle="modal"
+                        data-bs-target="#imagePreviewModal{{ $post->id }}"
+                        style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;">
+                    @endif
+                </div>
                 @endif
 
                 {{-- CỘT PHẢI: THÔNG TIN USER, NỘI DUNG VÀ BÌNH LUẬN --}}
                 <div {!! $hasMedia
-    ? 'style="background: #fff; display: flex; flex-direction: column; width: 340px; flex-shrink: 0;"'
-    : 'style="background: #fff; display: flex; flex-direction: column; width: 100%; flex-grow: 1;"' !!}>
+                    ? 'style="background: #fff; display: flex; flex-direction: column; width: 340px; flex-shrink: 0;"'
+                    : 'style="background: #fff; display: flex; flex-direction: column; width: 100%; flex-grow: 1;"' !!}>
 
                     {{-- 1. THÔNG TIN USER ĐĂNG BÀI (HEADER) --}}
                     <div class="p-3 d-flex align-items-center border-bottom">
                         @if ($post->is_anonymous)
-                            <img class="avatar" src="{{ asset('img/user/user.jpg') }}" alt="Ẩn danh">
-                            <strong class="name d-block">Người dùng ẩn danh 🕵️</strong>
+                        <img class="avatar" src="{{ asset('img/user/user.jpg') }}" alt="Ẩn danh">
+                        <strong class="name d-block">Người dùng ẩn danh 🕵️</strong>
                         @else
-                            <img src="{{ $post->user->avatar_url ? asset($post->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->user_id }}"
-                                class="rounded-circle me-2" width="32" height="32"
-                                style="object-fit: cover;">
-                            <strong>{{ $post->user->fullname ?? 'Người dùng' }}</strong>
+                        <img src="{{ $post->user->avatar_url ? asset($post->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->user_id }}"
+                            class="rounded-circle me-2" width="32" height="32"
+                            style="object-fit: cover;">
+                        <strong>{{ $post->user->fullname ?? 'Người dùng' }}</strong>
                         @endif
                     </div>
 
@@ -175,69 +175,69 @@ $hasMedia = $displayMedia->count() > 0;
                             </div>
 
                             @if ($post->sharedPost)
-                                <div class="card mt-2 p-3 w-100 d-block"
-                                    style="background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; cursor: pointer; min-width: 100%;"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#instagramModal{{ $post->sharedPost->id }}">
+                            <div class="card mt-2 p-3 w-100 d-block shared-post-card"
+                                style="background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6; cursor: pointer; min-width: 100%;" r: 1px solid #dee2e6; cursor: pointer; min-width: 100%;"
+                                data-current-modal="#instagramModal{{ $post->id }}"
+                                data-target-modal="#instagramModal{{ $post->sharedPost->id }}">
 
-                                    <div class="d-flex align-items-center mb-2">
-                                        @if ($post->sharedPost->is_anonymous)
-                                            <img src="{{ asset('img/user/user.jpg') }}"
-                                                class="rounded-circle me-2" width="24" height="24"
-                                                style="object-fit: cover;" alt="Ẩn danh">
-                                            <strong class="small text-dark" style="font-size: 13px;">Người dùng ẩn
-                                                danh 🕵️</strong>
-                                        @else
-                                            <img src="{{ $post->sharedPost->user->avatar_url ? asset($post->sharedPost->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->sharedPost->user_id }}"
-                                                class="rounded-circle me-2" width="24" height="24"
-                                                style="object-fit: cover;">
-                                            <strong class="small"
-                                                style="font-size: 13px;">{{ $post->sharedPost->user->fullname ?? 'Người dùng gốc' }}</strong>
-                                        @endif
-                                    </div>
-
-                                    @if ($post->sharedPost->content)
-                                        <div class="small text-secondary mb-2"
-                                            style="font-size: 13px; line-height: 1.4; word-break: break-word;">
-                                            {{ $post->sharedPost->content }}
-                                        </div>
-                                    @endif
-
-                                    @if ($post->sharedPost->media && $post->sharedPost->media->count() > 0)
-                                        @if ($post->sharedPost->media->count() == 1)
-                                            <div class="row mt-2 g-0">
-                                                <div class="col-12">
-                                                    <div
-                                                        style="padding-top: 60%; position: relative; overflow: hidden; border-radius: 6px;">
-                                                        <img src="{{ asset($post->sharedPost->media->first()->media_url) }}"
-                                                            class="position-absolute top-0 start-0 w-100 h-100"
-                                                            style="object-fit: cover;">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @else
-                                            <div class="row g-1 mt-2">
-                                                @foreach ($post->sharedPost->media->take(4) as $innerIndex => $media)
-                                                    <div class="col-3 position-relative">
-                                                        <div
-                                                            style="padding-top: 100%; position: relative; overflow: hidden; border-radius: 4px;">
-                                                            <img src="{{ asset($media->media_url) }}"
-                                                                class="position-absolute top-0 start-0 w-100 h-100"
-                                                                style="object-fit: cover;">
-
-                                                            @if ($loop->index == 3 && $post->sharedPost->media->count() > 4)
-                                                                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold small"
-                                                                    style="background: rgba(0,0,0,0.5);">
-                                                                    +{{ $post->sharedPost->media->count() - 4 }}
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        @endif
+                                <div class="d-flex align-items-center mb-2">
+                                    @if ($post->sharedPost->is_anonymous)
+                                    <img src="{{ asset('img/user/user.jpg') }}"
+                                        class="rounded-circle me-2" width="24" height="24"
+                                        style="object-fit: cover;" alt="Ẩn danh">
+                                    <strong class="small text-dark" style="font-size: 13px;">Người dùng ẩn
+                                        danh 🕵️</strong>
+                                    @else
+                                    <img src="{{ $post->sharedPost->user->avatar_url ? asset($post->sharedPost->user->avatar_url) : 'https://i.pravatar.cc/40?u=' . $post->sharedPost->user_id }}"
+                                        class="rounded-circle me-2" width="24" height="24"
+                                        style="object-fit: cover;">
+                                    <strong class="small"
+                                        style="font-size: 13px;">{{ $post->sharedPost->user->fullname ?? 'Người dùng gốc' }}</strong>
                                     @endif
                                 </div>
+
+                                @if ($post->sharedPost->content)
+                                <div class="small text-secondary mb-2"
+                                    style="font-size: 13px; line-height: 1.4; word-break: break-word;">
+                                    {{ $post->sharedPost->content }}
+                                </div>
+                                @endif
+
+                                @if ($post->sharedPost->media && $post->sharedPost->media->count() > 0)
+                                @if ($post->sharedPost->media->count() == 1)
+                                <div class="row mt-2 g-0">
+                                    <div class="col-12">
+                                        <div
+                                            style="padding-top: 60%; position: relative; overflow: hidden; border-radius: 6px;">
+                                            <img src="{{ asset($post->sharedPost->media->first()->media_url) }}"
+                                                class="position-absolute top-0 start-0 w-100 h-100"
+                                                style="object-fit: cover;">
+                                        </div>
+                                    </div>
+                                </div>
+                                @else
+                                <div class="row g-1 mt-2">
+                                    @foreach ($post->sharedPost->media->take(4) as $innerIndex => $media)
+                                    <div class="col-3 position-relative">
+                                        <div
+                                            style="padding-top: 100%; position: relative; overflow: hidden; border-radius: 4px;">
+                                            <img src="{{ asset($media->media_url) }}"
+                                                class="position-absolute top-0 start-0 w-100 h-100"
+                                                style="object-fit: cover;">
+
+                                            @if ($loop->index == 3 && $post->sharedPost->media->count() > 4)
+                                            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold small"
+                                                style="background: rgba(0,0,0,0.5);">
+                                                +{{ $post->sharedPost->media->count() - 4 }}
+                                            </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                @endif
+                                @endif
+                            </div>
                             @endif
                         </div>
                         <hr>
@@ -245,68 +245,68 @@ $hasMedia = $displayMedia->count() > 0;
                         {{-- DANH SÁCH BÌNH LUẬN --}}
                         <div class="danhmuc-comment-{{ $post->id }}">
                             @foreach ($post->comments as $comment)
-                                <div class="d-flex mb-3 justify-content-between align-items-start small">
-                                    <div class="d-flex" style="flex: 1; max-width: 85%;">
+                            <div class="d-flex mb-3 justify-content-between align-items-start small">
+                                <div class="d-flex" style="flex: 1; max-width: 85%;">
+                                    @if($comment->is_anonymous)
+                                    <img src="{{ asset('img/user/user.jpg') }}"
+                                        class="rounded-circle me-2" width="32" height="32"
+                                        style="object-fit: cover;">
+                                    @else
+                                    <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://i.pravatar.cc/40?u=' . $comment->user_id }}"
+                                        class="rounded-circle me-2" width="32" height="32"
+                                        style="object-fit: cover;">
+                                    @endif
+                                    <div style="flex: 1;">
                                         @if($comment->is_anonymous)
-                                            <img src="{{ asset('img/user/user.jpg') }}"
-                                                class="rounded-circle me-2" width="32" height="32"
-                                                style="object-fit: cover;">
+                                        <strong>Ẩn danh</strong>
                                         @else
-                                            <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://i.pravatar.cc/40?u=' . $comment->user_id }}"
-                                                class="rounded-circle me-2" width="32" height="32"
-                                                style="object-fit: cover;">
+                                        <strong>{{ $comment->user->fullname ?? 'Người dùng' }}</strong>
                                         @endif
-                                        <div style="flex: 1;">
-                                            @if($comment->is_anonymous)
-                                                <strong>Ẩn danh</strong>
-                                            @else
-                                                <strong>{{ $comment->user->fullname ?? 'Người dùng' }}</strong>
-                                            @endif
 
-                                            {{-- BỌC NỘI DUNG VĂN BẢN ĐỂ SỬA TRỰC TIẾP --}}
-                                            <div id="comment-text-{{ $comment->id }}"
-                                                style="word-break: break-word; margin-top: 2px;">
-                                                {{ $comment->content }}
-                                            </div>
+                                        {{-- BỌC NỘI DUNG VĂN BẢN ĐỂ SỬA TRỰC TIẾP --}}
+                                        <div id="comment-text-{{ $comment->id }}"
+                                            style="word-break: break-word; margin-top: 2px;">
+                                            {{ $comment->content }}
+                                        </div>
 
-                                            <div class="text-muted" style="font-size: 11px; margin-top: 2px;">
-                                                {{ $comment->created_at->diffForHumans() }}
-                                            </div>
+                                        <div class="text-muted" style="font-size: 11px; margin-top: 2px;">
+                                            {{ $comment->created_at->diffForHumans() }}
                                         </div>
                                     </div>
-
-                                    {{-- DROPDOWN MENU BA CHẤM MỚI --}}
-                                    @if (auth()->id() == $comment->user_id || auth()->id() == $post->user_id)
-                                        <div class="dropdown">
-                                            <button class="btn btn-link text-muted p-0 border-0 m-0 lh-1 shadow-none"
-                                                type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                                                style="text-decoration: none; font-size: 13px;">
-                                                •••
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm"
-                                                style="min-width: 100px; padding: 4px 0; border-radius: 6px; border: 1px solid #e4e6eb;">
-                                                @if (auth()->id() == $comment->user_id)
-                                                    <li>
-                                                        <button type="button"
-                                                            class="dropdown-item d-flex align-items-center py-1 px-3"
-                                                            onclick="triggerEditComment({{ $comment->id }}, '{{ addslashes($comment->content) }}', '{{ $comment->updated_at }}')"
-                                                            style="font-size: 13px; gap: 6px;">
-                                                            Sửa
-                                                        </button>
-                                                    </li>
-                                                @endif
-                                                <li>
-                                                    <button type="button"
-                                                        class="btn-trigger-delete-comment dropdown-item d-flex align-items-center text-danger py-1 px-3"
-                                                        data-url="{{ route('comments.destroy', $comment->id) }}"
-                                                        style="font-size: 13px; gap: 6px;">
-                                                        Xóa
-                                                    </button>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    @endif
                                 </div>
+
+                                {{-- DROPDOWN MENU BA CHẤM MỚI --}}
+                                @if (auth()->id() == $comment->user_id || auth()->id() == $post->user_id)
+                                <div class="dropdown">
+                                    <button class="btn btn-link text-muted p-0 border-0 m-0 lh-1 shadow-none"
+                                        type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                        style="text-decoration: none; font-size: 13px;">
+                                        •••
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm"
+                                        style="min-width: 100px; padding: 4px 0; border-radius: 6px; border: 1px solid #e4e6eb;">
+                                        @if (auth()->id() == $comment->user_id)
+                                        <li>
+                                            <button type="button"
+                                                class="dropdown-item d-flex align-items-center py-1 px-3"
+                                                onclick="triggerEditComment({{ $comment->id }}, '{{ addslashes($comment->content) }}', '{{ $comment->updated_at }}')"
+                                                style="font-size: 13px; gap: 6px;">
+                                                Sửa
+                                            </button>
+                                        </li>
+                                        @endif
+                                        <li>
+                                            <button type="button"
+                                                class="btn-trigger-delete-comment dropdown-item d-flex align-items-center text-danger py-1 px-3"
+                                                data-url="{{ route('comments.destroy', $comment->id) }}"
+                                                style="font-size: 13px; gap: 6px;">
+                                                Xóa
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                @endif
+                            </div>
                             @endforeach
                         </div>
                     </div> {{-- ĐÓNG KHOANG CHỨA BÌNH LUẬN CHUẨN --}}
@@ -314,20 +314,20 @@ $hasMedia = $displayMedia->count() > 0;
                     {{-- KHU VỰC FORM SUBMIT BÌNH LUẬN (BỊ CỐ ĐỊNH Ở ĐÁY) --}}
                     <div class="border-top p-3 bg-white">
                         @if (Str::contains($post->content, '[#LOCK_COMMENT#]'))
-                            <div class="text-muted text-center small py-2 w-100">
-                                🔒 Tính năng bình luận đã bị đóng cho bài viết này.
-                            </div>
+                        <div class="text-muted text-center small py-2 w-100">
+                            🔒 Tính năng bình luận đã bị đóng cho bài viết này.
+                        </div>
                         @else
-                            <form action="{{ route('comments.store', $post->id) }}" method="POST"
-                                class="d-flex align-items-center ajax-form" data-id="{{ $post->id }}">
-                                @csrf
-                                <input type="text" name="content"
-                                    class="form-control border-0 shadow-none p-0 comment-input"
-                                    placeholder="Thêm bình luận..." style="font-size: 14px;" required
-                                    autocomplete="off">
-                                <button type="submit"
-                                    class="btn text-primary fw-bold shadow-none p-0 ms-2">Đăng</button>
-                            </form>
+                        <form action="{{ route('comments.store', $post->id) }}" method="POST"
+                            class="d-flex align-items-center ajax-form" data-id="{{ $post->id }}">
+                            @csrf
+                            <input type="text" name="content"
+                                class="form-control border-0 shadow-none p-0 comment-input"
+                                placeholder="Thêm bình luận..." style="font-size: 14px;" required
+                                autocomplete="off">
+                            <button type="submit"
+                                class="btn text-primary fw-bold shadow-none p-0 ms-2 ">Đăng</button>
+                        </form>
                         @endif
                     </div>
 
@@ -351,34 +351,34 @@ $hasMedia = $displayMedia->count() > 0;
 
             @if ($post->media && $post->media->count())
 
-                <div id="carousel{{ $post->id }}" class="carousel slide h-100" data-bs-ride="false">
+            <div id="carousel{{ $post->id }}" class="carousel slide h-100" data-bs-ride="false">
 
-                    {{-- images --}}
-                    <div class="carousel-inner h-100">
-                        @foreach ($post->media as $index => $item)
-                            <div class="carousel-item h-100 {{ $index == 0 ? 'active' : '' }}">
-                                <div class="d-flex justify-content-center align-items-center h-100">
-                                    <img src="{{ asset($item->media_url) }}" class="preview-image" alt="preview"
-                                        style="max-width: 100%; max-height: 100%; object-fit: contain;">
-                                </div>
-                            </div>
-                        @endforeach
+                {{-- images --}}
+                <div class="carousel-inner h-100">
+                    @foreach ($post->media as $index => $item)
+                    <div class="carousel-item h-100 {{ $index == 0 ? 'active' : '' }}">
+                        <div class="d-flex justify-content-center align-items-center h-100">
+                            <img src="{{ asset($item->media_url) }}" class="preview-image" alt="preview"
+                                style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                        </div>
                     </div>
-
-                    {{-- arrows --}}
-                    @if ($post->media->count() > 1)
-                        <button class="carousel-control-prev" type="button"
-                            data-bs-target="#carousel{{ $post->id }}" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon"></span>
-                        </button>
-
-                        <button class="carousel-control-next" type="button"
-                            data-bs-target="#carousel{{ $post->id }}" data-bs-slide="next">
-                            <span class="carousel-control-next-icon"></span>
-                        </button>
-                    @endif
-
+                    @endforeach
                 </div>
+
+                {{-- arrows --}}
+                @if ($post->media->count() > 1)
+                <button class="carousel-control-prev" type="button"
+                    data-bs-target="#carousel{{ $post->id }}" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+
+                <button class="carousel-control-next" type="button"
+                    data-bs-target="#carousel{{ $post->id }}" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+                @endif
+
+            </div>
             @endif
 
         </div>
@@ -714,18 +714,51 @@ $hasMedia = $displayMedia->count() > 0;
     // ==========================================
     // 4. CÁC EVENT KHÁC (DOM CONTENT LOADED / UPDATE POST)
     // ==========================================
-    document.addEventListener('DOMContentLoaded', function() {
-        $(document).on('click', '[data-bs-target^="#instagramModal"]', function() {
-            var currentModal = $(this).closest('.modal');
-            if (currentModal.length) {
-                var modalInstance = bootstrap.Modal.getInstance(currentModal[0]);
-                if (modalInstance) {
-                    modalInstance.hide();
-                }
-            }
-        });
+    document.addEventListener('click', function(e) {
+        const sharedCard = e.target.closest('.shared-post-card');
+        if (!sharedCard) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const currentModalEl = sharedCard.closest('.modal');
+        const targetModalSelector = sharedCard.dataset.targetModal;
+        const targetModalEl = document.querySelector(targetModalSelector);
+
+        if (!targetModalEl) return;
+
+        if (currentModalEl) {
+            const currentModal = bootstrap.Modal.getOrCreateInstance(currentModalEl);
+
+            currentModalEl.addEventListener('hidden.bs.modal', function openTargetModal() {
+                const targetModal = bootstrap.Modal.getOrCreateInstance(targetModalEl);
+                targetModal.show();
+
+                currentModalEl.removeEventListener('hidden.bs.modal', openTargetModal);
+            });
+
+            currentModal.hide();
+        } else {
+            const targetModal = bootstrap.Modal.getOrCreateInstance(targetModalEl);
+            targetModal.show();
+        }
     });
 
+    document.addEventListener('hidden.bs.modal', function() {
+        setTimeout(function() {
+            const stillOpenModal = document.querySelector('.modal.show');
+
+            if (!stillOpenModal) {
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('padding-right');
+
+                document.querySelectorAll('.modal-backdrop').forEach(function(backdrop) {
+                    backdrop.remove();
+                });
+            }
+        }, 200);
+    });
     document.addEventListener("DOMContentLoaded", function() {
         const actionForms = document.querySelectorAll("form[action*='posts']");
         const reloadModalEl = document.getElementById('reloadPageModal');
